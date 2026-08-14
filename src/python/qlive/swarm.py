@@ -206,13 +206,21 @@ class DeliveryTree:
     def find_parent(self, peer: Peer) -> Optional[Peer]:
         """Find the best parent for a peer in the tree.
 
-        Selects the shallowest node with available capacity.
+        Selects the shallowest node with available capacity. Only the
+        broadcaster and already-attached peers (those with a parent) are
+        eligible — unattached peers sitting in the peer map (e.g. mesh
+        viewers) must never become tree parents.
         """
         best: Optional[Peer] = None
         best_depth = self.max_depth + 1
 
         for candidate in self._peers.values():
             if not candidate.is_connected:
+                continue
+            # Skip unattached peers (mesh viewers): they have no parent and
+            # tree_depth == 0, which would otherwise make them look like the
+            # broadcaster and flatten the tree.
+            if candidate.peer_id != self.broadcaster_id and candidate.parent_id is None:
                 continue
             if not candidate.can_accept_children(self.max_fanout):
                 continue

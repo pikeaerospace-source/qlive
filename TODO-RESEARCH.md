@@ -42,11 +42,11 @@ This document tracks research items that need investigation before or during imp
 - [ ] **Retransmission timing:** Tune timeout and retry parameters
 
 ### Benchmarking
-- [ ] Create benchmark harness for chunk delivery
-- [ ] Measure end-to-end latency at different scales
-- [ ] Measure bandwidth overhead of signing/verification
-- [ ] Measure memory usage of sliding-window buffer
-- [ ] Measure CPU usage of chunk processing
+- [x] Create benchmark harness for chunk delivery → `src/python/qlive/benchmarks/`
+- [~] Measure end-to-end latency at different scales (in-memory model done — `pipeline_bench.py`; real-network harness pending)
+- [x] Measure bandwidth overhead of signing/verification → `chunk_bench.py`
+- [x] Measure memory usage of sliding-window buffer → `buffer_bench.py`
+- [x] Measure CPU usage of chunk processing → `chunk_bench.py`
 
 ---
 

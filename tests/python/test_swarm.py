@@ -179,6 +179,24 @@ class TestDeliveryTree:
         assert tree.attach(new_peer) is True
         assert new_peer.tree_depth == 2
 
+    def test_attach_skips_unattached_peers(self):
+        # Regression: unattached peers (mesh viewers) sit in the peer map
+        # with tree_depth == 0 and no parent, and must never become parents.
+        tree = DeliveryTree("broadcaster")
+        viewer = make_peer("viewer-1")
+        tree.add_peer(viewer)  # unattached, tree_depth == 0
+
+        # Fill the broadcaster's fanout with real tree nodes.
+        for i in range(DEFAULT_TREE_FANOUT):
+            tree.attach(make_peer(f"peer-{i}"))
+
+        # The next peer must attach to a depth-1 tree node, not the viewer.
+        new_peer = make_peer("new-peer")
+        assert tree.attach(new_peer) is True
+        assert new_peer.tree_depth == 2
+        assert new_peer.parent_id != "viewer-1"
+        assert viewer.children == []
+
     def test_attach_no_parent_available(self):
         tree = DeliveryTree("broadcaster", max_fanout=1, max_depth=1)
         tree.attach(make_peer("peer-1"))

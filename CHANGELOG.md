@@ -146,6 +146,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Buffer health monitoring and stall recovery
   - Adaptive bitrate control
 - `tests/python/test_viewer.py` — 17 tests covering connection, chunk reception, gap handling, retransmission, and buffer health (98% coverage on viewer module)
+- `qlive/benchmarks/` — local, offline benchmark framework (no network/QDN/FFmpeg required)
+  - `runner.py` — timing primitives (`best_time`) and result reporting (`Result`, `format_results`)
+  - `chunk_bench.py` — chunk overhead ratio and sign/verify/hash/serialize throughput
+  - `buffer_bench.py` — buffer memory footprint and add/evict/lookup throughput
+  - `encryption_bench.py` — AES-256-GCM bulk and per-chunk throughput
+  - `swarm_bench.py` — tree/mesh construction scaling, fanout, churn, node-removal reattachment
+  - `retransmit_bench.py` — retransmission request/handle/timeout/recovery throughput
+  - `incentives_bench.py` — tit-for-tat accounting and classification throughput
+  - `proof_bench.py` — proof-of-relay receipt sign/verify/redeem throughput
+  - `pipeline_bench.py` — end-to-end in-memory delivery model (depth, fan-out cost, latency)
+  - CLI: `python -m qlive.benchmarks [suite ...] [--json] [--list]`
+- `tests/python/test_benchmarks.py` — smoke tests covering the benchmark runner and all suites
+
+### Fixed
+- `qlive/swarm.py` — `DeliveryTree.find_parent` no longer selects unattached peers (mesh viewers) as tree parents, which previously flattened the delivery tree to depth 1 and defeated the depth-based latency model
+- `tests/python/test_swarm.py` — regression test `test_attach_skips_unattached_peers`
 
 ---
 

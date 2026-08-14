@@ -29,6 +29,21 @@ ruff check .
 black .
 ```
 
+## Benchmarks
+
+A local, offline benchmark framework lives in `qlive/benchmarks/` — no live
+Qortal network, QDN, FFmpeg, or sockets required. It measures chunk crypto
+throughput, buffer memory, encryption, swarm scaling, retransmission,
+incentives, proof-of-relay, and the end-to-end delivery model.
+
+```bash
+python -m qlive.benchmarks            # run all suites
+python -m qlive.benchmarks --list     # list suites
+python -m qlive.benchmarks --json     # machine-readable output
+```
+
+See `qlive/benchmarks/README.md` for details.
+
 ## Dependencies
 
 - Python 3.10+
