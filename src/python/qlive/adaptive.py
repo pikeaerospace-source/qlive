@@ -34,9 +34,7 @@ class BitrateLadder:
     a bitrate from this ladder based on buffer health.
     """
 
-    bitrates: list[int] = field(
-        default_factory=lambda: [1000, 2000, 3000, 4500, 6000]
-    )
+    bitrates: list[int] = field(default_factory=lambda: [1000, 2000, 3000, 4500, 6000])
 
     def __post_init__(self) -> None:
         if not self.bitrates:

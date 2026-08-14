@@ -28,9 +28,7 @@ class IncentivesSuite(Suite):
                 manager.record_received(f"peer-{i % 100}", 900)
 
         record_s = best_time(record_many, repeat=3, number=1) / record_n
-        results.append(
-            Result("account.record", record_s * 1e6, "us", "per record_sent/received")
-        )
+        results.append(Result("account.record", record_s * 1e6, "us", "per record_sent/received"))
 
         # 2. Classification throughput across peers.
         manager = TitForTatManager()
@@ -44,9 +42,7 @@ class IncentivesSuite(Suite):
                 manager.get_contribution(f"peer-{i}")
 
         classify_s = best_time(classify_all, repeat=3, number=1) / peer_n
-        results.append(
-            Result("account.classify", classify_s * 1e6, "us", "per get_contribution")
-        )
+        results.append(Result("account.classify", classify_s * 1e6, "us", "per get_contribution"))
 
         # 3. Free-rider detection throughput.
         def detect_free_riders() -> None:
@@ -55,9 +51,7 @@ class IncentivesSuite(Suite):
 
         detect_s = best_time(detect_free_riders, repeat=3, number=1) / peer_n
         results.append(
-            Result(
-                "account.free_rider_check", detect_s * 1e6, "us", "per check_free_rider"
-            )
+            Result("account.free_rider_check", detect_s * 1e6, "us", "per check_free_rider")
         )
 
         return results

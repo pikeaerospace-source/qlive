@@ -16,10 +16,10 @@ import os
 import subprocess
 import tempfile
 import time
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import AsyncIterator, Optional
 
 from qlive.chunk import MAX_FRAGMENT_MS, MIN_FRAGMENT_MS
 
@@ -79,9 +79,7 @@ class SegmenterConfig:
 
     def __post_init__(self) -> None:
         if not (MIN_FRAGMENT_MS <= self.fragment_ms <= MAX_FRAGMENT_MS):
-            raise SegmenterError(
-                f"Fragment duration must be {MIN_FRAGMENT_MS}-{MAX_FRAGMENT_MS}ms"
-            )
+            raise SegmenterError(f"Fragment duration must be {MIN_FRAGMENT_MS}-{MAX_FRAGMENT_MS}ms")
 
 
 class Segmenter:
@@ -101,10 +99,10 @@ class Segmenter:
     def __init__(self, config: SegmenterConfig) -> None:
         self.config = config
         self.state = SegmenterState.IDLE
-        self._process: Optional[subprocess.Popen] = None
-        self._temp_dir: Optional[tempfile.TemporaryDirectory] = None
+        self._process: subprocess.Popen[str] | None = None
+        self._temp_dir: tempfile.TemporaryDirectory[str] | None = None
         self._sequence = 0
-        self._start_time: Optional[int] = None
+        self._start_time: int | None = None
 
     @property
     def sequence_id(self) -> int:
@@ -174,7 +172,7 @@ class Segmenter:
             await self.start()
 
         assert self._temp_dir is not None
-        pattern = os.path.join(self._temp_dir.name, "seg_%05d.m4s")
+        assert self._start_time is not None
         seen: set[str] = set()
 
         try:
@@ -193,8 +191,7 @@ class Segmenter:
                     yield Segment(
                         data=data,
                         sequence_id=self._sequence,
-                        timestamp=self._start_time
-                        + (self._sequence - 1) * self.config.fragment_ms,
+                        timestamp=self._start_time + (self._sequence - 1) * self.config.fragment_ms,
                         duration_ms=self.config.fragment_ms,
                     )
 
@@ -204,6 +201,7 @@ class Segmenter:
 
     def _build_command(self) -> list[str]:
         """Build the FFmpeg command line."""
+        assert self._temp_dir is not None
         cfg = self.config
         return [
             cfg.ffmpeg_path,

@@ -34,22 +34,16 @@ class RetransmitSuite(Suite):
                 manager.request(stream_id, [i], f"peer-{i % 8}")
 
         request_s = best_time(make_requests, repeat=3, number=1) / request_n
-        results.append(
-            Result("request.create", request_s * 1e6, "us", "create retransmit request")
-        )
+        results.append(Result("request.create", request_s * 1e6, "us", "create retransmit request"))
 
         # 2. Chunk handling throughput (single pending request).
         manager = RetransmissionManager()
         request = manager.request(stream_id, [1, 2, 3], "peer-1")
         manager.mark_sent(request)
         chunk = create_chunk(stream_id, 1, _CHUNK_PAYLOAD, duration=1000)
-        handle_s = best_time(
-            manager.handle_chunk, chunk, "peer-1", repeat=3, number=handle_number
-        )
+        handle_s = best_time(manager.handle_chunk, chunk, "peer-1", repeat=3, number=handle_number)
         results.append(
-            Result(
-                "handle_chunk", handle_s * 1e6, "us", "incoming chunk → pending request"
-            )
+            Result("handle_chunk", handle_s * 1e6, "us", "incoming chunk → pending request")
         )
 
         # 3. Timeout detection throughput (force-expire requests by back-dating).
@@ -62,9 +56,7 @@ class RetransmitSuite(Suite):
             manager.check_timeouts()
 
         timeout_s = best_time(check_timeouts, repeat=3, number=1) / timeout_n
-        results.append(
-            Result("timeout.check", timeout_s * 1e6, "us", "per expired request")
-        )
+        results.append(Result("timeout.check", timeout_s * 1e6, "us", "per expired request"))
 
         # 4. Full recovery cycle (request → mark_sent → receive all → complete).
         def recovery_cycle() -> bool:
@@ -80,9 +72,7 @@ class RetransmitSuite(Suite):
 
         recovery_s = best_time(recovery_cycle, repeat=3, number=recovery_number)
         results.append(
-            Result(
-                "recovery.cycle", recovery_s * 1e6, "us", "full 3-chunk recovery cycle"
-            )
+            Result("recovery.cycle", recovery_s * 1e6, "us", "full 3-chunk recovery cycle")
         )
 
         return results

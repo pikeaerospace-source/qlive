@@ -99,16 +99,12 @@ class SwarmSuite(Suite):
                 swarm.leave(peer_id)
 
         churn_s = best_time(churn, repeat=3, number=1) / churn_n
-        results.append(
-            Result("churn.join_leave", churn_s * 1e6, "us", "per join+leave cycle")
-        )
+        results.append(Result("churn.join_leave", churn_s * 1e6, "us", "per join+leave cycle"))
 
         # 4. Tree reattachment on node removal.
         swarm = build_swarm("broadcaster", reattach_n)
         # Drop the first non-broadcaster tree node and reattach its children.
-        tree_node_id = next(
-            pid for pid, p in swarm.tree.peers.items() if p.is_tree_node
-        )
+        tree_node_id = next(pid for pid, p in swarm.tree.peers.items() if p.is_tree_node)
 
         def drop() -> None:
             swarm.tree.remove_peer(tree_node_id)

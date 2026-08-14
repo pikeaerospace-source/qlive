@@ -61,7 +61,7 @@ class BandwidthReceipt:
             + self.timestamp.to_bytes(8, "big")
         )
 
-    def sign(self, private_key: ed25519.Ed25519PrivateKey) -> "BandwidthReceipt":
+    def sign(self, private_key: ed25519.Ed25519PrivateKey) -> BandwidthReceipt:
         """Sign the receipt with the downstream node's private key."""
         self.signature = private_key.sign(self.signing_data)
         return self
@@ -180,8 +180,7 @@ class ProofOfRelayManager:
         return sum(
             self._calculate_qort(r.bytes_relayed)
             for r in self._receipts
-            if r.relay_node_id == relay_node_id
-            and r.state == ReceiptState.REDEEMED
+            if r.relay_node_id == relay_node_id and r.state == ReceiptState.REDEEMED
         )
 
     def get_pending_earnings(self, relay_node_id: str) -> float:
@@ -189,8 +188,7 @@ class ProofOfRelayManager:
         return sum(
             self._calculate_qort(r.bytes_relayed)
             for r in self._receipts
-            if r.relay_node_id == relay_node_id
-            and r.state == ReceiptState.VERIFIED
+            if r.relay_node_id == relay_node_id and r.state == ReceiptState.VERIFIED
         )
 
     def _calculate_qort(self, bytes_relayed: int) -> float:
@@ -201,16 +199,11 @@ class ProofOfRelayManager:
     def _update_stats(self) -> None:
         """Refresh proof-of-relay statistics."""
         self._stats.total_receipts = len(self._receipts)
-        self._stats.verified = sum(
-            1 for r in self._receipts if r.state == ReceiptState.VERIFIED
-        )
-        self._stats.redeemed = sum(
-            1 for r in self._receipts if r.state == ReceiptState.REDEEMED
-        )
-        self._stats.rejected = sum(
-            1 for r in self._receipts if r.state == ReceiptState.REJECTED
-        )
+        self._stats.verified = sum(1 for r in self._receipts if r.state == ReceiptState.VERIFIED)
+        self._stats.redeemed = sum(1 for r in self._receipts if r.state == ReceiptState.REDEEMED)
+        self._stats.rejected = sum(1 for r in self._receipts if r.state == ReceiptState.REJECTED)
         self._stats.total_bytes_proven = sum(
-            r.bytes_relayed for r in self._receipts
+            r.bytes_relayed
+            for r in self._receipts
             if r.state in (ReceiptState.VERIFIED, ReceiptState.REDEEMED)
         )

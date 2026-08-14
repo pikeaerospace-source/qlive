@@ -17,7 +17,6 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 from qlive.adaptive import AdaptiveBitrateController, BitrateAction
 from qlive.buffer import BufferState, SlidingWindowBuffer
@@ -56,7 +55,7 @@ class ViewerStats:
     retransmissions_recovered: int = 0
     buffer_state: BufferState = BufferState.FILLING
     current_bitrate: int = 0
-    started_at: Optional[int] = None
+    started_at: int | None = None
     duration_seconds: int = 0
 
 
@@ -80,9 +79,9 @@ class Viewer:
         self._buffer = SlidingWindowBuffer(window_seconds=buffer_seconds)
         self._retransmit = RetransmissionManager()
         self._adaptive = AdaptiveBitrateController()
-        self._swarm: Optional[SwarmManager] = None
-        self._registry: Optional[StreamRegistry] = None
-        self._stream_id: Optional[bytes] = None
+        self._swarm: SwarmManager | None = None
+        self._registry: StreamRegistry | None = None
+        self._stream_id: bytes | None = None
         self._stats = ViewerStats()
         self._last_sequence = 0
 
@@ -93,7 +92,7 @@ class Viewer:
         return self._stats
 
     @property
-    def stream_id(self) -> Optional[bytes]:
+    def stream_id(self) -> bytes | None:
         """The active stream ID (None until connected)."""
         return self._stream_id
 

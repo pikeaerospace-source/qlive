@@ -22,9 +22,7 @@ DURATIONS_MS = (500, 1000, 2000)
 
 class ChunkSuite(Suite):
     name = "chunk"
-    description = (
-        "Chunk format overhead and crypto throughput (sign/verify/hash/serialize)."
-    )
+    description = "Chunk format overhead and crypto throughput (sign/verify/hash/serialize)."
 
     def run(self, quick: bool = False) -> list[Result]:
         results: list[Result] = []
@@ -56,9 +54,7 @@ class ChunkSuite(Suite):
             chunk = create_chunk(stream_id, 1, payload, duration=1000)
 
             sign_s = best_time(chunk.sign, private_key, repeat=3, number=crypto_number)
-            verify_s = best_time(
-                chunk.verify, public_key, repeat=3, number=crypto_number
-            )
+            verify_s = best_time(chunk.verify, public_key, repeat=3, number=crypto_number)
             hash_s = best_time(hashlib.sha256, payload, repeat=3, number=crypto_number)
 
             results.append(
@@ -69,12 +65,8 @@ class ChunkSuite(Suite):
                     "Ed25519 over header+payload",
                 )
             )
-            results.append(
-                Result(f"verify.{bitrate}kbps", verify_s * 1e6, "us", "Ed25519")
-            )
-            results.append(
-                Result(f"sha256.{bitrate}kbps", hash_s * 1e6, "us", "payload hash only")
-            )
+            results.append(Result(f"verify.{bitrate}kbps", verify_s * 1e6, "us", "Ed25519"))
+            results.append(Result(f"sha256.{bitrate}kbps", hash_s * 1e6, "us", "payload hash only"))
 
         # 3. Serialize/deserialize round-trip throughput (1s @ 4.5 Mbps).
         payload = os.urandom(int(4500 * 1000 / 8))

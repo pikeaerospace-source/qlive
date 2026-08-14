@@ -109,10 +109,7 @@ def format_results(results: list[Result]) -> str:
     unit_width = max(len(r.unit) for r in results) or 1
 
     lines = []
-    header = (
-        f"{'name':<{name_width}}  {'value':>{value_width}}  "
-        f"{'unit':<{unit_width}}  note"
-    )
+    header = f"{'name':<{name_width}}  {'value':>{value_width}}  " f"{'unit':<{unit_width}}  note"
     lines.append(header)
     lines.append("-" * len(header))
     for r in results:

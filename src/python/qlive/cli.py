@@ -15,7 +15,10 @@ def load_private_key(key_path: str) -> ed25519.Ed25519PrivateKey:
     """Load an Ed25519 private key from a PEM file."""
     try:
         with open(key_path, "rb") as f:
-            return serialization.load_pem_private_key(f.read(), password=None)
+            key = serialization.load_pem_private_key(f.read(), password=None)
+        if not isinstance(key, ed25519.Ed25519PrivateKey):
+            raise TypeError("Key is not an Ed25519 private key")
+        return key
     except FileNotFoundError:
         print(f"Error: Key file not found: {key_path}", file=sys.stderr)
         sys.exit(1)
@@ -110,12 +113,8 @@ def main() -> int:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Broadcast command
-    broadcast_parser = subparsers.add_parser(
-        "broadcast", help="Start a live broadcast"
-    )
-    broadcast_parser.add_argument(
-        "--name", required=True, help="Qortal Name to broadcast under"
-    )
+    broadcast_parser = subparsers.add_parser("broadcast", help="Start a live broadcast")
+    broadcast_parser.add_argument("--name", required=True, help="Qortal Name to broadcast under")
     broadcast_parser.add_argument(
         "--source", required=True, help="Video source (RTMP URL, device, or file)"
     )
@@ -123,7 +122,9 @@ def main() -> int:
     broadcast_parser.add_argument("--title", help="Stream title (defaults to name)")
     broadcast_parser.add_argument("--description", help="Stream description")
     broadcast_parser.add_argument("--category", help="Stream category")
-    broadcast_parser.add_argument("--fragment-ms", type=int, default=1000, help="Fragment duration in ms")
+    broadcast_parser.add_argument(
+        "--fragment-ms", type=int, default=1000, help="Fragment duration in ms"
+    )
     broadcast_parser.add_argument("--video-bitrate", default="4500k", help="Video bitrate")
     broadcast_parser.add_argument("--audio-bitrate", default="128k", help="Audio bitrate")
     broadcast_parser.add_argument("--fps", type=int, default=30, help="Frames per second")

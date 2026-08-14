@@ -38,9 +38,7 @@ class BufferSuite(Suite):
                 base_ts = int(time.time() * 1000)
                 for seq in range(1, window + 2):  # +1 forces one eviction
                     buffer.add(
-                        create_chunk(
-                            stream_id, seq, payload, timestamp=base_ts + seq * 1000
-                        )
+                        create_chunk(stream_id, seq, payload, timestamp=base_ts + seq * 1000)
                     )
                 stats = buffer.stats
                 results.append(
@@ -60,9 +58,7 @@ class BufferSuite(Suite):
             base_ts = int(time.time() * 1000)
             for seq in range(1, add_count + 1):
                 buffer.add(
-                    create_chunk(
-                        stream_id, seq, small_payload, timestamp=base_ts + seq * 1000
-                    )
+                    create_chunk(stream_id, seq, small_payload, timestamp=base_ts + seq * 1000)
                 )
 
         add_s = best_time(add_many, repeat=3, number=1) / add_count
@@ -79,11 +75,7 @@ class BufferSuite(Suite):
         buffer = SlidingWindowBuffer(window_seconds=30)
         base_ts = int(time.time() * 1000)
         for seq in range(1, 61):
-            buffer.add(
-                create_chunk(
-                    stream_id, seq, small_payload, timestamp=base_ts + seq * 1000
-                )
-            )
+            buffer.add(create_chunk(stream_id, seq, small_payload, timestamp=base_ts + seq * 1000))
 
         def lookup() -> None:
             buffer.get(30)

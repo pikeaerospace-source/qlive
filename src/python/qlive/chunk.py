@@ -21,7 +21,6 @@ import hashlib
 import struct
 import time
 from dataclasses import dataclass
-from typing import Optional
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
@@ -88,7 +87,7 @@ class Chunk:
         """Data covered by the signature: header + payload."""
         return self.header + self.payload
 
-    def sign(self, private_key: ed25519.Ed25519PrivateKey) -> "Chunk":
+    def sign(self, private_key: ed25519.Ed25519PrivateKey) -> Chunk:
         """Sign this chunk with the broadcaster's Ed25519 private key."""
         self.signature = private_key.sign(self.signing_data)
         return self
@@ -110,12 +109,10 @@ class Chunk:
         return self.header + self.signature + self.payload
 
     @classmethod
-    def deserialize(cls, data: bytes) -> "Chunk":
+    def deserialize(cls, data: bytes) -> Chunk:
         """Deserialize a chunk from bytes."""
         if len(data) < HEADER_SIZE:
-            raise ChunkFormatError(
-                f"Chunk too short: {len(data)} bytes, minimum {HEADER_SIZE}"
-            )
+            raise ChunkFormatError(f"Chunk too short: {len(data)} bytes, minimum {HEADER_SIZE}")
 
         # Parse header fields
         magic = data[0:4]
@@ -176,7 +173,7 @@ def create_chunk(
     sequence_id: int,
     payload: bytes,
     duration: int = DEFAULT_FRAGMENT_MS,
-    timestamp: Optional[int] = None,
+    timestamp: int | None = None,
 ) -> Chunk:
     """Create a new unsigned chunk."""
     if len(stream_id) != HASH_BYTES:
@@ -197,9 +194,15 @@ def create_chunk(
 
 def load_private_key(pem_data: bytes) -> ed25519.Ed25519PrivateKey:
     """Load an Ed25519 private key from PEM data."""
-    return serialization.load_pem_private_key(pem_data, password=None)
+    key = serialization.load_pem_private_key(pem_data, password=None)
+    if not isinstance(key, ed25519.Ed25519PrivateKey):
+        raise TypeError("Key is not an Ed25519 private key")
+    return key
 
 
 def load_public_key(pem_data: bytes) -> ed25519.Ed25519PublicKey:
     """Load an Ed25519 public key from PEM data."""
-    return serialization.load_pem_public_key(pem_data)
+    key = serialization.load_pem_public_key(pem_data)
+    if not isinstance(key, ed25519.Ed25519PublicKey):
+        raise TypeError("Key is not an Ed25519 public key")
+    return key

@@ -15,7 +15,7 @@ import json
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import Any
 
 from qlive.chunk import Chunk
 
@@ -54,9 +54,7 @@ class QDNDataChunk:
     def hash(self) -> bytes:
         """SHA-256 hash of this chunk (data + previous hash + index)."""
         return hashlib.sha256(
-            self.index.to_bytes(8, "big")
-            + self.previous_hash
-            + self.data
+            self.index.to_bytes(8, "big") + self.previous_hash + self.data
         ).digest()
 
     @property
@@ -85,7 +83,7 @@ class QTubeManifest:
     fps: int = 30
     is_partial: bool = False
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to a dictionary for JSON serialization."""
         return {
             "type": "qtube-video",
@@ -157,7 +155,7 @@ class ArchivalPipeline:
         self._previous_hash = b"\x00" * 32
         self._total_duration = 0
         self._stats = ArchiveStats()
-        self._manifest: Optional[QTubeManifest] = None
+        self._manifest: QTubeManifest | None = None
 
     @property
     def stats(self) -> ArchiveStats:
@@ -166,7 +164,7 @@ class ArchivalPipeline:
         return self._stats
 
     @property
-    def manifest(self) -> Optional[QTubeManifest]:
+    def manifest(self) -> QTubeManifest | None:
         """The generated Q-Tube manifest (None until stream ends)."""
         return self._manifest
 

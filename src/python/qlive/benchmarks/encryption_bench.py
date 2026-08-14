@@ -34,18 +34,12 @@ class EncryptionSuite(Suite):
             nonce = os.urandom(12)
             encrypt_s = best_time(aesgcm.encrypt, nonce, data, None, repeat=3, number=1)
             ciphertext = aesgcm.encrypt(nonce, data, None)
-            decrypt_s = best_time(
-                aesgcm.decrypt, nonce, ciphertext, None, repeat=3, number=1
+            decrypt_s = best_time(aesgcm.decrypt, nonce, ciphertext, None, repeat=3, number=1)
+            results.append(
+                Result(f"encrypt.{size_mb}MB", size_mb / encrypt_s, "MB/s", "AES-256-GCM")
             )
             results.append(
-                Result(
-                    f"encrypt.{size_mb}MB", size_mb / encrypt_s, "MB/s", "AES-256-GCM"
-                )
-            )
-            results.append(
-                Result(
-                    f"decrypt.{size_mb}MB", size_mb / decrypt_s, "MB/s", "AES-256-GCM"
-                )
+                Result(f"decrypt.{size_mb}MB", size_mb / decrypt_s, "MB/s", "AES-256-GCM")
             )
 
         # 2. Per-chunk encryption cost at streaming chunk sizes (1s fragments).

@@ -50,9 +50,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Suite names to run (default: all). See --list.",
     )
     parser.add_argument("--list", action="store_true", help="List available suites")
-    parser.add_argument(
-        "--json", action="store_true", help="Emit machine-readable JSON"
-    )
+    parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
     parser.add_argument(
         "--quick",
         action="store_true",
@@ -71,18 +69,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Available: {', '.join(SUITES)}", file=sys.stderr)
         return 2
 
-    selected = (
-        [SUITES[name] for name in args.suites] if args.suites else list(SUITES.values())
-    )
+    selected = [SUITES[name] for name in args.suites] if args.suites else list(SUITES.values())
 
     outputs: list[tuple[str, str, list[runner.Result]]] = []
     for suite in selected:
         outputs.append((suite.name, suite.description, suite.run(quick=args.quick)))
 
     if args.json:
-        payload = {
-            name: [r.as_dict() for r in results] for name, _desc, results in outputs
-        }
+        payload = {name: [r.as_dict() for r in results] for name, _desc, results in outputs}
         print(json.dumps(payload, indent=2))
         return 0
 

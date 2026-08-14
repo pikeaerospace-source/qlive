@@ -15,7 +15,6 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 # Swarm constants (from docs/protocol.md section 10)
 MAX_TREE_DEPTH = 5
@@ -87,7 +86,7 @@ class Peer:
     state: PeerState = PeerState.DISCOVERED
     health: PeerHealth = field(default_factory=PeerHealth)
     tree_depth: int = 0
-    parent_id: Optional[str] = None
+    parent_id: str | None = None
     children: list[str] = field(default_factory=list)
     mesh_peers: list[str] = field(default_factory=list)
     joined_at: int = field(default_factory=lambda: int(time.time()))
@@ -203,7 +202,7 @@ class DeliveryTree:
 
         del self._peers[peer_id]
 
-    def find_parent(self, peer: Peer) -> Optional[Peer]:
+    def find_parent(self, peer: Peer) -> Peer | None:
         """Find the best parent for a peer in the tree.
 
         Selects the shallowest node with available capacity. Only the
@@ -211,7 +210,7 @@ class DeliveryTree:
         eligible — unattached peers sitting in the peer map (e.g. mesh
         viewers) must never become tree parents.
         """
-        best: Optional[Peer] = None
+        best: Peer | None = None
         best_depth = self.max_depth + 1
 
         for candidate in self._peers.values():
@@ -393,14 +392,8 @@ class SwarmManager:
     def _update_stats(self) -> None:
         """Refresh swarm statistics."""
         self._stats.total_peers = len(self.tree.peers)
-        self._stats.connected_peers = sum(
-            1 for p in self.tree.peers.values() if p.is_connected
-        )
-        self._stats.tree_nodes = sum(
-            1 for p in self.tree.peers.values() if p.is_tree_node
-        )
-        self._stats.viewers = sum(
-            1 for p in self.tree.peers.values() if p.role == PeerRole.VIEWER
-        )
+        self._stats.connected_peers = sum(1 for p in self.tree.peers.values() if p.is_connected)
+        self._stats.tree_nodes = sum(1 for p in self.tree.peers.values() if p.is_tree_node)
+        self._stats.viewers = sum(1 for p in self.tree.peers.values() if p.role == PeerRole.VIEWER)
         self._stats.tree_depth = self.tree.depth
         self._stats.mesh_connections = len(self._mesh)

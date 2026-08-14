@@ -8,11 +8,10 @@ fall outside the active window. The buffer never touches disk.
 
 from __future__ import annotations
 
-import time
 from collections import OrderedDict
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Iterator, Optional
 
 from qlive.chunk import Chunk
 
@@ -52,10 +51,10 @@ class BufferStats:
     total_bytes: int = 0
     window_seconds: int = DEFAULT_BUFFER_SECONDS
     state: BufferState = BufferState.FILLING
-    oldest_sequence: Optional[int] = None
-    newest_sequence: Optional[int] = None
-    oldest_timestamp: Optional[int] = None
-    newest_timestamp: Optional[int] = None
+    oldest_sequence: int | None = None
+    newest_sequence: int | None = None
+    oldest_timestamp: int | None = None
+    newest_timestamp: int | None = None
     gaps: list[tuple[int, int]] = field(default_factory=list)
 
     @property
@@ -81,9 +80,7 @@ class SlidingWindowBuffer:
         max_memory_bytes: int = DEFAULT_MAX_MEMORY_BYTES,
     ) -> None:
         if not (MIN_BUFFER_SECONDS <= window_seconds <= MAX_BUFFER_SECONDS):
-            raise BufferError(
-                f"Window must be {MIN_BUFFER_SECONDS}-{MAX_BUFFER_SECONDS}s"
-            )
+            raise BufferError(f"Window must be {MIN_BUFFER_SECONDS}-{MAX_BUFFER_SECONDS}s")
         self.window_seconds = window_seconds
         self.max_memory_bytes = max_memory_bytes
         self._chunks: OrderedDict[int, Chunk] = OrderedDict()
@@ -131,9 +128,7 @@ class SlidingWindowBuffer:
         if self._total_bytes + len(chunk.payload) > self.max_memory_bytes:
             self._evict_oldest()
             if self._total_bytes + len(chunk.payload) > self.max_memory_bytes:
-                raise BufferFullError(
-                    f"Buffer exceeds memory limit: {self.max_memory_bytes} bytes"
-                )
+                raise BufferFullError(f"Buffer exceeds memory limit: {self.max_memory_bytes} bytes")
 
         # Add chunk
         self._chunks[chunk.sequence_id] = chunk
@@ -142,17 +137,13 @@ class SlidingWindowBuffer:
         # Evict chunks outside the window
         self._evict_expired()
 
-    def get(self, sequence_id: int) -> Optional[Chunk]:
+    def get(self, sequence_id: int) -> Chunk | None:
         """Retrieve a chunk by sequence ID, or None if not present."""
         return self._chunks.get(sequence_id)
 
     def get_range(self, start: int, end: int) -> list[Chunk]:
         """Retrieve chunks in the inclusive sequence range [start, end]."""
-        return [
-            self._chunks[seq]
-            for seq in range(start, end + 1)
-            if seq in self._chunks
-        ]
+        return [self._chunks[seq] for seq in range(start, end + 1) if seq in self._chunks]
 
     def get_missing(self, start: int, end: int) -> list[int]:
         """Return sequence IDs in [start, end] that are missing from the buffer."""

@@ -15,7 +15,7 @@ import json
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class StreamStatus(Enum):
@@ -67,7 +67,7 @@ class EncryptionInfo:
     """Encryption configuration for a stream."""
 
     enabled: bool = False
-    key_id: Optional[str] = None
+    key_id: str | None = None
 
 
 @dataclass
@@ -75,8 +75,8 @@ class ArchiveInfo:
     """Archive status for a stream."""
 
     status: str = "pending"
-    qdn_resource_id: Optional[str] = None
-    qtube_manifest_id: Optional[str] = None
+    qdn_resource_id: str | None = None
+    qtube_manifest_id: str | None = None
 
 
 @dataclass
@@ -160,7 +160,7 @@ class StreamMetadata:
         return json.dumps(self.to_dict(), indent=2)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "StreamMetadata":
+    def from_dict(cls, data: dict[str, Any]) -> StreamMetadata:
         """Create from a dictionary."""
         try:
             return cls(
@@ -193,7 +193,7 @@ class StreamMetadata:
             raise SignalingError(f"Invalid stream metadata: missing {e}") from e
 
     @classmethod
-    def from_json(cls, json_str: str) -> "StreamMetadata":
+    def from_json(cls, json_str: str) -> StreamMetadata:
         """Create from a JSON string."""
         return cls.from_dict(json.loads(json_str))
 
@@ -226,27 +226,21 @@ class StreamRegistry:
         """Remove a stream from the registry."""
         self._streams.pop(stream_id.hex(), None)
 
-    def get(self, stream_id: bytes) -> Optional[StreamMetadata]:
+    def get(self, stream_id: bytes) -> StreamMetadata | None:
         """Get a stream by ID."""
         return self._streams.get(stream_id.hex())
 
     def get_by_publisher(self, publisher: str) -> list[StreamMetadata]:
         """Get all streams by a publisher."""
-        return [
-            s for s in self._streams.values() if s.publisher == publisher
-        ]
+        return [s for s in self._streams.values() if s.publisher == publisher]
 
     def get_live(self) -> list[StreamMetadata]:
         """Get all live streams."""
-        return [
-            s for s in self._streams.values() if s.status == StreamStatus.LIVE
-        ]
+        return [s for s in self._streams.values() if s.status == StreamStatus.LIVE]
 
     def get_announced(self) -> list[StreamMetadata]:
         """Get all announced (upcoming) streams."""
-        return [
-            s for s in self._streams.values() if s.status == StreamStatus.ANNOUNCED
-        ]
+        return [s for s in self._streams.values() if s.status == StreamStatus.ANNOUNCED]
 
     def update_status(self, stream_id: bytes, status: StreamStatus) -> None:
         """Update a stream's lifecycle status."""
@@ -258,8 +252,8 @@ class StreamRegistry:
     def update_swarm(
         self,
         stream_id: bytes,
-        primary_tree: Optional[list[str]] = None,
-        mesh_peers: Optional[list[str]] = None,
+        primary_tree: list[str] | None = None,
+        mesh_peers: list[str] | None = None,
     ) -> None:
         """Update a stream's swarm peer lists."""
         stream = self.get(stream_id)
@@ -274,8 +268,8 @@ class StreamRegistry:
         self,
         stream_id: bytes,
         status: str,
-        qdn_resource_id: Optional[str] = None,
-        qtube_manifest_id: Optional[str] = None,
+        qdn_resource_id: str | None = None,
+        qtube_manifest_id: str | None = None,
     ) -> None:
         """Update a stream's archive status."""
         stream = self.get(stream_id)

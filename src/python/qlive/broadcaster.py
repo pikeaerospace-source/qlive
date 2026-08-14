@@ -14,11 +14,9 @@ The broadcaster:
 
 from __future__ import annotations
 
-import asyncio
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
@@ -74,7 +72,7 @@ class BroadcasterStats:
     chunks_distributed: int = 0
     bytes_produced: int = 0
     viewers_connected: int = 0
-    started_at: Optional[int] = None
+    started_at: int | None = None
     duration_seconds: int = 0
 
 
@@ -101,11 +99,11 @@ class Broadcaster:
         self.config = config
         self.private_key = private_key
         self.state = BroadcasterState.IDLE
-        self._segmenter: Optional[Segmenter] = None
-        self._swarm: Optional[SwarmManager] = None
-        self._registry: Optional[StreamRegistry] = None
-        self._archival: Optional[ArchivalPipeline] = None
-        self._stream_id: Optional[bytes] = None
+        self._segmenter: Segmenter | None = None
+        self._swarm: SwarmManager | None = None
+        self._registry: StreamRegistry | None = None
+        self._archival: ArchivalPipeline | None = None
+        self._stream_id: bytes | None = None
         self._stats = BroadcasterStats()
         self._sequence = 0
 
@@ -116,7 +114,7 @@ class Broadcaster:
         return self._stats
 
     @property
-    def stream_id(self) -> Optional[bytes]:
+    def stream_id(self) -> bytes | None:
         """The active stream ID (None until started)."""
         return self._stream_id
 
@@ -197,11 +195,9 @@ class Broadcaster:
         # Finalize archive
         if self._archival and self._stream_id:
             try:
-                manifest = self._archival.finalize()
+                self._archival.finalize()
                 if self._registry:
-                    self._registry.update_status(
-                        self._stream_id, StreamStatus.ARCHIVED
-                    )
+                    self._registry.update_status(self._stream_id, StreamStatus.ARCHIVED)
             except Exception:
                 # Archive may be empty if stream was too short
                 pass
@@ -235,6 +231,7 @@ class Broadcaster:
 
     def _process_segment(self, segment: Segment) -> None:
         """Process a single media segment into a signed chunk."""
+        assert self._stream_id is not None
         self._sequence += 1
 
         # Create and sign chunk

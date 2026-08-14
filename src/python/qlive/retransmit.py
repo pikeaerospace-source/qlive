@@ -14,7 +14,6 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 from qlive.chunk import Chunk
 
@@ -147,7 +146,7 @@ class RetransmissionManager:
         stream_id: bytes,
         missing_sequences: list[int],
         peer_id: str,
-        timeout_ms: Optional[int] = None,
+        timeout_ms: int | None = None,
     ) -> RetransmitRequest:
         """Create a new retransmission request for missing chunks.
 
@@ -196,12 +195,11 @@ class RetransmissionManager:
             if (
                 request.stream_id == chunk.stream_id
                 and request.peer_id == peer_id
-                and request.state
-                in (RetransmitState.PENDING, RetransmitState.IN_FLIGHT)
+                and request.state in (RetransmitState.PENDING, RetransmitState.IN_FLIGHT)
+                and request.add_chunk(chunk)
             ):
-                if request.add_chunk(chunk):
-                    self._stats.total_chunks_recovered += 1
-                    return True
+                self._stats.total_chunks_recovered += 1
+                return True
         return False
 
     def check_timeouts(self) -> list[RetransmitRequest]:
@@ -212,8 +210,7 @@ class RetransmissionManager:
         timed_out: list[RetransmitRequest] = []
         for request in self._requests.values():
             if (
-                request.state
-                in (RetransmitState.PENDING, RetransmitState.IN_FLIGHT)
+                request.state in (RetransmitState.PENDING, RetransmitState.IN_FLIGHT)
                 and request.is_expired
             ):
                 if request.attempts < request.max_attempts:
@@ -239,9 +236,7 @@ class RetransmissionManager:
         self._requests.clear()
         self._stats = RetransmitStats()
 
-    def _make_request_id(
-        self, stream_id: bytes, peer_id: str, sequences: list[int]
-    ) -> str:
+    def _make_request_id(self, stream_id: bytes, peer_id: str, sequences: list[int]) -> str:
         """Create a unique request ID."""
         seq_str = ",".join(str(s) for s in sorted(sequences))
         return f"{stream_id.hex()}:{peer_id}:{seq_str}"

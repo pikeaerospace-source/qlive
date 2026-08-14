@@ -143,9 +143,12 @@ class TitForTatManager:
             return PeerContribution.NEUTRAL
 
         # Check for inactivity timeout
-        if time.time() - account.last_activity > self.free_rider_timeout_seconds:
-            if account.bytes_received > 0 and account.bytes_sent == 0:
-                return PeerContribution.FREE_RIDER
+        if (
+            time.time() - account.last_activity > self.free_rider_timeout_seconds
+            and account.bytes_received > 0
+            and account.bytes_sent == 0
+        ):
+            return PeerContribution.FREE_RIDER
 
         ratio = account.ratio
         if ratio >= self.contributing_threshold:
@@ -194,6 +197,7 @@ class TitForTatManager:
 
         Contributing peers first, then neutral, then free-riders.
         """
+
         def sort_key(peer_id: str) -> tuple[int, float]:
             contribution = self.get_contribution(peer_id)
             if contribution == PeerContribution.CONTRIBUTING:
@@ -208,26 +212,15 @@ class TitForTatManager:
         """Refresh tit-for-tat statistics."""
         self._stats.total_peers = len(self._accounts)
         self._stats.contributing_peers = sum(
-            1 for p in self._accounts
-            if self.get_contribution(p) == PeerContribution.CONTRIBUTING
+            1 for p in self._accounts if self.get_contribution(p) == PeerContribution.CONTRIBUTING
         )
         self._stats.neutral_peers = sum(
-            1 for p in self._accounts
-            if self.get_contribution(p) == PeerContribution.NEUTRAL
+            1 for p in self._accounts if self.get_contribution(p) == PeerContribution.NEUTRAL
         )
         self._stats.free_riders = sum(
-            1 for p in self._accounts
-            if self.get_contribution(p) == PeerContribution.FREE_RIDER
+            1 for p in self._accounts if self.get_contribution(p) == PeerContribution.FREE_RIDER
         )
-        self._stats.total_bytes_sent = sum(
-            a.bytes_sent for a in self._accounts.values()
-        )
-        self._stats.total_bytes_received = sum(
-            a.bytes_received for a in self._accounts.values()
-        )
-        self._stats.total_chunks_sent = sum(
-            a.chunks_sent for a in self._accounts.values()
-        )
-        self._stats.total_chunks_received = sum(
-            a.chunks_received for a in self._accounts.values()
-        )
+        self._stats.total_bytes_sent = sum(a.bytes_sent for a in self._accounts.values())
+        self._stats.total_bytes_received = sum(a.bytes_received for a in self._accounts.values())
+        self._stats.total_chunks_sent = sum(a.chunks_sent for a in self._accounts.values())
+        self._stats.total_chunks_received = sum(a.chunks_received for a in self._accounts.values())
