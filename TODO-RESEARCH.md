@@ -67,16 +67,16 @@ This document tracks research items that need investigation before or during imp
 ## Security Research
 
 - [~] **Encryption model:** Per-stream symmetric keys vs. per-viewer asymmetric keys? Key rotation strategy? → [docs/ENCRYPTION-MODEL.md](docs/ENCRYPTION-MODEL.md)
-- [ ] **Key distribution:** Design secure key distribution for private streams
-- [ ] **Sybil resistance:** Evaluate Qortal Name-based identity for sybil resistance
-- [ ] **DoS resilience:** Design rate limiting and abuse prevention
-- [ ] **Receipt forgery:** Evaluate proof-of-relay receipt forgery resistance
+- [x] **Key distribution:** Design secure key distribution for private streams → [docs/SECURITY-MODEL.md](docs/SECURITY-MODEL.md)
+- [x] **Sybil resistance:** Evaluate Qortal Name-based identity for sybil resistance → [docs/SECURITY-MODEL.md](docs/SECURITY-MODEL.md)
+- [x] **DoS resilience:** Design rate limiting and abuse prevention → [docs/SECURITY-MODEL.md](docs/SECURITY-MODEL.md)
+- [x] **Receipt forgery:** Evaluate proof-of-relay receipt forgery resistance → [docs/SECURITY-MODEL.md](docs/SECURITY-MODEL.md)
 
 ### Threat Modeling
-- [ ] Document threat model for live streaming
-- [ ] Analyze chunk injection attack vectors
-- [ ] Analyze swarm manipulation attacks
-- [ ] Analyze economic attacks on incentives
+- [x] Document threat model for live streaming → [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)
+- [x] Analyze chunk injection attack vectors → [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)
+- [x] Analyze swarm manipulation attacks → [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)
+- [x] Analyze economic attacks on incentives → [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)
 
 ---
 
