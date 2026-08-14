@@ -39,7 +39,7 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 ## Phase 1 — Core Transport
 
 ### Ephemeral Chunking Engine
-- [ ] Implement CMAF/fMP4 segmenter (FFmpeg wrapper or native)
+- [x] Implement CMAF/fMP4 segmenter (FFmpeg wrapper or native)
 - [x] Implement chunk signing (Qortal Name/Key pair)
 - [x] Implement chunk verification on viewer nodes
 - [ ] Implement chunk sequence tracking and gap detection

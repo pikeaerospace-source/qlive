@@ -64,6 +64,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Buffer health states (filling, healthy, stalling)
   - Fill ratio monitoring
 - `tests/python/test_buffer.py` — 24 tests covering buffer init, add, eviction, retrieval, and stats (98% coverage on buffer module)
+- `qlive/segmenter.py` — FFmpeg-based CMAF/fMP4 segmenter
+  - Configurable fragment duration (500–2000ms)
+  - Zero-latency H.264/AAC encoding
+  - Async segment streaming via `segments()` iterator
+  - Lifecycle state management (idle, starting, running, stopping, stopped, error)
+  - Graceful process termination
+- `tests/python/test_segmenter.py` — 18 tests covering config, command building, start/stop lifecycle, and segment streaming (96% coverage on segmenter module)
 
 ---
 
