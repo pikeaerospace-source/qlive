@@ -29,10 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `.github/workflows/ci.yml` — CI pipeline for Python, JavaScript, and Java
 
 ### Design
-- Security & simulation research
+- Security, simulation & economics research
   - `docs/SWARM-SIMULATION.md` — discrete-event swarm simulation findings (fanout, mesh, retransmit, buffer, churn, free-riders)
   - `docs/THREAT-MODEL.md` — STRIDE threat model and attack vectors (chunk injection, swarm manipulation, economic attacks)
   - `docs/SECURITY-MODEL.md` — sybil resistance, DoS resilience, receipt-forgery analysis, key distribution
+  - `docs/ECONOMIC-MODELING.md` — relay/streamer/viewer economics, proof-of-relay design, free-rider cost
 - Q-Stream architectural blueprint
   - QDN/Chain signaling layer
   - Ephemeral P2P mesh transport layer

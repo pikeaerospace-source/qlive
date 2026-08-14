@@ -82,17 +82,17 @@ This document tracks research items that need investigation before or during imp
 
 ## Monetization Research
 
-- [ ] **Proof-of-relay economics:** Should relay rewards be minting-weight-based, reputation-based, or purely social (tit-for-tat)? What prevents gaming?
-- [ ] **QORT burn vs. transfer:** Evaluate deflationary vs. treasury models
-- [ ] **Pay-Per-View pricing:** Research fair pricing models
-- [ ] **Micro-tipping:** Evaluate state channel feasibility on Qortal
-- [ ] **Revenue split:** Validate 80/15/5 split with community
+- [x] **Proof-of-relay economics:** Should relay rewards be minting-weight-based, reputation-based, or purely social (tit-for-tat)? What prevents gaming? → [docs/ECONOMIC-MODELING.md](docs/ECONOMIC-MODELING.md) §4
+- [x] **QORT burn vs. transfer:** Evaluate deflationary vs. treasury models → [docs/MONETIZATION.md](docs/MONETIZATION.md) §5
+- [x] **Pay-Per-View pricing:** Research fair pricing models → [docs/MONETIZATION.md](docs/MONETIZATION.md) §2
+- [x] **Micro-tipping:** Evaluate state channel feasibility on Qortal → [docs/MONETIZATION.md](docs/MONETIZATION.md) §2
+- [~] **Revenue split:** Validate 80/15/5 split with community → [docs/MONETIZATION.md](docs/MONETIZATION.md) §6 (documented; community validation pending)
 
 ### Economic Modeling
-- [ ] Model relay node economics (bandwidth costs vs. rewards)
-- [ ] Model streamer economics (production costs vs. revenue)
-- [ ] Model viewer economics (willingness to pay)
-- [ ] Simulate free-rider scenarios
+- [x] Model relay node economics (bandwidth costs vs. rewards) → [docs/ECONOMIC-MODELING.md](docs/ECONOMIC-MODELING.md) §1
+- [x] Model streamer economics (production costs vs. revenue) → [docs/ECONOMIC-MODELING.md](docs/ECONOMIC-MODELING.md) §2
+- [x] Model viewer economics (willingness to pay) → [docs/ECONOMIC-MODELING.md](docs/ECONOMIC-MODELING.md) §3
+- [x] Simulate free-rider scenarios → [docs/ECONOMIC-MODELING.md](docs/ECONOMIC-MODELING.md) §5 + [docs/SWARM-SIMULATION.md](docs/SWARM-SIMULATION.md)
 
 ---
 
