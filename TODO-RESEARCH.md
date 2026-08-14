@@ -20,8 +20,8 @@ This document tracks research items that need investigation before or during imp
 
 ## Transport Layer Research
 
-- [ ] **Reticulum integration:** How can Reticulum network routing be leveraged for low-overhead peer discovery? Evaluate latency vs. WebRTC.
-- [ ] **NAT traversal:** What's the best strategy for peers behind NATs (STUN/TURN, hole punching, Reticulum's transport)?
+- [~] **Reticulum integration:** How can Reticulum network routing be leveraged for low-overhead peer discovery? Evaluate latency vs. WebRTC. → [docs/RETICULUM-INTEGRATION.md](docs/RETICULUM-INTEGRATION.md)
+- [~] **NAT traversal:** What's the best strategy for peers behind NATs (STUN/TURN, hole punching, Reticulum's transport)? → [docs/NAT-TRAVERSAL.md](docs/NAT-TRAVERSAL.md)
 - [ ] **WebRTC vs. Reticulum:** Benchmark both for high-bandwidth video delivery
 - [ ] **Transport fallback:** Design a fallback strategy if primary transport fails
 
@@ -35,8 +35,8 @@ This document tracks research items that need investigation before or during imp
 
 ## Performance Tuning
 
-- [ ] **Chunk size tuning:** Benchmark optimal fragment duration (500ms vs 1s) for latency vs. overhead tradeoff.
-- [ ] **Buffer sizing:** Determine ideal sliding-window size (30s vs 60s) balancing resilience vs. RAM usage.
+- [~] **Chunk size tuning:** Benchmark optimal fragment duration (500ms vs 1s) for latency vs. overhead tradeoff. → [docs/CHUNK-SIZE-TUNING.md](docs/CHUNK-SIZE-TUNING.md)
+- [~] **Buffer sizing:** Determine ideal sliding-window size (30s vs 60s) balancing resilience vs. RAM usage. → [docs/BUFFER-SIZING.md](docs/BUFFER-SIZING.md)
 - [ ] **Tree fanout:** Determine optimal tree fanout for different viewer counts
 - [ ] **Mesh size:** Determine optimal mesh peer count for resilience
 - [ ] **Retransmission timing:** Tune timeout and retry parameters
@@ -52,7 +52,7 @@ This document tracks research items that need investigation before or during imp
 
 ## QDN & Blockchain
 
-- [ ] **QDN signaling frequency:** How often should swarm peer lists be refreshed on QDN without bloating the chain?
+- [~] **QDN signaling frequency:** How often should swarm peer lists be refreshed on QDN without bloating the chain? → [docs/QDN-SIGNALING-FREQUENCY.md](docs/QDN-SIGNALING-FREQUENCY.md)
 - [ ] **QDN chunk sizing:** Validate 10MB–50MB chunk size for QDN storage
 - [ ] **Transaction costs:** Estimate QORT costs for stream registration and VOD archival
 - [ ] **Chain bloat:** Analyze the impact of stream metadata on blockchain size
@@ -66,7 +66,7 @@ This document tracks research items that need investigation before or during imp
 
 ## Security Research
 
-- [ ] **Encryption model:** Per-stream symmetric keys vs. per-viewer asymmetric keys? Key rotation strategy?
+- [~] **Encryption model:** Per-stream symmetric keys vs. per-viewer asymmetric keys? Key rotation strategy? → [docs/ENCRYPTION-MODEL.md](docs/ENCRYPTION-MODEL.md)
 - [ ] **Key distribution:** Design secure key distribution for private streams
 - [ ] **Sybil resistance:** Evaluate Qortal Name-based identity for sybil resistance
 - [ ] **DoS resilience:** Design rate limiting and abuse prevention

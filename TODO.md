@@ -38,14 +38,14 @@ External dependency areas have their own dedicated TODO documents:
 - [x] Define the Live → VOD archival pipeline (chunk aggregation, QDN commit, Q-Tube manifest)
 
 ### Research Questions
-- [ ] **Reticulum integration:** How can Reticulum network routing be leveraged for low-overhead peer discovery? Evaluate latency vs. WebRTC.
-- [ ] **NAT traversal:** What's the best strategy for peers behind NATs (STUN/TURN, hole punching, Reticulum's transport)?
-- [ ] **Chunk size tuning:** Benchmark optimal fragment duration (500ms vs 1s) for latency vs. overhead tradeoff.
-- [ ] **Buffer sizing:** Determine ideal sliding-window size (30s vs 60s) balancing resilience vs. RAM usage.
-- [ ] **QDN signaling frequency:** How often should swarm peer lists be refreshed on QDN without bloating the chain?
-- [ ] **Encryption model:** Per-stream symmetric keys vs. per-viewer asymmetric keys? Key rotation strategy?
-- [ ] **Qortal Core API surface:** What existing Qortal Core endpoints can be reused (QDN publish, name registration, peer discovery)?
-- [ ] **Bandwidth measurement:** How to accurately measure peer bandwidth contribution for tit-for-tat and proof-of-relay?
+- [~] **Reticulum integration:** How can Reticulum network routing be leveraged for low-overhead peer discovery? Evaluate latency vs. WebRTC. → [docs/RETICULUM-INTEGRATION.md](docs/RETICULUM-INTEGRATION.md)
+- [~] **NAT traversal:** What's the best strategy for peers behind NATs (STUN/TURN, hole punching, Reticulum's transport)? → [docs/NAT-TRAVERSAL.md](docs/NAT-TRAVERSAL.md)
+- [~] **Chunk size tuning:** Benchmark optimal fragment duration (500ms vs 1s) for latency vs. overhead tradeoff. → [docs/CHUNK-SIZE-TUNING.md](docs/CHUNK-SIZE-TUNING.md)
+- [~] **Buffer sizing:** Determine ideal sliding-window size (30s vs 60s) balancing resilience vs. RAM usage. → [docs/BUFFER-SIZING.md](docs/BUFFER-SIZING.md)
+- [~] **QDN signaling frequency:** How often should swarm peer lists be refreshed on QDN without bloating the chain? → [docs/QDN-SIGNALING-FREQUENCY.md](docs/QDN-SIGNALING-FREQUENCY.md)
+- [~] **Encryption model:** Per-stream symmetric keys vs. per-viewer asymmetric keys? Key rotation strategy? → [docs/ENCRYPTION-MODEL.md](docs/ENCRYPTION-MODEL.md)
+- [~] **Qortal Core API surface:** What existing Qortal Core endpoints can be reused (QDN publish, name registration, peer discovery)? → [docs/QORTAL-CORE-API.md](docs/QORTAL-CORE-API.md)
+- [~] **Bandwidth measurement:** How to accurately measure peer bandwidth contribution for tit-for-tat and proof-of-relay? → [docs/BANDWIDTH-MEASUREMENT.md](docs/BANDWIDTH-MEASUREMENT.md)
 
 ---
 

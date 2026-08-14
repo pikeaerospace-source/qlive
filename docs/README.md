@@ -21,6 +21,23 @@ This directory will contain the formal protocol specification, design documents,
 
 ---
 
+## Research Documents
+
+Open research topics from [TODO.md](../TODO.md) → Phase 0 → Research Questions. Each document is a living TODO-style artifact with findings, test results, planning, and recommendations.
+
+| Document | Topic |
+| --- | --- |
+| [`CHUNK-SIZE-TUNING.md`](CHUNK-SIZE-TUNING.md) | Optimal fragment duration (500ms vs 1s) — latency vs. overhead |
+| [`BUFFER-SIZING.md`](BUFFER-SIZING.md) | Ideal sliding-window size (30s vs 60s) — resilience vs. RAM |
+| [`ENCRYPTION-MODEL.md`](ENCRYPTION-MODEL.md) | Per-stream symmetric vs. per-viewer asymmetric keys; key rotation |
+| [`BANDWIDTH-MEASUREMENT.md`](BANDWIDTH-MEASUREMENT.md) | Measuring peer bandwidth for tit-for-tat and proof-of-relay |
+| [`NAT-TRAVERSAL.md`](NAT-TRAVERSAL.md) | NAT traversal strategy (STUN/TURN, hole punching, Reticulum) |
+| [`RETICULUM-INTEGRATION.md`](RETICULUM-INTEGRATION.md) | Reticulum routing for peer discovery; latency vs. WebRTC |
+| [`QDN-SIGNALING-FREQUENCY.md`](QDN-SIGNALING-FREQUENCY.md) | Swarm peer-list refresh cadence without chain bloat |
+| [`QORTAL-CORE-API.md`](QORTAL-CORE-API.md) | Reusable Qortal Core endpoints (QDN, names, peers) |
+
+---
+
 ## Contributing to Docs
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines. Design documents should be written in Markdown and follow the project's style conventions.
