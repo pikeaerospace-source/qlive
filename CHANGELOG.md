@@ -99,6 +99,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Swarm peer list publication/refresh
   - Archive status tracking
 - `tests/python/test_signaling.py` — 22 tests covering metadata serialization, stream registry, and lifecycle management (100% coverage on signaling module)
+- `docs/monetization.md` — QORT token economy design v0.2.0
+  - On-chain signaling vs. off-chain ephemeral data costs
+  - Monetization models (tips, PPV, micro-subscriptions)
+  - Proof-of-relay bandwidth incentives
+  - QORT burn vs. transfer models
+  - Streamer revenue split (80/15/5)
+  - Creator economy tiers
+  - Economic attack vectors and mitigations
+  - Dispute resolution framework
+  - Minimum viable economics
+  - Reputation-based pricing
 
 ---
 
