@@ -75,12 +75,12 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 ## Phase 3 — VOD Bridge (Live → Q-Tube)
 
 ### Archival Pipeline
-- [ ] Implement background aggregation of expired live chunks
-- [ ] Implement QDN data chunk creation (10MB–50MB blocks)
-- [ ] Implement Q-Tube manifest generation
-- [ ] Implement automatic publish on stream end
-- [ ] Implement partial-archive recovery (stream interrupted mid-way)
-- [ ] Implement archive integrity verification (hash chain)
+- [x] Implement background aggregation of expired live chunks
+- [x] Implement QDN data chunk creation (10MB–50MB blocks)
+- [x] Implement Q-Tube manifest generation
+- [x] Implement automatic publish on stream end
+- [x] Implement partial-archive recovery (stream interrupted mid-way)
+- [x] Implement archive integrity verification (hash chain)
 
 ### Q-Tube Integration
 - [ ] Coordinate with Q-Tube team on manifest format compatibility

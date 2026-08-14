@@ -110,6 +110,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dispute resolution framework
   - Minimum viable economics
   - Reputation-based pricing
+- `qlive/archival.py` — Live → VOD archival pipeline
+  - QDN data chunk creation (10MB–50MB blocks)
+  - Hash chain integrity verification
+  - Q-Tube manifest generation
+  - Partial archive support (interrupted streams)
+  - Automatic flush on stream end
+- `tests/python/test_archival.py` — 16 tests covering QDN chunk hashing, manifest generation, pipeline operations, and integrity verification (98% coverage on archival module)
 
 ---
 
