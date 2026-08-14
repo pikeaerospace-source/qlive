@@ -139,6 +139,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - QDN signaling integration
   - Statistics tracking
 - `tests/python/test_broadcaster.py` — 12 tests covering config, lifecycle, segment processing, and run loop (95% coverage on broadcaster module)
+- `qlive/viewer.py` — viewer application
+  - Stream discovery and connection
+  - Chunk reception and buffering
+  - Sequence gap detection and retransmission
+  - Buffer health monitoring and stall recovery
+  - Adaptive bitrate control
+- `tests/python/test_viewer.py` — 17 tests covering connection, chunk reception, gap handling, retransmission, and buffer health (98% coverage on viewer module)
 
 ---
 

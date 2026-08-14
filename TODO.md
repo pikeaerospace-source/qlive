@@ -114,7 +114,7 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 - [ ] Stream health dashboard (viewer count, bandwidth, buffer status)
 
 ### Viewer App
-- [ ] CLI tool for watching a stream (`qlive watch`)
+- [x] CLI tool for watching a stream (`qlive watch`)
 - [ ] Web player (HLS/CMAF playback, low-latency mode)
 - [ ] Stream discovery UI (browse active streams)
 - [ ] Chat integration (optional, via QDN or separate channel)
