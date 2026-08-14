@@ -46,9 +46,9 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 - [ ] Implement retransmission request protocol for missing chunks
 
 ### RAM Sliding-Window Buffer
-- [ ] Implement in-memory ring buffer for live fragments
-- [ ] Implement eviction policy (oldest-first, window-based)
-- [ ] Implement buffer health monitoring (fill rate, stall detection)
+- [x] Implement in-memory ring buffer for live fragments
+- [x] Implement eviction policy (oldest-first, window-based)
+- [x] Implement buffer health monitoring (fill rate, stall detection)
 - [ ] Implement graceful degradation (adaptive bitrate on buffer pressure)
 
 ---

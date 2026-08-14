@@ -56,6 +56,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fragment duration validation (500–2000ms)
   - Stream ID validation (32 bytes)
 - `tests/python/test_chunk.py` — 24 tests covering chunk creation, signing, verification, serialization, and error handling (98% coverage on chunk module)
+- `qlive/buffer.py` — RAM sliding-window buffer implementation
+  - In-memory ordered buffer keyed by sequence ID
+  - Oldest-first eviction based on time window (30–60s)
+  - Memory limit enforcement (default 256 MB)
+  - Sequence gap detection and tracking
+  - Buffer health states (filling, healthy, stalling)
+  - Fill ratio monitoring
+- `tests/python/test_buffer.py` — 24 tests covering buffer init, add, eviction, retrieval, and stats (98% coverage on buffer module)
 
 ---
 
