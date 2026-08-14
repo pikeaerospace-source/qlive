@@ -2,7 +2,15 @@ import { Link } from "react-router-dom";
 import type { Stream } from "../types";
 import StatusBadge from "./StatusBadge";
 
+function thumbHue(streamId: string): number {
+  let sum = 0;
+  for (const ch of streamId) sum = (sum + ch.charCodeAt(0)) % 360;
+  return sum;
+}
+
 export default function StreamCard({ stream }: { stream: Stream }) {
+  const hue = thumbHue(stream.streamId);
+
   return (
     <div className="card stream-card">
       <Link
@@ -17,7 +25,14 @@ export default function StreamCard({ stream }: { stream: Stream }) {
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         ) : (
-          <span>QLive</span>
+          <span
+            className="stream-card__placeholder"
+            style={{
+              background: `linear-gradient(135deg, hsl(${hue} 40% 16%), hsl(${(hue + 50) % 360} 45% 26%))`,
+            }}
+          >
+            <span className="stream-card__category">{stream.category}</span>
+          </span>
         )}
       </Link>
 
@@ -40,3 +55,4 @@ export default function StreamCard({ stream }: { stream: Stream }) {
     </div>
   );
 }
+

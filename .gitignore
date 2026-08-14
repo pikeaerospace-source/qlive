@@ -196,6 +196,7 @@ htmlcov/
 .hypothesis/
 junit.xml
 test-results/
+playwright-report/
 allure-results/
 
 # ---------- Docker ----------

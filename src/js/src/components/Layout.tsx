@@ -6,11 +6,14 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export default function Layout() {
   return (
     <div className="app">
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
       <header className="topbar">
-        <NavLink to="/" className="brand">
+        <NavLink to="/" className="brand" aria-label="QLive home">
           Q<span className="brand-accent">Live</span>
         </NavLink>
-        <nav className="nav">
+        <nav className="nav" aria-label="Primary">
           <NavLink to="/" end className={linkClass}>
             Discover
           </NavLink>
@@ -19,9 +22,10 @@ export default function Layout() {
           </NavLink>
         </nav>
       </header>
-      <main className="content">
+      <main id="main" className="content">
         <Outlet />
       </main>
     </div>
   );
 }
+

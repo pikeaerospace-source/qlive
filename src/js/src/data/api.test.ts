@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { StreamStats } from "../types";
 import { api } from "./api";
 
 describe("api (mock)", () => {
@@ -33,5 +34,18 @@ describe("api (mock)", () => {
     const stats = await api.getStreamStats(live!.streamId);
     expect(stats.viewers).toBeGreaterThan(0);
     expect(stats.bufferState).toBe("healthy");
+  });
+
+  it("subscribes to live stats", async () => {
+    const streams = await api.listStreams();
+    const live = streams.find((s) => s.status === "live");
+    expect(live).toBeDefined();
+    let received: StreamStats | undefined;
+    const unsubscribe = api.subscribeStats(live!.streamId, (s) => {
+      received = s;
+    });
+    expect(received).toBeDefined();
+    expect(received!.viewers).toBeGreaterThan(0);
+    unsubscribe();
   });
 });

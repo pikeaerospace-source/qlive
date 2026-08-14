@@ -37,8 +37,23 @@ npm run typecheck
 # Lint
 npm run lint
 
-# Test
+# Unit tests (Vitest)
 npm test
+
+# End-to-end tests (Playwright) — first install browsers:
+npx playwright install
+npm run test:e2e
+npm run test:e2e -- --project=firefox   # or --project=chromium
+```
+
+## Live stats
+
+The Watch page subscribes to live stream statistics through the `Api`
+interface. By default a local simulator runs (fully offline). To receive real
+updates, point the WebSocket client at an endpoint before building:
+
+```bash
+VITE_STATS_WS_URL=wss://your-node/stats npm run build
 ```
 
 ## Structure
@@ -51,6 +66,7 @@ src/
   types.ts            # shared domain types (Stream, Streamer, …)
   data/
     api.ts            # data service abstraction (swappable backend)
+    liveStats.ts      # live stats client (WebSocket + offline simulator)
     mock.ts           # mock streams & streamers
     api.test.ts
   components/
@@ -71,5 +87,5 @@ src/
 
 ## Dependencies
 
-- Node.js 18+, TypeScript 5+, React 18, Vite 5
+- Node.js 20+, TypeScript 5+, React 18, Vite 5
 - See `package.json` for the full dependency list

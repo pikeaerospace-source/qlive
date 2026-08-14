@@ -1,4 +1,5 @@
 import type { Stream, Streamer, StreamStats } from "../types";
+import { createStatsClient, type StatsClient } from "./liveStats";
 import { mockStreams, mockStreamers } from "./mock";
 
 /**
@@ -15,12 +16,26 @@ export interface Api {
   getStreamer(name: string): Promise<Streamer | undefined>;
   getStreamerStreams(name: string): Promise<Stream[]>;
   getStreamStats(streamId: string): Promise<StreamStats>;
+  /** Subscribe to live stats. Returns an unsubscribe function. */
+  subscribeStats(
+    streamId: string,
+    onUpdate: (stats: StreamStats) => void,
+  ): () => void;
 }
 
 function delay<T>(value: T, ms = 30): Promise<T> {
   return new Promise((resolve) => {
     setTimeout(() => resolve(value), ms);
   });
+}
+
+let statsClient: StatsClient | undefined;
+
+function getStatsClient(): StatsClient {
+  if (!statsClient) {
+    statsClient = createStatsClient(mockStreams);
+  }
+  return statsClient;
 }
 
 export const api: Api = {
@@ -41,4 +56,7 @@ export const api: Api = {
       retransmissions: 7,
     });
   },
+  subscribeStats: (streamId, onUpdate) =>
+    getStatsClient().subscribe(streamId, onUpdate),
 };
+

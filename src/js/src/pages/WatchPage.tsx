@@ -18,7 +18,7 @@ export default function WatchPage() {
       if (s) setStream(s);
       else setNotFound(true);
     });
-    api.getStreamStats(streamId).then(setStats);
+    return api.subscribeStats(streamId, setStats);
   }, [streamId]);
 
   if (notFound) return <div className="empty">Stream not found.</div>;
@@ -50,7 +50,9 @@ export default function WatchPage() {
       <p className="muted">{stream.description}</p>
 
       <div className="stats-row">
-        <Stat label="Viewers" value={stats?.viewers ?? stream.viewers} />
+        <div aria-live="polite">
+          <Stat label="Viewers" value={stats?.viewers ?? stream.viewers} />
+        </div>
         <Stat
           label="Bitrate"
           value={`${Math.round(
@@ -59,7 +61,9 @@ export default function WatchPage() {
         />
         <Stat label="Fragment" value={`${stream.fragmentDurationMs} ms`} />
         <Stat label="Buffer" value={stats?.bufferState ?? "—"} />
+        <Stat label="Chunks" value={stats?.chunksProduced ?? "—"} />
       </div>
     </>
   );
 }
+
