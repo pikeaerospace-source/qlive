@@ -42,8 +42,8 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 - [x] Implement CMAF/fMP4 segmenter (FFmpeg wrapper or native)
 - [x] Implement chunk signing (Qortal Name/Key pair)
 - [x] Implement chunk verification on viewer nodes
-- [ ] Implement chunk sequence tracking and gap detection
-- [ ] Implement retransmission request protocol for missing chunks
+- [x] Implement chunk sequence tracking and gap detection
+- [x] Implement retransmission request protocol for missing chunks
 
 ### RAM Sliding-Window Buffer
 - [x] Implement in-memory ring buffer for live fragments

@@ -71,6 +71,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Lifecycle state management (idle, starting, running, stopping, stopped, error)
   - Graceful process termination
 - `tests/python/test_segmenter.py` — 18 tests covering config, command building, start/stop lifecycle, and segment streaming (96% coverage on segmenter module)
+- `qlive/retransmit.py` — chunk retransmission protocol
+  - Request lifecycle states (pending, in-flight, complete, failed, timeout)
+  - Request deduplication
+  - Timeout-based retry with configurable max attempts
+  - Chunk recovery tracking
+  - Success rate statistics
+- `tests/python/test_retransmit.py` — 23 tests covering request lifecycle, chunk handling, timeouts, and statistics (99% coverage on retransmit module)
 
 ---
 
