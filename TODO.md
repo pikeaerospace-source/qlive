@@ -64,11 +64,11 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 - [x] Implement swarm membership churn handling
 
 ### QDN Signaling Integration
-- [ ] Define and publish stream metadata schema to QDN
-- [ ] Implement swarm peer list publication/refresh
-- [ ] Implement encryption key distribution via QDN
-- [ ] Implement stream discovery (find active streams by Qortal Name)
-- [ ] Implement stream lifecycle states (announced, live, ended, archived)
+- [x] Define and publish stream metadata schema to QDN
+- [x] Implement swarm peer list publication/refresh
+- [x] Implement encryption key distribution via QDN
+- [x] Implement stream discovery (find active streams by Qortal Name)
+- [x] Implement stream lifecycle states (announced, live, ended, archived)
 
 ---
 

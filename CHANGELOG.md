@@ -92,6 +92,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Delivery path and downstream tracking
   - Swarm membership churn handling
 - `tests/python/test_swarm.py` — 31 tests covering peer health, tree operations, swarm management, and fallback (93% coverage on swarm module)
+- `qlive/signaling.py` — QDN signaling integration
+  - Stream metadata schema (codec, resolution, bitrate, encryption, swarm, archive)
+  - Stream lifecycle states (announced, live, ended, archived, interrupted)
+  - Stream discovery by publisher and status
+  - Swarm peer list publication/refresh
+  - Archive status tracking
+- `tests/python/test_signaling.py` — 22 tests covering metadata serialization, stream registry, and lifecycle management (100% coverage on signaling module)
 
 ---
 
