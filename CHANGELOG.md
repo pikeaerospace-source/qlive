@@ -84,6 +84,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cooldown periods for upgrades and downgrades
   - Buffer health-based bitrate selection
 - `tests/python/test_adaptive.py` — 23 tests covering bitrate ladder, controller evaluation, and full adaptive cycles (100% coverage on adaptive module)
+- `qlive/swarm.py` — dual-layer peer swarm
+  - Primary delivery tree with capacity-based node selection
+  - Secondary local mesh for resilience
+  - Tree → mesh fallback on parent drop
+  - Peer health monitoring and eligibility
+  - Delivery path and downstream tracking
+  - Swarm membership churn handling
+- `tests/python/test_swarm.py` — 31 tests covering peer health, tree operations, swarm management, and fallback (93% coverage on swarm module)
 
 ---
 

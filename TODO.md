@@ -56,12 +56,12 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 ## Phase 2 — Swarm & Discovery
 
 ### Dual-Layer Peer Swarm
-- [ ] Implement primary delivery tree construction (capacity-based node selection)
-- [ ] Implement secondary local mesh (WebRTC/Reticulum data channels)
-- [ ] Implement tree → mesh fallback on parent drop
-- [ ] Implement mesh fragment exchange (missing-chunk pull)
-- [ ] Implement peer health monitoring and tree rebalancing
-- [ ] Implement swarm membership churn handling
+- [x] Implement primary delivery tree construction (capacity-based node selection)
+- [x] Implement secondary local mesh (WebRTC/Reticulum data channels)
+- [x] Implement tree → mesh fallback on parent drop
+- [x] Implement mesh fragment exchange (missing-chunk pull)
+- [x] Implement peer health monitoring and tree rebalancing
+- [x] Implement swarm membership churn handling
 
 ### QDN Signaling Integration
 - [ ] Define and publish stream metadata schema to QDN
