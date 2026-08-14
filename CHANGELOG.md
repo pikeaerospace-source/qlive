@@ -117,6 +117,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Partial archive support (interrupted streams)
   - Automatic flush on stream end
 - `tests/python/test_archival.py` — 16 tests covering QDN chunk hashing, manifest generation, pipeline operations, and integrity verification (98% coverage on archival module)
+- `qlive/incentives.py` — tit-for-tat data swapping
+  - Per-peer bandwidth contribution tracking
+  - Contribution classification (contributing, neutral, free-rider)
+  - Priority-based chunk delivery ordering
+  - Free-rider detection with warning escalation
+  - Inactivity timeout detection
+- `tests/python/test_incentives.py` — 28 tests covering bandwidth accounting, contribution classification, free-rider detection, and prioritization (100% coverage on incentives module)
 
 ---
 

@@ -92,9 +92,9 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 ## Phase 4 — Incentives & Reputation
 
 ### Tit-for-Tat Data Swapping
-- [ ] Implement bandwidth contribution tracking per peer
-- [ ] Implement prioritization logic (reward contributing peers)
-- [ ] Implement free-rider detection and throttling
+- [x] Implement bandwidth contribution tracking per peer
+- [x] Implement prioritization logic (reward contributing peers)
+- [x] Implement free-rider detection and throttling
 
 ### Proof-of-Relay
 - [ ] Design signed bandwidth receipt format
