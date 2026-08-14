@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `.editorconfig` — cross-editor style consistency
   - `.gitattributes` — git line-ending and diff settings
   - `docs/` — documentation directory placeholder
+- Project structure and tooling
+  - `src/python/` — Python package with `pyproject.toml`, CLI skeleton, and package init
+  - `src/js/` — TypeScript project with `package.json`, `tsconfig.json`, and entry point
+  - `src/java/` — Maven project with `pom.xml` and main class skeleton
+  - `tests/` — test suite directory structure
+  - `.github/workflows/ci.yml` — CI pipeline for Python, JavaScript, and Java
 
 ### Design
 - Q-Stream architectural blueprint
