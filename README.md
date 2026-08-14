@@ -139,32 +139,43 @@ To ensure peers actually relay video traffic rather than just leeching bandwidth
 
 ## Getting Started
 
-> **Status:** Early design phase. No runnable code yet — see [TODO.md](TODO.md) for the implementation roadmap.
+> **Status:** Active development. A Python reference implementation of the core protocol (chunking, buffering, swarm, signaling, archival, incentives) and a React web UI are in place — both run fully offline against mock data. Live Qortal network integration (QDN signaling, real P2P transport) is not yet wired up. See [TODO.md](TODO.md) for the roadmap.
 
 ### Prerequisites
 
-- A Qortal Core node (for QDN signaling and identity)
-- FFmpeg (for the broadcaster's encoder)
-- Node.js 18+ (for the reference client implementation)
+- Python 3.10+ (reference implementation)
+- Node.js 20+ (web UI)
+- FFmpeg (broadcaster encoder — optional for offline work)
+- A Qortal Core node (QDN signaling — not yet required)
 
-### Planned Quick Start
+### Reference implementation (Python)
 
 ```bash
-# Clone the repository
-git clone https://github.com/8bitgeek/qlive.git
-cd qlive
-
-# Install dependencies
-npm install
-
-# Start a broadcaster (requires a Qortal node + FFmpeg)
-npm run broadcast -- --name "my-qortal-name" --source "rtmp://localhost/live"
-
-# Start a viewer
-npm run watch -- --stream "qortal://my-qortal-name/live"
+cd src/python
+pip install -e ".[dev]"
+pytest                       # 275 tests
+python -m qlive.benchmarks   # offline benchmarks
 ```
 
-> ⚠️ These commands are illustrative of the intended UX and will work once the core protocol is implemented.
+### Web UI (React + Vite)
+
+```bash
+cd src/js
+npm install
+npm run dev                  # http://localhost:5173 (offline, mock data)
+```
+
+### CLI (illustrative)
+
+```bash
+# Start a broadcaster (requires a Qortal node + FFmpeg)
+qlive broadcast --name "my-qortal-name" --source "rtmp://localhost/live"
+
+# Watch a stream
+qlive watch --stream "qortal://my-qortal-name/live"
+```
+
+> ⚠️ The CLI and transport are wired to in-memory/mock components; live QDN signaling and real P2P transport are pending.
 
 ---
 
@@ -183,10 +194,10 @@ See [TODO.md](TODO.md) for the full, living roadmap. High-level milestones:
 
 ## Contributing
 
-This is a greenfield project in active design. Contributions are welcome across:
+Contributions are welcome across:
 
 - Protocol design & specification
-- Reference implementation (Node.js / WebRTC / Reticulum)
+- Reference implementation (Python / React / WebRTC / Reticulum)
 - Qortal Core integration
 - Documentation & testing
 

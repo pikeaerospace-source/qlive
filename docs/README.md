@@ -17,7 +17,7 @@ This directory will contain the formal protocol specification, design documents,
 | `buffer-design.md` | Planned | RAM sliding-window buffer semantics |
 | `vod-pipeline.md` | Planned | Live → VOD archival pipeline design |
 | `incentives.md` | Planned | Tit-for-tat and proof-of-relay incentive model |
-| `research/` | Planned | Research notes (Reticulum, WebRTC, NAT traversal, etc.) |
+| `research/` | Complete | Research notes — individual files (see Research Documents below) |
 
 ---
 

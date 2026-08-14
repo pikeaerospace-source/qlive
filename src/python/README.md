@@ -2,16 +2,26 @@
 
 Python components for the QLive decentralized live-streaming protocol.
 
-## Planned Components
+## Components
 
-| Component | Status | Description |
-| --- | --- | --- |
-| `chunking/` | Planned | CMAF/fMP4 ephemeral chunking engine |
-| `buffer/` | Planned | RAM-only sliding-window buffer |
-| `swarm/` | Planned | Dual-layer peer swarm (tree + mesh) |
-| `signaling/` | Planned | QDN signaling integration |
-| `archival/` | Planned | Live → VOD archival pipeline |
-| `incentives/` | Planned | Tit-for-tat and proof-of-relay |
+The reference implementation lives in the `qlive/` package. All components
+run in-memory/offline (no live Qortal network required).
+
+| Module | Description |
+| --- | --- |
+| `chunk.py` | CMAF/fMP4 ephemeral chunk format, signing, verification |
+| `segmenter.py` | FFmpeg-based CMAF/fMP4 segmenter |
+| `buffer.py` | RAM-only sliding-window buffer |
+| `swarm.py` | Dual-layer peer swarm (tree + mesh) |
+| `signaling.py` | QDN signaling (in-memory registry stand-in) |
+| `archival.py` | Live → VOD archival pipeline |
+| `retransmit.py` | Chunk retransmission protocol |
+| `adaptive.py` | Adaptive bitrate control |
+| `incentives.py` | Tit-for-tat bandwidth accounting |
+| `proof.py` | Proof-of-relay bandwidth receipts |
+| `broadcaster.py` / `viewer.py` | Broadcaster and viewer applications |
+| `cli.py` | `qlive broadcast` / `qlive watch` CLI |
+| `benchmarks/` | Offline benchmark framework |
 
 ## Development
 

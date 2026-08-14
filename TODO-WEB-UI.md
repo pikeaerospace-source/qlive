@@ -66,7 +66,7 @@ The QLive web UI provides:
 - [x] Stream discovery UI (browse active streams)
 - [x] Browse live streams by category
 - [x] Browse upcoming (announced) streams
-- [ ] Search streams by title or streamer
+- [x] Search streams by title or streamer
 - [x] Stream cards with thumbnail, title, viewer count
 - [x] Sort and filter options
 
@@ -93,8 +93,8 @@ The QLive web UI provides:
 
 - [x] Design system (colors, typography, spacing)
 - [x] Dark mode support
-- [ ] Responsive layout (desktop, tablet, mobile)
-- [ ] Accessibility (WCAG 2.1)
+- [~] Responsive layout (desktop, tablet, mobile)
+- [~] Accessibility (WCAG 2.1)
 - [ ] Loading states and skeletons
 - [ ] Empty states
 - [ ] Error states
@@ -108,7 +108,7 @@ The QLive web UI provides:
 - [x] Set up state management → React hooks + `Api` service abstraction
 - [x] Set up routing → React Router 6
 - [x] Set up API client for QLive backend → `src/data/api.ts` (mock, swappable)
-- [ ] Set up WebSocket client for real-time updates
+- [x] Set up WebSocket client for real-time updates
 - [x] Set up testing framework → Vitest + Testing Library
 
 ### Components
@@ -124,8 +124,8 @@ The QLive web UI provides:
 
 - [x] Unit tests for components
 - [x] Integration tests for player (data service)
-- [ ] End-to-end tests for broadcast flow
-- [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- [x] End-to-end tests for broadcast flow
+- [~] Cross-browser testing (Chrome, Firefox, Safari, Edge)
 - [ ] Mobile testing (iOS, Android)
 - [ ] Performance testing (page load, playback smoothness)
 

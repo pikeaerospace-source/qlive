@@ -6,11 +6,17 @@ Test suites for the QLive decentralized live-streaming protocol.
 
 ```
 tests/
-├── python/          # Python test suites (pytest)
-├── js/              # JavaScript/TypeScript test suites (Jest/Vitest)
-├── java/            # Java test suites (JUnit)
-└── integration/     # Cross-language integration tests
+└── python/          # Python test suites (pytest)
 ```
+
+JavaScript/TypeScript tests live alongside the source:
+
+```
+src/js/src/**/*.test.{ts,tsx}   # Vitest unit tests
+src/js/e2e/                     # Playwright end-to-end tests
+```
+
+Java tests are not yet present (the Java project is a skeleton).
 
 ## Running Tests
 
@@ -20,21 +26,17 @@ cd src/python
 pytest
 ```
 
-### JavaScript/TypeScript
+### JavaScript/TypeScript (unit)
 ```bash
 cd src/js
 npm test
 ```
 
-### Java
+### JavaScript/TypeScript (end-to-end)
 ```bash
-cd src/java
-mvn test
-```
-
-### Integration
-```bash
-# Cross-language integration tests (TBD)
+cd src/js
+npx playwright install
+npm run test:e2e
 ```
 
 ## Coverage

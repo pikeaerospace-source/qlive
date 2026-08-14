@@ -122,14 +122,14 @@ External dependency areas have their own dedicated TODO documents:
 
 ### Broadcaster App
 - [x] CLI tool for starting a broadcast (`qlive broadcast`)
-- [ ] Web UI for stream management (start/stop, preview, stats)
+- [x] Web UI for stream management (start/stop, preview, stats)
 - [x] FFmpeg integration (RTMP/RTSP/device input)
-- [ ] Stream health dashboard (viewer count, bandwidth, buffer status)
+- [x] Stream health dashboard (viewer count, bandwidth, buffer status)
 
 ### Viewer App
 - [x] CLI tool for watching a stream (`qlive watch`)
-- [ ] Web player (HLS/CMAF playback, low-latency mode)
-- [ ] Stream discovery UI (browse active streams)
+- [~] Web player (HLS/CMAF playback, low-latency mode)
+- [x] Stream discovery UI (browse active streams)
 - [ ] Chat integration (optional, via QDN or separate channel)
 
 ### Q-Tube Integration
@@ -188,9 +188,12 @@ These are unresolved questions that need discussion/decision:
 
 | Date | Decision | Rationale |
 | --- | --- | --- |
-| — | — | — |
-
-*(Append decisions here as they're made.)*
+| 2026-08-14 | 1s default fragment duration; 500ms opt-in | Overhead < 0.25% at all durations; latency is the only real differentiator |
+| 2026-08-14 | 45s default buffer window (30–60s tunable) | RAM is negligible (< 43 MB max); resilience headroom is the driver |
+| 2026-08-14 | Per-stream symmetric AES-256-GCM + hybrid key envelopes | Preserves multicast efficiency; enables per-viewer authorization |
+| 2026-08-14 | Sign payload hash, not full payload | Makes sign/verify cost constant regardless of bitrate |
+| 2026-08-14 | WebRTC for data plane; Reticulum for control plane | WebRTC is proven for high-bandwidth video; Reticulum is strong at discovery/NAT |
+| 2026-08-14 | React + Vite for the Web UI | Qortal Q-App standard; largest ecosystem; best media-player libs |
 
 ---
 
