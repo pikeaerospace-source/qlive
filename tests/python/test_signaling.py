@@ -84,6 +84,19 @@ class TestStreamMetadata:
         assert parsed["publisher"] == "test-name"
         assert parsed["title"] == "Test Stream"
 
+    def test_renditions_default(self):
+        metadata = StreamMetadata(publisher="test-name", title="Test Stream")
+        assert metadata.renditions == [1000, 2000, 3000, 4500, 6000]
+
+    def test_renditions_roundtrip(self):
+        metadata = StreamMetadata(
+            publisher="test-name", title="Test Stream", renditions=[1000, 3000, 6000]
+        )
+        json_str = metadata.to_json()
+        assert json.loads(json_str)["renditions"] == [1000, 3000, 6000]
+        restored = StreamMetadata.from_json(json_str)
+        assert restored.renditions == [1000, 3000, 6000]
+
     def test_from_dict(self):
         data = {
             "publisher": "test-name",

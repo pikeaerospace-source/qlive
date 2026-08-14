@@ -104,6 +104,7 @@ class StreamMetadata:
     codec: CodecInfo = field(default_factory=CodecInfo)
     resolution: ResolutionInfo = field(default_factory=ResolutionInfo)
     bitrate: BitrateInfo = field(default_factory=BitrateInfo)
+    renditions: list[int] = field(default_factory=lambda: [1000, 2000, 3000, 4500, 6000])
     encryption: EncryptionInfo = field(default_factory=EncryptionInfo)
     swarm: SwarmInfo = field(default_factory=SwarmInfo)
     archive: ArchiveInfo = field(default_factory=ArchiveInfo)
@@ -140,6 +141,7 @@ class StreamMetadata:
                 "video": self.bitrate.video,
                 "audio": self.bitrate.audio,
             },
+            "renditions": self.renditions,
             "encryption": {
                 "enabled": self.encryption.enabled,
                 "keyId": self.encryption.key_id,
@@ -174,6 +176,7 @@ class StreamMetadata:
                 codec=CodecInfo(**data.get("codec", {})),
                 resolution=ResolutionInfo(**data.get("resolution", {})),
                 bitrate=BitrateInfo(**data.get("bitrate", {})),
+                renditions=data.get("renditions", [1000, 2000, 3000, 4500, 6000]),
                 encryption=EncryptionInfo(
                     enabled=data.get("encryption", {}).get("enabled", False),
                     key_id=data.get("encryption", {}).get("keyId"),

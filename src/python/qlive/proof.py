@@ -43,6 +43,8 @@ class BandwidthReceipt:
     stream_id: bytes
     bytes_relayed: int
     timestamp: int = field(default_factory=lambda: int(time.time() * 1000))
+    start_sequence: int = 0
+    end_sequence: int = 0
     signature: bytes = b""
     state: ReceiptState = ReceiptState.PENDING
 
@@ -58,7 +60,29 @@ class BandwidthReceipt:
             + b"|"
             + self.bytes_relayed.to_bytes(8, "big")
             + b"|"
+            + self.start_sequence.to_bytes(8, "big")
+            + b"|"
+            + self.end_sequence.to_bytes(8, "big")
+            + b"|"
             + self.timestamp.to_bytes(8, "big")
+        )
+
+    @property
+    def has_range(self) -> bool:
+        """Whether the receipt specifies a chunk sequence range."""
+        return self.start_sequence > 0 and self.end_sequence >= self.start_sequence
+
+    def overlaps(self, other: BandwidthReceipt) -> bool:
+        """Whether two receipts cover overlapping sequence ranges.
+
+        Receipts without a range (``start_sequence == 0``) never overlap.
+        """
+        if self.stream_id != other.stream_id:
+            return False
+        if not self.has_range or not other.has_range:
+            return False
+        return (
+            self.start_sequence <= other.end_sequence and other.start_sequence <= self.end_sequence
         )
 
     def sign(self, private_key: ed25519.Ed25519PrivateKey) -> BandwidthReceipt:
@@ -122,6 +146,8 @@ class ProofOfRelayManager:
         downstream_node_id: str,
         stream_id: bytes,
         bytes_relayed: int,
+        start_sequence: int = 0,
+        end_sequence: int = 0,
     ) -> BandwidthReceipt:
         """Create a new unsigned bandwidth receipt."""
         receipt = BandwidthReceipt(
@@ -129,9 +155,23 @@ class ProofOfRelayManager:
             downstream_node_id=downstream_node_id,
             stream_id=stream_id,
             bytes_relayed=bytes_relayed,
+            start_sequence=start_sequence,
+            end_sequence=end_sequence,
         )
         self._receipts.append(receipt)
         return receipt
+
+    def is_double_counted(self, receipt: BandwidthReceipt) -> bool:
+        """Whether a receipt overlaps an already-verified/redeemed receipt.
+
+        Prevents the same chunks from being claimed (and rewarded) twice.
+        """
+        return any(
+            r is not receipt
+            and r.state in (ReceiptState.VERIFIED, ReceiptState.REDEEMED)
+            and r.overlaps(receipt)
+            for r in self._receipts
+        )
 
     def verify_receipt(
         self,
@@ -140,9 +180,13 @@ class ProofOfRelayManager:
     ) -> bool:
         """Verify a receipt's signature.
 
-        Returns True if the receipt is valid.
+        Returns True if the receipt is valid and not double-counted.
         """
         if receipt.state == ReceiptState.REDEEMED:
+            return False
+
+        if self.is_double_counted(receipt):
+            receipt.state = ReceiptState.REJECTED
             return False
 
         if receipt.verify(public_key):

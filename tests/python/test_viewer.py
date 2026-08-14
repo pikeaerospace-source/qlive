@@ -34,6 +34,12 @@ class TestViewerInit:
         assert viewer.stats.state == ViewerState.IDLE
         assert viewer.buffer.size == 0
 
+    def test_set_renditions(self):
+        viewer = Viewer(node_id="node-1")
+        viewer.set_renditions([1000, 3000, 6000])
+        # The controller starts at the lowest advertised rendition.
+        assert viewer.stats.current_bitrate == 1000
+
 
 class TestViewerConnect:
     def test_connect(self, stream_id):

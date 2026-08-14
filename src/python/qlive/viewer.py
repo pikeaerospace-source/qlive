@@ -18,7 +18,7 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 
-from qlive.adaptive import AdaptiveBitrateController, BitrateAction
+from qlive.adaptive import AdaptiveBitrateController, BitrateAction, BitrateLadder
 from qlive.buffer import BufferState, SlidingWindowBuffer
 from qlive.chunk import Chunk
 from qlive.retransmit import RetransmissionManager
@@ -221,6 +221,10 @@ class Viewer:
         action = self._adaptive.evaluate(buffer_state)
         if action != BitrateAction.STAY:
             self._adaptive.apply(action)
+
+    def set_renditions(self, renditions: list[int]) -> None:
+        """Rebuild the adaptive controller using the stream's advertised renditions."""
+        self._adaptive = AdaptiveBitrateController(ladder=BitrateLadder(renditions))
 
     def _update_stats(self) -> None:
         """Refresh viewer statistics."""

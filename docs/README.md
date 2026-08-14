@@ -4,19 +4,19 @@ This directory will contain the formal protocol specification, design documents,
 
 ---
 
-## Planned Documents
+## Documents
 
 | Document | Status | Description |
 | --- | --- | --- |
 | `protocol.md` | Draft | Formal protocol specification (chunk format, signaling schema, swarm protocol) |
 | `monetization.md` | Draft | QORT token economy, monetization models, and incentive design |
-| `architecture.md` | Planned | Detailed architecture and component design |
-| `signaling-schema.md` | Planned | QDN signaling schema (stream metadata, peer lists, encryption keys) |
-| `chunk-format.md` | Planned | CMAF/fMP4 ephemeral chunk format specification |
-| `swarm-protocol.md` | Planned | Tree + mesh hybrid swarm membership and fallback logic |
-| `buffer-design.md` | Planned | RAM sliding-window buffer semantics |
-| `vod-pipeline.md` | Planned | Live → VOD archival pipeline design |
-| `incentives.md` | Planned | Tit-for-tat and proof-of-relay incentive model |
+| `architecture.md` | Complete | Detailed architecture and component design |
+| `signaling-schema.md` | Complete | QDN signaling schema (stream metadata, peer lists, encryption keys) |
+| `chunk-format.md` | Complete | CMAF/fMP4 ephemeral chunk format specification |
+| `swarm-protocol.md` | Complete | Tree + mesh hybrid swarm membership and fallback logic |
+| `buffer-design.md` | Complete | RAM sliding-window buffer semantics |
+| `vod-pipeline.md` | Complete | Live → VOD archival pipeline design |
+| `incentives.md` | Complete | Tit-for-tat and proof-of-relay incentive model |
 | `research/` | Complete | Research notes — individual files (see Research Documents below) |
 
 ---

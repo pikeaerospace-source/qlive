@@ -48,6 +48,8 @@ class TestBandwidthReceipt:
             downstream_node_id="viewer-1",
             stream_id=stream_id,
             bytes_relayed=1024,
+            start_sequence=1,
+            end_sequence=10,
             timestamp=1234567890,
         )
         expected = (
@@ -56,9 +58,23 @@ class TestBandwidthReceipt:
             + b"|"
             + (1024).to_bytes(8, "big")
             + b"|"
+            + (1).to_bytes(8, "big")
+            + b"|"
+            + (10).to_bytes(8, "big")
+            + b"|"
             + (1234567890).to_bytes(8, "big")
         )
         assert receipt.signing_data == expected
+
+    def test_overlaps(self, stream_id):
+        a = BandwidthReceipt("relay-1", "viewer-1", stream_id, 1024, start_sequence=1, end_sequence=10)
+        b = BandwidthReceipt("relay-1", "viewer-1", stream_id, 1024, start_sequence=5, end_sequence=15)
+        c = BandwidthReceipt("relay-1", "viewer-1", stream_id, 1024, start_sequence=11, end_sequence=20)
+        no_range = BandwidthReceipt("relay-1", "viewer-1", stream_id, 1024)
+        assert a.overlaps(b) is True
+        assert a.overlaps(c) is False
+        assert a.overlaps(no_range) is False
+        assert no_range.has_range is False
 
     def test_sign_and_verify(self, stream_id, key_pair):
         private_key, public_key = key_pair
@@ -161,6 +177,31 @@ class TestProofOfRelayManager:
         assert manager.verify_receipt(receipt, other_public) is False
         assert receipt.state == ReceiptState.REJECTED
         assert manager.stats.rejected == 1
+
+    def test_double_counting_rejected(self, stream_id, key_pair):
+        private_key, public_key = key_pair
+        manager = ProofOfRelayManager()
+
+        first = manager.create_receipt(
+            "relay-1", "viewer-1", stream_id, 1024, start_sequence=1, end_sequence=10
+        )
+        first.sign(private_key)
+        assert manager.verify_receipt(first, public_key) is True
+
+        # Overlapping receipt should be rejected as double-counted.
+        second = manager.create_receipt(
+            "relay-1", "viewer-1", stream_id, 1024, start_sequence=5, end_sequence=15
+        )
+        second.sign(private_key)
+        assert manager.verify_receipt(second, public_key) is False
+        assert second.state == ReceiptState.REJECTED
+
+        # Non-overlapping receipt should pass.
+        third = manager.create_receipt(
+            "relay-1", "viewer-1", stream_id, 1024, start_sequence=11, end_sequence=20
+        )
+        third.sign(private_key)
+        assert manager.verify_receipt(third, public_key) is True
 
     def test_verify_redeemed_receipt(self, stream_id, key_pair):
         private_key, public_key = key_pair

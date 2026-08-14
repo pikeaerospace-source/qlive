@@ -147,9 +147,7 @@ class Simulation:
             self._join_node(self._new_viewer_id())
 
         leaves = [
-            n
-            for n in self.nodes.values()
-            if n.node_id != self.BROADCASTER_ID and not n.is_relay
+            n for n in self.nodes.values() if n.node_id != self.BROADCASTER_ID and not n.is_relay
         ]
         n_free = int(len(leaves) * self.config.free_rider_fraction)
         for node in self.rng.sample(leaves, n_free):
@@ -366,9 +364,7 @@ class Simulation:
         delivery_rate = (total_direct + total_recovered) / (total * len(viewers))
         recovery_rate = total_recovered / max(1, total_recovered + total_missed)
         e2e_latency = sum(n.direct_latency_sum for n in viewers) / max(1, total_direct)
-        recovery_latency = sum(n.recovery_latency_sum for n in viewers) / max(
-            1, total_recovered
-        )
+        recovery_latency = sum(n.recovery_latency_sum for n in viewers) / max(1, total_recovered)
 
         return SimResults(
             num_nodes=len(self.nodes),
@@ -413,6 +409,3 @@ def run_sweep(
         config = SimConfig(**{**base.__dict__, param: value})
         out.append((value, Simulation(config).run()))
     return out
-
-
-

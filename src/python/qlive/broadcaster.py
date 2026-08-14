@@ -15,7 +15,7 @@ The broadcaster:
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 from cryptography.hazmat.primitives.asymmetric import ed25519
@@ -60,6 +60,7 @@ class BroadcasterConfig:
     ffmpeg_path: str = "ffmpeg"
     archive_to_vod: bool = True
     min_archive_chunk_bytes: int = 10 * 1024 * 1024
+    renditions: list[int] = field(default_factory=lambda: [1000, 2000, 3000, 4500, 6000])
 
 
 @dataclass
@@ -140,6 +141,7 @@ class Broadcaster:
                 category=self.config.category,
                 status=StreamStatus.ANNOUNCED,
                 fragment_duration_ms=self.config.fragment_ms,
+                renditions=self.config.renditions,
             )
             self._stream_id = metadata.stream_id
 

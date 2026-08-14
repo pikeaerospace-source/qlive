@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/THREAT-MODEL.md` — STRIDE threat model and attack vectors (chunk injection, swarm manipulation, economic attacks)
   - `docs/SECURITY-MODEL.md` — sybil resistance, DoS resilience, receipt-forgery analysis, key distribution
   - `docs/ECONOMIC-MODELING.md` — relay/streamer/viewer economics, proof-of-relay design, free-rider cost
+  - Component reference docs: `architecture.md`, `signaling-schema.md`, `chunk-format.md`, `swarm-protocol.md`, `buffer-design.md`, `vod-pipeline.md`, `incentives.md`
 - Q-Stream architectural blueprint
   - QDN/Chain signaling layer
   - Ephemeral P2P mesh transport layer
@@ -166,6 +167,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `qlive/simulation.py` — discrete-event swarm simulation (tree push + mesh pull, edge loss, retransmission, churn, parent-drop, free-riders)
 - `qlive/benchmarks/sim_bench.py` — simulation scenario sweeps (fanout, mesh, retransmit, buffer, churn, free-riders)
 - `tests/python/test_simulation.py` — 8 tests covering the simulation engine
+- `qlive/encryption.py` — per-stream AES-256-GCM encryption, key rotation, hybrid key envelopes
+- `tests/python/test_encryption.py` — 6 tests covering encryption
+- `qlive/proof.py` — bandwidth receipts now carry a `start_sequence`/`end_sequence` range to reject double-counting
+- `qlive/signaling.py` / `broadcaster.py` / `viewer.py` — multi-bitrate renditions wired through metadata, config, and the adaptive controller
 - `src/js/` — React + Vite + TypeScript web application (first iteration, offline/mock)
   - `src/data/api.ts` — swappable data service abstraction (mock backend, no network required)
   - `src/data/liveStats.ts` — live stats client (WebSocket + offline simulator)

@@ -23,7 +23,9 @@ def _base(quick: bool) -> SimConfig:
 
 class SimSuite(Suite):
     name = "sim"
-    description = "Discrete-event swarm simulation: fanout, mesh, retransmit, buffer, churn, free-riders."
+    description = (
+        "Discrete-event swarm simulation: fanout, mesh, retransmit, buffer, churn, free-riders."
+    )
 
     def run(self, quick: bool = False) -> list[Result]:
         results: list[Result] = []
@@ -98,9 +100,7 @@ class SimSuite(Suite):
             )
 
         # 7. Parent drop vs delivery.
-        for value, r in run_sweep(
-            base, "parent_drop_per_second", [0.0, 0.1, 0.5, 1.0, 2.0]
-        ):
+        for value, r in run_sweep(base, "parent_drop_per_second", [0.0, 0.1, 0.5, 1.0, 2.0]):
             results.append(
                 Result(
                     f"parentdrop.{value}.delivery",
@@ -111,9 +111,7 @@ class SimSuite(Suite):
             )
 
         # 8. Free-rider fraction vs recovery.
-        for value, r in run_sweep(
-            base, "free_rider_fraction", [0.0, 0.25, 0.5, 0.75, 1.0]
-        ):
+        for value, r in run_sweep(base, "free_rider_fraction", [0.0, 0.25, 0.5, 0.75, 1.0]):
             results.append(
                 Result(
                     f"freerider.{value}.recovery",
