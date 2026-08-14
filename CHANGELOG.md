@@ -131,6 +131,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dispute window before redemption (24h default)
   - Per-relay-node earnings tracking
 - `tests/python/test_proof.py` — 19 tests covering receipt signing, verification, redemption, and earnings (100% coverage on proof module)
+- `qlive/broadcaster.py` — broadcaster application
+  - Stream lifecycle management (idle, starting, live, stopping, stopped, error)
+  - FFmpeg segmenter integration
+  - Chunk signing and distribution
+  - Automatic VOD archival
+  - QDN signaling integration
+  - Statistics tracking
+- `tests/python/test_broadcaster.py` — 12 tests covering config, lifecycle, segment processing, and run loop (95% coverage on broadcaster module)
 
 ---
 

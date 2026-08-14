@@ -108,9 +108,9 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 ## Phase 5 — UX & Tooling
 
 ### Broadcaster App
-- [ ] CLI tool for starting a broadcast (`qlive broadcast`)
+- [x] CLI tool for starting a broadcast (`qlive broadcast`)
 - [ ] Web UI for stream management (start/stop, preview, stats)
-- [ ] FFmpeg integration (RTMP/RTSP/device input)
+- [x] FFmpeg integration (RTMP/RTSP/device input)
 - [ ] Stream health dashboard (viewer count, bandwidth, buffer status)
 
 ### Viewer App
