@@ -37,9 +37,9 @@ This document tracks research items that need investigation before or during imp
 
 - [~] **Chunk size tuning:** Benchmark optimal fragment duration (500ms vs 1s) for latency vs. overhead tradeoff. → [docs/CHUNK-SIZE-TUNING.md](docs/CHUNK-SIZE-TUNING.md)
 - [~] **Buffer sizing:** Determine ideal sliding-window size (30s vs 60s) balancing resilience vs. RAM usage. → [docs/BUFFER-SIZING.md](docs/BUFFER-SIZING.md)
-- [ ] **Tree fanout:** Determine optimal tree fanout for different viewer counts
-- [ ] **Mesh size:** Determine optimal mesh peer count for resilience
-- [ ] **Retransmission timing:** Tune timeout and retry parameters
+- [x] **Tree fanout:** Determine optimal tree fanout for different viewer counts → [docs/SWARM-SIMULATION.md](docs/SWARM-SIMULATION.md)
+- [x] **Mesh size:** Determine optimal mesh peer count for resilience → [docs/SWARM-SIMULATION.md](docs/SWARM-SIMULATION.md)
+- [x] **Retransmission timing:** Tune timeout and retry parameters → [docs/SWARM-SIMULATION.md](docs/SWARM-SIMULATION.md)
 
 ### Benchmarking
 - [x] Create benchmark harness for chunk delivery → `src/python/qlive/benchmarks/`

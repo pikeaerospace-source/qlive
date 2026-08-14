@@ -158,6 +158,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `pipeline_bench.py` — end-to-end in-memory delivery model (depth, fan-out cost, latency)
   - CLI: `python -m qlive.benchmarks [suite ...] [--json] [--list]`
 - `tests/python/test_benchmarks.py` — smoke tests covering the benchmark runner and all suites
+- `qlive/simulation.py` — discrete-event swarm simulation (tree push + mesh pull, edge loss, retransmission, churn, parent-drop, free-riders)
+- `qlive/benchmarks/sim_bench.py` — simulation scenario sweeps (fanout, mesh, retransmit, buffer, churn, free-riders)
+- `tests/python/test_simulation.py` — 8 tests covering the simulation engine
 - `src/js/` — React + Vite + TypeScript web application (first iteration, offline/mock)
   - `src/data/api.ts` — swappable data service abstraction (mock backend, no network required)
   - `src/data/liveStats.ts` — live stats client (WebSocket + offline simulator)

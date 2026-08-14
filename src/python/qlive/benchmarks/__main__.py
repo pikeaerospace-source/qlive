@@ -22,6 +22,7 @@ from qlive.benchmarks.incentives_bench import IncentivesSuite
 from qlive.benchmarks.pipeline_bench import PipelineSuite
 from qlive.benchmarks.proof_bench import ProofSuite
 from qlive.benchmarks.retransmit_bench import RetransmitSuite
+from qlive.benchmarks.sim_bench import SimSuite
 from qlive.benchmarks.swarm_bench import SwarmSuite
 
 SUITES: dict[str, runner.Suite] = {
@@ -35,6 +36,7 @@ SUITES: dict[str, runner.Suite] = {
         IncentivesSuite(),
         ProofSuite(),
         PipelineSuite(),
+        SimSuite(),
     )
 }
 

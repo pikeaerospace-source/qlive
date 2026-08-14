@@ -46,6 +46,7 @@ use a full run for numbers you intend to compare.
 | `incentives` | Tit-for-tat bandwidth accounting and classification throughput |
 | `proof` | Proof-of-relay receipt sign/verify/redeem throughput |
 | `pipeline` | End-to-end in-memory delivery model: tree depth, fan-out cost, latency estimate |
+| `sim` | Discrete-event swarm simulation: fanout, mesh, retransmit, buffer, churn, free-riders |
 
 ## Methodology
 

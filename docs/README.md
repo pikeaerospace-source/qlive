@@ -35,6 +35,7 @@ Open research topics from [TODO.md](../TODO.md) → Phase 0 → Research Questio
 | [`RETICULUM-INTEGRATION.md`](RETICULUM-INTEGRATION.md) | Reticulum routing for peer discovery; latency vs. WebRTC |
 | [`QDN-SIGNALING-FREQUENCY.md`](QDN-SIGNALING-FREQUENCY.md) | Swarm peer-list refresh cadence without chain bloat |
 | [`QORTAL-CORE-API.md`](QORTAL-CORE-API.md) | Reusable Qortal Core endpoints (QDN, names, peers) |
+| [`SWARM-SIMULATION.md`](SWARM-SIMULATION.md) | Discrete-event swarm simulation — fanout, mesh, retransmit, buffer, churn |
 
 ---
 
