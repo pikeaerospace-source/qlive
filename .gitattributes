@@ -1,0 +1,75 @@
+# Git attributes — line endings, diff, and merge settings
+
+# Normalize line endings to LF for all text files
+* text=auto eol=lf
+
+# ---------- Binary files (never normalize) ----------
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp4 binary
+*.webm binary
+*.mov binary
+*.avi binary
+*.mkv binary
+*.fmp4 binary
+*.m4s binary
+*.ts binary
+*.mp3 binary
+*.wav binary
+*.ogg binary
+*.flac binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.jar binary
+*.war binary
+*.class binary
+*.pdf binary
+*.pem binary
+*.key binary
+*.crt binary
+*.p12 binary
+*.pfx binary
+
+# ---------- Language-specific diff settings ----------
+# Python
+*.py diff=python
+
+# JavaScript / TypeScript
+*.js diff=javascript
+*.jsx diff=javascript
+*.ts diff=typescript
+*.tsx diff=typescript
+*.mjs diff=javascript
+*.cjs diff=javascript
+
+# Java
+*.java diff=java
+
+# JSON
+*.json diff=json
+*.jsonc diff=json
+
+# Markdown
+*.md diff=markdown
+
+# YAML
+*.yml diff=yaml
+*.yaml diff=yaml
+
+# ---------- Merge strategies ----------
+# Lockfiles should use union merge to reduce conflicts
+package-lock.json merge=union
+yarn.lock merge=union
+pnpm-lock.yaml merge=union
+poetry.lock merge=union
+Pipfile.lock merge=union
+
+# ---------- Linguist overrides (GitHub language stats) ----------
+# Mark vendored/generated files
+*.min.js linguist-vendored
+*.min.css linguist-vendored

@@ -1,0 +1,38 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [Unreleased]
+
+### Added
+- Initial project scaffolding
+  - `README.md` — project overview, architecture, and roadmap
+  - `TODO.md` — phased task tracking, open design questions, milestones
+  - `LICENSE.md` — MIT License
+  - `CONTRIBUTING.md` — contribution guidelines
+  - `SECURITY.md` — security policy and vulnerability reporting
+  - `AUTHORS.md` — contributor acknowledgments
+  - `.gitignore` — Python, JavaScript/Node.js, Java, and QLive-specific ignores
+  - `.editorconfig` — cross-editor style consistency
+  - `.gitattributes` — git line-ending and diff settings
+  - `docs/` — documentation directory placeholder
+
+### Design
+- Q-Stream architectural blueprint
+  - QDN/Chain signaling layer
+  - Ephemeral P2P mesh transport layer
+  - QDN archival (VOD) layer
+- Ephemeral chunking engine (CMAF/fMP4) with cryptographic in-flight signing
+- Dual-layer peer swarm (tree + mesh hybrid)
+- RAM-only sliding-window buffering
+- Automated Live → VOD transition (Q-Tube integration)
+- Tit-for-tat data swapping and proof-of-relay incentive model
+
+---
+
+*Changelog entries will be added as development progresses.*
