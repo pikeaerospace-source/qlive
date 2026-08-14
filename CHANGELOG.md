@@ -38,6 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RAM-only sliding-window buffering
 - Automated Live → VOD transition (Q-Tube integration)
 - Tit-for-tat data swapping and proof-of-relay incentive model
+- `docs/protocol.md` — formal protocol specification v0.1.0 (draft)
+  - Ephemeral chunk format (header fields, signing, fragment duration)
+  - QDN signaling schema (stream metadata, lifecycle, update cadence)
+  - Swarm protocol (dual-layer tree + mesh, peer health, fragment flow)
+  - RAM sliding-window buffer semantics
+  - Live → VOD archival pipeline
+  - Security threat model and encryption
+  - Incentives (tit-for-tat, proof-of-relay)
+  - Protocol constants
 
 ---
 

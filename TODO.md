@@ -15,7 +15,7 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 ## Phase 0 — Research & Specification
 
 ### Protocol Design
-- [ ] Write formal protocol specification document (`docs/protocol.md`)
+- [x] Write formal protocol specification document (`docs/protocol.md`)
 - [ ] Define the QDN signaling schema (stream metadata, peer lists, encryption keys)
 - [ ] Specify the ephemeral chunk format (CMAF/fMP4 container, sequence IDs, timestamps, hashes)
 - [ ] Design the cryptographic signing/verification scheme for in-flight chunks

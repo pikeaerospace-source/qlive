@@ -8,7 +8,7 @@ This directory will contain the formal protocol specification, design documents,
 
 | Document | Status | Description |
 | --- | --- | --- |
-| `protocol.md` | Planned | Formal protocol specification (chunk format, signaling schema, swarm protocol) |
+| `protocol.md` | Draft | Formal protocol specification (chunk format, signaling schema, swarm protocol) |
 | `architecture.md` | Planned | Detailed architecture and component design |
 | `signaling-schema.md` | Planned | QDN signaling schema (stream metadata, peer lists, encryption keys) |
 | `chunk-format.md` | Planned | CMAF/fMP4 ephemeral chunk format specification |
