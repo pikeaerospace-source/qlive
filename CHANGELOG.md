@@ -78,6 +78,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Chunk recovery tracking
   - Success rate statistics
 - `tests/python/test_retransmit.py` — 23 tests covering request lifecycle, chunk handling, timeouts, and statistics (99% coverage on retransmit module)
+- `qlive/adaptive.py` — adaptive bitrate control
+  - Bitrate ladder with upgrade/downgrade logic
+  - Hysteresis-based control to avoid oscillation
+  - Cooldown periods for upgrades and downgrades
+  - Buffer health-based bitrate selection
+- `tests/python/test_adaptive.py` — 23 tests covering bitrate ladder, controller evaluation, and full adaptive cycles (100% coverage on adaptive module)
 
 ---
 

@@ -49,7 +49,7 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 - [x] Implement in-memory ring buffer for live fragments
 - [x] Implement eviction policy (oldest-first, window-based)
 - [x] Implement buffer health monitoring (fill rate, stall detection)
-- [ ] Implement graceful degradation (adaptive bitrate on buffer pressure)
+- [x] Implement graceful degradation (adaptive bitrate on buffer pressure)
 
 ---
 
