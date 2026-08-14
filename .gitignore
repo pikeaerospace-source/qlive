@@ -172,7 +172,6 @@ tmp-streams/
 *.fmp4
 *.m4s
 *.cmfa
-*.ts
 *.m3u8
 *.mpd
 

@@ -158,6 +158,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `pipeline_bench.py` — end-to-end in-memory delivery model (depth, fan-out cost, latency)
   - CLI: `python -m qlive.benchmarks [suite ...] [--json] [--list]`
 - `tests/python/test_benchmarks.py` — smoke tests covering the benchmark runner and all suites
+- `src/js/` — React + Vite + TypeScript web application (first iteration, offline/mock)
+  - `src/data/api.ts` — swappable data service abstraction (mock backend, no network required)
+  - `src/pages/` — Discovery, Watch, Dashboard, and Profile views
+  - `src/components/` — Layout, StreamCard, Player (hls.js lazy-loaded), Stat, StatusBadge
+  - `src/index.css` — dark-theme design system
+  - Vitest + Testing Library setup with 7 passing tests
 
 ### Fixed
 - `qlive/swarm.py` — `DeliveryTree.find_parent` no longer selects unattached peers (mesh viewers) as tree parents, which previously flattened the delivery tree to depth 1 and defeated the depth-based latency model

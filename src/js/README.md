@@ -1,16 +1,20 @@
 # QLive JavaScript/TypeScript Components
 
-JavaScript/TypeScript components for the QLive decentralized live-streaming protocol.
+React + Vite + TypeScript web application for QLive.
 
-## Planned Components
+## Overview
 
-| Component | Status | Description |
-| --- | --- | --- |
-| `player/` | Planned | Web player (CMAF/HLS playback, low-latency mode) |
-| `broadcaster/` | Planned | Broadcaster CLI and web UI |
-| `viewer/` | Planned | Viewer CLI and web UI |
-| `webrtc/` | Planned | WebRTC data channel transport |
-| `cli/` | Planned | `qlive broadcast` / `qlive watch` CLI tools |
+The Web UI provides four views:
+
+- **Discover** — browse live, upcoming, and archived streams by category
+- **Watch** — low-latency player (hls.js / native HLS) with live stats
+- **Dashboard** — broadcaster controls and stream-health stats
+- **Profile** — streamer profiles with their streams
+
+All data flows through a swappable `Api` interface (`src/data/api.ts`). The
+current implementation returns mock data, so the entire app runs offline — no
+Qortal network, QDN, or live stream required. Swap the mock for a real QDN
+client without touching the UI components.
 
 ## Development
 
@@ -18,10 +22,16 @@ JavaScript/TypeScript components for the QLive decentralized live-streaming prot
 # Install dependencies
 npm install
 
-# Build
+# Vite dev server
+npm run dev
+
+# Type-check + production build
 npm run build
 
-# Type-check
+# Preview the production build
+npm run preview
+
+# Type-check only
 npm run typecheck
 
 # Lint
@@ -31,8 +41,35 @@ npm run lint
 npm test
 ```
 
+## Structure
+
+```
+src/
+  main.tsx            # entry point
+  App.tsx             # routes
+  index.css           # design system (dark theme)
+  types.ts            # shared domain types (Stream, Streamer, …)
+  data/
+    api.ts            # data service abstraction (swappable backend)
+    mock.ts           # mock streams & streamers
+    api.test.ts
+  components/
+    Layout.tsx        # top bar + nav
+    StreamCard.tsx    # stream card
+    Player.tsx        # hls.js player (lazy-loaded)
+    Stat.tsx          # stat block
+    StatusBadge.tsx   # live/upcoming/replay badge
+    StreamCard.test.tsx
+  pages/
+    DiscoveryPage.tsx # browse streams
+    WatchPage.tsx     # watch a stream
+    DashboardPage.tsx # broadcaster dashboard
+    ProfilePage.tsx   # streamer profile
+  test/
+    setup.ts          # vitest + testing-library setup
+```
+
 ## Dependencies
 
-- Node.js 18+
-- TypeScript 5+
-- See `package.json` for full dependency list
+- Node.js 18+, TypeScript 5+, React 18, Vite 5
+- See `package.json` for the full dependency list

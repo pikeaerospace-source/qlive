@@ -24,11 +24,11 @@ The QLive web UI provides:
 
 ## Broadcaster Dashboard
 
-- [ ] Web UI for stream management (start/stop, preview, stats)
-- [ ] Stream configuration form (title, description, category, bitrate)
+- [x] Web UI for stream management (start/stop, preview, stats)
+- [x] Stream configuration form (title, description, category, bitrate)
 - [ ] Live preview of the stream
-- [ ] Start/stop broadcast controls
-- [ ] Stream health dashboard (viewer count, bandwidth, buffer status)
+- [x] Start/stop broadcast controls
+- [x] Stream health dashboard (viewer count, bandwidth, buffer status)
 - [ ] Archive status indicator
 - [ ] Error and warning notifications
 
@@ -44,7 +44,7 @@ The QLive web UI provides:
 
 ## Viewer Player
 
-- [ ] Web player (HLS/CMAF playback, low-latency mode)
+- [~] Web player (HLS/CMAF playback, low-latency mode) — hls.js wired, mock placeholder
 - [ ] Play/pause controls
 - [ ] Volume and fullscreen controls
 - [ ] Adaptive bitrate indicator
@@ -63,12 +63,12 @@ The QLive web UI provides:
 
 ## Stream Discovery
 
-- [ ] Stream discovery UI (browse active streams)
-- [ ] Browse live streams by category
-- [ ] Browse upcoming (announced) streams
+- [x] Stream discovery UI (browse active streams)
+- [x] Browse live streams by category
+- [x] Browse upcoming (announced) streams
 - [ ] Search streams by title or streamer
-- [ ] Stream cards with thumbnail, title, viewer count
-- [ ] Sort and filter options
+- [x] Stream cards with thumbnail, title, viewer count
+- [x] Sort and filter options
 
 ### Discovery Features
 - [ ] Featured streams section
@@ -80,10 +80,10 @@ The QLive web UI provides:
 
 ## Streamer Profiles
 
-- [ ] Streamer profile page
-- [ ] Show active streams
-- [ ] Show past streams (VOD)
-- [ ] Show streamer bio and stats
+- [x] Streamer profile page
+- [x] Show active streams
+- [x] Show past streams (VOD)
+- [x] Show streamer bio and stats
 - [ ] Follow/unfollow button
 - [ ] Notification preferences
 
@@ -91,8 +91,8 @@ The QLive web UI provides:
 
 ## Design & UX
 
-- [ ] Design system (colors, typography, spacing)
-- [ ] Dark mode support
+- [x] Design system (colors, typography, spacing)
+- [x] Dark mode support
 - [ ] Responsive layout (desktop, tablet, mobile)
 - [ ] Accessibility (WCAG 2.1)
 - [ ] Loading states and skeletons
@@ -103,27 +103,27 @@ The QLive web UI provides:
 
 ## Frontend Architecture
 
-- [ ] Choose frontend framework (React/Vue/Svelte)
-- [ ] Set up build tooling (Vite/Webpack)
-- [ ] Set up state management
-- [ ] Set up routing
-- [ ] Set up API client for QLive backend
+- [x] Choose frontend framework (React/Vue/Svelte) → **React 18**
+- [x] Set up build tooling (Vite/Webpack) → **Vite 5**
+- [x] Set up state management → React hooks + `Api` service abstraction
+- [x] Set up routing → React Router 6
+- [x] Set up API client for QLive backend → `src/data/api.ts` (mock, swappable)
 - [ ] Set up WebSocket client for real-time updates
-- [ ] Set up testing framework
+- [x] Set up testing framework → Vitest + Testing Library
 
 ### Components
-- [ ] Player component
-- [ ] Stream card component
-- [ ] Streamer profile component
+- [x] Player component
+- [x] Stream card component
+- [x] Streamer profile component
 - [ ] Chat component
-- [ ] Dashboard widgets
+- [x] Dashboard widgets
 
 ---
 
 ## Testing & QA
 
-- [ ] Unit tests for components
-- [ ] Integration tests for player
+- [x] Unit tests for components
+- [x] Integration tests for player (data service)
 - [ ] End-to-end tests for broadcast flow
 - [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
 - [ ] Mobile testing (iOS, Android)
