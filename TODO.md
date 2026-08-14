@@ -4,6 +4,19 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 
 ---
 
+## Sub-TODO Documents
+
+External dependency areas have their own dedicated TODO documents:
+
+| Document | Focus |
+| --- | --- |
+| [TODO-QTUBE.md](TODO-QTUBE.md) | Q-Tube integration (live player, VOD replay, profiles) |
+| [TODO-QORTAL-CORE.md](TODO-QORTAL-CORE.md) | Qortal Core integration (QDN, identity, minting) |
+| [TODO-WEB-UI.md](TODO-WEB-UI.md) | Web UI & frontend (dashboard, player, discovery) |
+| [TODO-RESEARCH.md](TODO-RESEARCH.md) | Research & open design questions |
+
+---
+
 ## Status Legend
 
 - `[ ]` — Not started
