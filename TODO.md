@@ -167,7 +167,7 @@ These are unresolved questions that need discussion/decision:
 - [ ] **Analytics:** Privacy-preserving viewer/bandwidth analytics for streamers.
 - [ ] **Relay marketplace:** Nodes advertise relay capacity; streamers "rent" relay nodes for guaranteed quality.
 - [ ] **Offline-first playback:** Pre-fetch live stream to local cache for later VOD (viewer-initiated).
-- [ ] **Qortal Name verification badge:** Verified streamers get a visual badge in the UI.
+- [x] **Qortal Name verification badge:** Verified streamers get a visual badge in the UI.
 
 ---
 
@@ -194,6 +194,9 @@ These are unresolved questions that need discussion/decision:
 | 2026-08-14 | Sign payload hash, not full payload | Makes sign/verify cost constant regardless of bitrate |
 | 2026-08-14 | WebRTC for data plane; Reticulum for control plane | WebRTC is proven for high-bandwidth video; Reticulum is strong at discovery/NAT |
 | 2026-08-14 | React + Vite for the Web UI | Qortal Q-App standard; largest ecosystem; best media-player libs |
+| 2026-08-14 | Fanout 8; mesh 4–8; 1–2 retransmit attempts | Simulation: depth 3 / ~130 ms; 97–100% recovery with diminishing returns beyond 8 |
+| 2026-08-14 | Two-tier incentives (tit-for-tat + proof-of-relay) | Tit-for-tat deters viewers; only proof-of-relay rewards relays economically |
+| 2026-08-14 | Per-stream AES-256-GCM encryption implemented | Matches the encryption model; enables private streams |
 
 ---
 

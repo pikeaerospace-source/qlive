@@ -153,8 +153,8 @@ To ensure peers actually relay video traffic rather than just leeching bandwidth
 ```bash
 cd src/python
 pip install -e ".[dev]"
-pytest                       # 275 tests
-python -m qlive.benchmarks   # offline benchmarks
+pytest                       # 294 tests
+python -m qlive.benchmarks   # offline benchmarks + simulation
 ```
 
 ### Web UI (React + Vite)

@@ -132,7 +132,12 @@ These are unresolved questions that need discussion/decision:
 
 | Date | Topic | Findings | Decision |
 | --- | --- | --- | --- |
-| — | — | — | — |
+| 2026-08-14 | Chunk size | Overhead < 0.25% at all durations | 1s default; 500ms opt-in |
+| 2026-08-14 | Buffer sizing | ≤ 43 MB at 6 Mbps/60s; window doesn't affect per-chunk recovery | 45s default (outage resilience) |
+| 2026-08-14 | Encryption | AES-256-GCM ~800+ MB/s; full-payload signing scales with bitrate | Per-stream symmetric + hybrid envelopes; sign the hash |
+| 2026-08-14 | Swarm tuning | Fanout 8 → depth 3 (~130 ms); mesh 4–8 → 97–100% recovery | Fanout 8, mesh 4–8, 1–2 retransmit attempts |
+| 2026-08-14 | Security | Sybil is economic (name fee); relay cannot self-forge receipts | Two-tier incentives; bounded bounty pool |
+| 2026-08-14 | Economics | 1 QORT/GB; free-riders only hurt >50% | Tit-for-tat + proof-of-relay; target worst free-riders |
 
 ---
 

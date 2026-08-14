@@ -18,10 +18,12 @@ run in-memory/offline (no live Qortal network required).
 | `retransmit.py` | Chunk retransmission protocol |
 | `adaptive.py` | Adaptive bitrate control |
 | `incentives.py` | Tit-for-tat bandwidth accounting |
-| `proof.py` | Proof-of-relay bandwidth receipts |
+| `proof.py` | Proof-of-relay bandwidth receipts (downstream-signed, double-count safe) |
+| `encryption.py` | Per-stream AES-256-GCM encryption, key rotation, hybrid key envelopes |
 | `broadcaster.py` / `viewer.py` | Broadcaster and viewer applications |
 | `cli.py` | `qlive broadcast` / `qlive watch` CLI |
 | `benchmarks/` | Offline benchmark framework |
+| `simulation.py` | Discrete-event swarm simulation |
 
 ## Development
 

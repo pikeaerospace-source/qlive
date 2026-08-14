@@ -133,11 +133,11 @@ The QLive web UI provides:
 
 ## Milestones
 
-- [ ] **W1 — Player:** Basic live stream playback works in browser
-- [ ] **W2 — Discovery:** Users can browse and find streams
-- [ ] **W3 — Dashboard:** Streamers can manage broadcasts
-- [ ] **W4 — Profiles:** Streamer profiles with live and VOD content
-- [ ] **W5 — Polish:** Design system, mobile, accessibility
+- [~] **W1 — Player:** Basic live stream playback works in browser (hls.js wired; real stream pending)
+- [x] **W2 — Discovery:** Users can browse and find streams
+- [x] **W3 — Dashboard:** Streamers can manage broadcasts
+- [x] **W4 — Profiles:** Streamer profiles with live and VOD content
+- [~] **W5 — Polish:** Design system, mobile, accessibility (design done; mobile/a11y partial)
 
 ---
 
