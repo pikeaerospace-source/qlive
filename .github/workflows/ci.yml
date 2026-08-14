@@ -38,6 +38,9 @@ jobs:
       - name: Test (pytest)
         run: pytest
 
+      - name: Benchmark (quick smoke)
+        run: python -m qlive.benchmarks --quick
+
   javascript:
     name: JavaScript/TypeScript
     runs-on: ubuntu-latest

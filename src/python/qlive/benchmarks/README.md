@@ -22,9 +22,17 @@ python -m qlive.benchmarks
 # Run specific suites
 python -m qlive.benchmarks chunk buffer encryption
 
+# Reduced workloads (fast smoke check — CI / sanity runs)
+python -m qlive.benchmarks --quick
+
 # Machine-readable output (JSON)
 python -m qlive.benchmarks --json > results.json
 ```
+
+`--quick` runs each suite with reduced workloads (fewer iterations and/or
+smaller sizes) while keeping the same result structure, so it completes in
+well under a second. It is intended for CI smoke checks and fast iteration;
+use a full run for numbers you intend to compare.
 
 ## Suites
 

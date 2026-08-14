@@ -8,8 +8,9 @@ is importable — no network or external services required.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass
@@ -23,7 +24,12 @@ class Result:
 
     def as_dict(self) -> dict[str, Any]:
         """Serialize to a JSON-friendly dict."""
-        return {"name": self.name, "value": self.value, "unit": self.unit, "note": self.note}
+        return {
+            "name": self.name,
+            "value": self.value,
+            "unit": self.unit,
+            "note": self.note,
+        }
 
 
 def best_time(
@@ -67,8 +73,14 @@ class Suite:
     name: str = "unnamed"
     description: str = ""
 
-    def run(self) -> list[Result]:
-        """Run the suite and return its measurements."""
+    def run(self, quick: bool = False) -> list[Result]:
+        """Run the suite and return its measurements.
+
+        Args:
+            quick: When True, run a reduced workload (fewer iterations and/or
+                smaller sizes) suitable for fast smoke checks. Results remain
+                structurally identical to a full run.
+        """
         raise NotImplementedError
 
 

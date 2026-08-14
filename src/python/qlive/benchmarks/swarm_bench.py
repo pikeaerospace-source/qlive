@@ -51,11 +51,17 @@ class SwarmSuite(Suite):
     name = "swarm"
     description = "Tree/mesh swarm: construction scaling, fanout, churn, reattachment."
 
-    def run(self) -> list[Result]:
+    def run(self, quick: bool = False) -> list[Result]:
         results: list[Result] = []
+        build_n = (100, 300) if quick else (100, 1000, 3000)
+        fanout_n = 200 if quick else 2000
+        warm_n = 50 if quick else 100
+        churn_n = 200 if quick else 1000
+        reattach_n = 200 if quick else 2000
+        drop_number = 20 if quick else 100
 
         # 1. Construction scaling (join cost is O(n) per peer → O(n^2) total).
-        for n in (100, 1000, 3000):
+        for n in build_n:
             repeat = 3 if n <= 1000 else 1
             build_s = best_time(build_swarm, "broadcaster", n, repeat=repeat, number=1)
             swarm = build_swarm("broadcaster", n)
@@ -71,34 +77,34 @@ class SwarmSuite(Suite):
 
         # 2. Fanout vs. depth for a fixed peer count.
         for fanout in (4, 8, 16):
-            swarm = build_swarm("broadcaster", 2000, max_fanout=fanout)
+            swarm = build_swarm("broadcaster", fanout_n, max_fanout=fanout)
             stats = swarm.stats
             results.append(
                 Result(
                     f"fanout.{fanout}.depth",
                     float(stats.tree_depth),
                     "hops",
-                    f"n=2000 viewers={stats.viewers} tree={stats.tree_nodes}",
+                    f"n={fanout_n} viewers={stats.viewers} tree={stats.tree_nodes}",
                 )
             )
 
         # 3. Churn throughput (join + leave per peer).
         def churn() -> None:
             swarm = SwarmManager("broadcaster")
-            for i in range(100):
+            for i in range(warm_n):
                 swarm.join(make_peer(f"warm-{i}", healthy=False, bandwidth_kbps=500.0))
-            for i in range(1000):
+            for i in range(churn_n):
                 peer_id = f"churn-{i}"
                 swarm.join(make_peer(peer_id, healthy=False, bandwidth_kbps=500.0))
                 swarm.leave(peer_id)
 
-        churn_s = best_time(churn, repeat=3, number=1) / 1000
+        churn_s = best_time(churn, repeat=3, number=1) / churn_n
         results.append(
             Result("churn.join_leave", churn_s * 1e6, "us", "per join+leave cycle")
         )
 
         # 4. Tree reattachment on node removal.
-        swarm = build_swarm("broadcaster", 2000)
+        swarm = build_swarm("broadcaster", reattach_n)
         # Drop the first non-broadcaster tree node and reattach its children.
         tree_node_id = next(
             pid for pid, p in swarm.tree.peers.items() if p.is_tree_node
@@ -107,7 +113,7 @@ class SwarmSuite(Suite):
         def drop() -> None:
             swarm.tree.remove_peer(tree_node_id)
 
-        drop_s = best_time(drop, repeat=3, number=100)
+        drop_s = best_time(drop, repeat=3, number=drop_number)
         results.append(
             Result(
                 "reattach.remove_tree_node",

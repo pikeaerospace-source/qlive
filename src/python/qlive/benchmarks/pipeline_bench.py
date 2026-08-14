@@ -54,14 +54,27 @@ def build_swarm(node_id: str, n: int) -> SwarmManager:
     return swarm
 
 
+def push_chunks(swarm: SwarmManager, chunk_count: int) -> None:
+    """Touch every non-broadcaster peer once per chunk (models push fan-out)."""
+    for _ in range(chunk_count):
+        for peer_id, peer in swarm.tree.peers.items():
+            if peer_id == "broadcaster":
+                continue
+            # Touch the payload to model per-peer copy/verify work.
+            _ = peer.role
+
+
 class PipelineSuite(Suite):
     name = "pipeline"
     description = "End-to-end in-memory delivery: fan-out cost, depth, latency model."
 
-    def run(self) -> list[Result]:
+    def run(self, quick: bool = False) -> list[Result]:
         results: list[Result] = []
+        viewer_counts = (10, 50) if quick else (10, 100, 1000)
+        simulate_counts = (50, 100) if quick else (100, 1000)
+        chunk_count = 10 if quick else 60
 
-        for n in (10, 100, 1000):
+        for n in viewer_counts:
             swarm = build_swarm("broadcaster", n)
             stats = swarm.stats
 
@@ -97,22 +110,13 @@ class PipelineSuite(Suite):
                 )
             )
 
-        # 4. Wall-clock cost of pushing 60 chunks through the in-memory swarm.
-        for n in (100, 1000):
+        # 4. Wall-clock cost of pushing chunks through the in-memory swarm.
+        for n in simulate_counts:
             swarm = build_swarm("broadcaster", n)
-
-            def push() -> None:
-                for _ in range(60):
-                    for peer_id, peer in swarm.tree.peers.items():
-                        if peer_id == "broadcaster":
-                            continue
-                        # Touch the payload to model per-peer copy/verify work.
-                        _ = peer.role
-
-            push_s = best_time(push, repeat=3, number=1)
+            push_s = best_time(push_chunks, swarm, chunk_count, repeat=3, number=1)
             results.append(
                 Result(
-                    f"simulate.{n}viewers.60chunks",
+                    f"simulate.{n}viewers.{chunk_count}chunks",
                     push_s,
                     "s",
                     "in-memory push (no crypto)",

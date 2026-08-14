@@ -22,22 +22,27 @@ DURATIONS_MS = (500, 1000, 2000)
 
 class ChunkSuite(Suite):
     name = "chunk"
-    description = "Chunk format overhead and crypto throughput (sign/verify/hash/serialize)."
+    description = (
+        "Chunk format overhead and crypto throughput (sign/verify/hash/serialize)."
+    )
 
-    def run(self) -> list[Result]:
+    def run(self, quick: bool = False) -> list[Result]:
         results: list[Result] = []
+        bitrates = (1000, 4500) if quick else BITRATES_KBPS
+        durations = (1000,) if quick else DURATIONS_MS
+        crypto_number = 10 if quick else 50
 
         # 1. Fixed overhead ratio (deterministic — no timing needed).
-        for bitrate in BITRATES_KBPS:
-            for duration in DURATIONS_MS:
-                payload = int(bitrate * 1000 / 8 * duration / 1000)  # bytes
-                overhead_pct = HEADER_SIZE / payload * 100
+        for bitrate in bitrates:
+            for duration in durations:
+                payload_size = int(bitrate * 1000 / 8 * duration / 1000)  # bytes
+                overhead_pct = HEADER_SIZE / payload_size * 100
                 results.append(
                     Result(
                         f"overhead.{bitrate}kbps.{duration}ms",
                         overhead_pct,
                         "%",
-                        f"header={HEADER_SIZE}B payload={payload}B",
+                        f"header={HEADER_SIZE}B payload={payload_size}B",
                     )
                 )
 
@@ -46,16 +51,23 @@ class ChunkSuite(Suite):
         public_key = private_key.public_key()
         stream_id = hashlib.sha256(b"qlive-bench-stream").digest()
 
-        for bitrate in BITRATES_KBPS:
+        for bitrate in bitrates:
             payload = os.urandom(int(bitrate * 1000 / 8))
             chunk = create_chunk(stream_id, 1, payload, duration=1000)
 
-            sign_s = best_time(chunk.sign, private_key, repeat=3, number=50)
-            verify_s = best_time(chunk.verify, public_key, repeat=3, number=50)
-            hash_s = best_time(hashlib.sha256, payload, repeat=3, number=50)
+            sign_s = best_time(chunk.sign, private_key, repeat=3, number=crypto_number)
+            verify_s = best_time(
+                chunk.verify, public_key, repeat=3, number=crypto_number
+            )
+            hash_s = best_time(hashlib.sha256, payload, repeat=3, number=crypto_number)
 
             results.append(
-                Result(f"sign.{bitrate}kbps", sign_s * 1e6, "us", "Ed25519 over header+payload")
+                Result(
+                    f"sign.{bitrate}kbps",
+                    sign_s * 1e6,
+                    "us",
+                    "Ed25519 over header+payload",
+                )
             )
             results.append(
                 Result(f"verify.{bitrate}kbps", verify_s * 1e6, "us", "Ed25519")
@@ -74,13 +86,23 @@ class ChunkSuite(Suite):
             data = chunk.serialize()
             Chunk.deserialize(data)
 
-        roundtrip_s = best_time(roundtrip, repeat=3, number=100)
+        roundtrip_number = 20 if quick else 100
+        roundtrip_s = best_time(roundtrip, repeat=3, number=roundtrip_number)
         results.append(
-            Result("serialize", best_time(chunk.serialize, repeat=3, number=100) * 1e6, "us",
-                   "header+signature+payload")
+            Result(
+                "serialize",
+                best_time(chunk.serialize, repeat=3, number=roundtrip_number) * 1e6,
+                "us",
+                "header+signature+payload",
+            )
         )
         results.append(
-            Result("roundtrip", roundtrip_s * 1e6, "us", f"serialize+deserialize {len(serialized)}B")
+            Result(
+                "roundtrip",
+                roundtrip_s * 1e6,
+                "us",
+                f"serialize+deserialize {len(serialized)}B",
+            )
         )
 
         return results

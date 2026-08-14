@@ -5,6 +5,7 @@ Usage:
     python -m qlive.benchmarks chunk buffer   # run specific suites
     python -m qlive.benchmarks --list         # list available suites
     python -m qlive.benchmarks --json         # machine-readable output
+    python -m qlive.benchmarks --quick        # reduced workloads (fast smoke check)
 """
 
 from __future__ import annotations
@@ -49,7 +50,14 @@ def main(argv: list[str] | None = None) -> int:
         help="Suite names to run (default: all). See --list.",
     )
     parser.add_argument("--list", action="store_true", help="List available suites")
-    parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    parser.add_argument(
+        "--json", action="store_true", help="Emit machine-readable JSON"
+    )
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Run reduced workloads (fewer iterations/sizes) for fast smoke checks",
+    )
     args = parser.parse_args(argv)
 
     if args.list:
@@ -63,11 +71,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Available: {', '.join(SUITES)}", file=sys.stderr)
         return 2
 
-    selected = [SUITES[name] for name in args.suites] if args.suites else list(SUITES.values())
+    selected = (
+        [SUITES[name] for name in args.suites] if args.suites else list(SUITES.values())
+    )
 
     outputs: list[tuple[str, str, list[runner.Result]]] = []
     for suite in selected:
-        outputs.append((suite.name, suite.description, suite.run()))
+        outputs.append((suite.name, suite.description, suite.run(quick=args.quick)))
 
     if args.json:
         payload = {

@@ -18,15 +18,17 @@ class ProofSuite(Suite):
     name = "proof"
     description = "Proof-of-relay: receipt sign/verify/redeem throughput."
 
-    def run(self) -> list[Result]:
+    def run(self, quick: bool = False) -> list[Result]:
         results: list[Result] = []
         private_key = ed25519.Ed25519PrivateKey.generate()
         public_key = private_key.public_key()
         stream_id = hashlib.sha256(b"qlive-bench-proof").digest()
+        sign_number = 200 if quick else 1000
+        redeem_number = 20 if quick else 100
 
         receipt = BandwidthReceipt("relay-1", "viewer-1", stream_id, 1024 * 1024)
-        sign_s = best_time(receipt.sign, private_key, repeat=3, number=1000)
-        verify_s = best_time(receipt.verify, public_key, repeat=3, number=1000)
+        sign_s = best_time(receipt.sign, private_key, repeat=3, number=sign_number)
+        verify_s = best_time(receipt.verify, public_key, repeat=3, number=sign_number)
         results.append(Result("receipt.sign", sign_s * 1e6, "us", "Ed25519"))
         results.append(Result("receipt.verify", verify_s * 1e6, "us", "Ed25519"))
 
@@ -39,9 +41,14 @@ class ProofSuite(Suite):
             r.timestamp = 0  # skip the 24h dispute window for benchmarking
             return manager.redeem(r)
 
-        redeem_s = best_time(redeem_cycle, repeat=3, number=100)
+        redeem_s = best_time(redeem_cycle, repeat=3, number=redeem_number)
         results.append(
-            Result("receipt.redeem_cycle", redeem_s * 1e6, "us", "create+sign+verify+redeem")
+            Result(
+                "receipt.redeem_cycle",
+                redeem_s * 1e6,
+                "us",
+                "create+sign+verify+redeem",
+            )
         )
 
         return results

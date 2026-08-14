@@ -23,19 +23,24 @@ class BufferSuite(Suite):
     name = "buffer"
     description = "RAM sliding-window buffer: memory usage and add/evict throughput."
 
-    def run(self) -> list[Result]:
+    def run(self, quick: bool = False) -> list[Result]:
         results: list[Result] = []
         stream_id = hashlib.sha256(b"qlive-bench-buffer").digest()
+        bitrates = (1000, 4500) if quick else BITRATES_KBPS
+        windows = (30, 60) if quick else WINDOWS_SECONDS
+        add_count = 500 if quick else 3000
 
         # 1. Measured memory usage at steady state (window + 1 transient chunk).
-        for bitrate in BITRATES_KBPS:
-            for window in WINDOWS_SECONDS:
+        for bitrate in bitrates:
+            for window in windows:
                 buffer = SlidingWindowBuffer(window_seconds=window)
                 payload = os.urandom(int(bitrate * 1000 / 8))
                 base_ts = int(time.time() * 1000)
                 for seq in range(1, window + 2):  # +1 forces one eviction
                     buffer.add(
-                        create_chunk(stream_id, seq, payload, timestamp=base_ts + seq * 1000)
+                        create_chunk(
+                            stream_id, seq, payload, timestamp=base_ts + seq * 1000
+                        )
                     )
                 stats = buffer.stats
                 results.append(
@@ -53,29 +58,46 @@ class BufferSuite(Suite):
         def add_many() -> None:
             buffer = SlidingWindowBuffer(window_seconds=30)
             base_ts = int(time.time() * 1000)
-            for seq in range(1, 3001):
+            for seq in range(1, add_count + 1):
                 buffer.add(
-                    create_chunk(stream_id, seq, small_payload, timestamp=base_ts + seq * 1000)
+                    create_chunk(
+                        stream_id, seq, small_payload, timestamp=base_ts + seq * 1000
+                    )
                 )
 
-        add_s = best_time(add_many, repeat=3, number=1) / 3000
+        add_s = best_time(add_many, repeat=3, number=1) / add_count
         results.append(
-            Result("add.evict_steady", add_s * 1e6, "us", "per add with eviction (1KB chunks)")
+            Result(
+                "add.evict_steady",
+                add_s * 1e6,
+                "us",
+                "per add with eviction (1KB chunks)",
+            )
         )
 
         # 3. Lookup throughput (get + get_missing, the retransmit hot path).
         buffer = SlidingWindowBuffer(window_seconds=30)
         base_ts = int(time.time() * 1000)
         for seq in range(1, 61):
-            buffer.add(create_chunk(stream_id, seq, small_payload, timestamp=base_ts + seq * 1000))
+            buffer.add(
+                create_chunk(
+                    stream_id, seq, small_payload, timestamp=base_ts + seq * 1000
+                )
+            )
 
         def lookup() -> None:
             buffer.get(30)
             buffer.get_missing(1, 60)
 
-        lookup_s = best_time(lookup, repeat=3, number=1000)
+        lookup_number = 200 if quick else 1000
+        lookup_s = best_time(lookup, repeat=3, number=lookup_number)
         results.append(
-            Result("lookup.get_missing", lookup_s * 1e6, "us", "get + get_missing over 60 chunks")
+            Result(
+                "lookup.get_missing",
+                lookup_s * 1e6,
+                "us",
+                "get + get_missing over 60 chunks",
+            )
         )
 
         return results

@@ -22,10 +22,23 @@ def test_all_suites_produce_finite_results():
         assert results, f"{suite.name} produced no results"
         for result in results:
             assert isinstance(result, Result)
-            assert math.isfinite(result.value), (
-                f"{suite.name}: non-finite value for {result.name}"
-            )
+            assert math.isfinite(
+                result.value
+            ), f"{suite.name}: non-finite value for {result.name}"
             assert result.value >= 0, f"{suite.name}: negative value for {result.name}"
+
+
+def test_quick_mode_produces_finite_results():
+    for suite in benchmarks_main.SUITES.values():
+        results = suite.run(quick=True)
+        assert results, f"{suite.name} produced no results in quick mode"
+        for result in results:
+            assert math.isfinite(
+                result.value
+            ), f"{suite.name} (quick): non-finite value for {result.name}"
+            assert (
+                result.value >= 0
+            ), f"{suite.name} (quick): negative value for {result.name}"
 
 
 def test_cli_list_returns_zero():
@@ -34,6 +47,10 @@ def test_cli_list_returns_zero():
 
 def test_cli_json_returns_zero():
     assert benchmarks_main.main(["incentives", "--json"]) == 0
+
+
+def test_cli_quick_flag_returns_zero():
+    assert benchmarks_main.main(["--quick", "incentives", "--json"]) == 0
 
 
 def test_cli_unknown_suite_returns_two():
