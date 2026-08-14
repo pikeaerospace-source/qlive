@@ -124,6 +124,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Free-rider detection with warning escalation
   - Inactivity timeout detection
 - `tests/python/test_incentives.py` — 28 tests covering bandwidth accounting, contribution classification, free-rider detection, and prioritization (100% coverage on incentives module)
+- `qlive/proof.py` — proof-of-relay bandwidth receipts
+  - Signed bandwidth receipt format (Ed25519)
+  - Receipt lifecycle (pending, verified, redeemed, rejected)
+  - QORT calculation based on bytes relayed
+  - Dispute window before redemption (24h default)
+  - Per-relay-node earnings tracking
+- `tests/python/test_proof.py` — 19 tests covering receipt signing, verification, redemption, and earnings (100% coverage on proof module)
 
 ---
 

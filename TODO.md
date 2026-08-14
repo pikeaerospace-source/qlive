@@ -97,11 +97,11 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 - [x] Implement free-rider detection and throttling
 
 ### Proof-of-Relay
-- [ ] Design signed bandwidth receipt format
-- [ ] Implement receipt generation on relay nodes
-- [ ] Implement receipt verification on receiving nodes
+- [x] Design signed bandwidth receipt format
+- [x] Implement receipt generation on relay nodes
+- [x] Implement receipt verification on receiving nodes
 - [ ] Explore integration with Qortal minting weight / node reputation
-- [ ] Document incentive model economics
+- [x] Document incentive model economics
 
 ---
 
