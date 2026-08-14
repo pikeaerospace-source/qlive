@@ -16,13 +16,13 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 
 ### Protocol Design
 - [x] Write formal protocol specification document (`docs/protocol.md`)
-- [ ] Define the QDN signaling schema (stream metadata, peer lists, encryption keys)
-- [ ] Specify the ephemeral chunk format (CMAF/fMP4 container, sequence IDs, timestamps, hashes)
-- [ ] Design the cryptographic signing/verification scheme for in-flight chunks
-- [ ] Define the swarm membership protocol (join/leave/health-check)
-- [ ] Specify the tree-vs-mesh fallback handoff logic
-- [ ] Document the RAM sliding-window buffer semantics (size, eviction, retention policy)
-- [ ] Define the Live → VOD archival pipeline (chunk aggregation, QDN commit, Q-Tube manifest)
+- [x] Define the QDN signaling schema (stream metadata, peer lists, encryption keys)
+- [x] Specify the ephemeral chunk format (CMAF/fMP4 container, sequence IDs, timestamps, hashes)
+- [x] Design the cryptographic signing/verification scheme for in-flight chunks
+- [x] Define the swarm membership protocol (join/leave/health-check)
+- [x] Specify the tree-vs-mesh fallback handoff logic
+- [x] Document the RAM sliding-window buffer semantics (size, eviction, retention policy)
+- [x] Define the Live → VOD archival pipeline (chunk aggregation, QDN commit, Q-Tube manifest)
 
 ### Research Questions
 - [ ] **Reticulum integration:** How can Reticulum network routing be leveraged for low-overhead peer discovery? Evaluate latency vs. WebRTC.
@@ -40,8 +40,8 @@ Living document tracking outstanding tasks, open questions, design decisions, an
 
 ### Ephemeral Chunking Engine
 - [ ] Implement CMAF/fMP4 segmenter (FFmpeg wrapper or native)
-- [ ] Implement chunk signing (Qortal Name/Key pair)
-- [ ] Implement chunk verification on viewer nodes
+- [x] Implement chunk signing (Qortal Name/Key pair)
+- [x] Implement chunk verification on viewer nodes
 - [ ] Implement chunk sequence tracking and gap detection
 - [ ] Implement retransmission request protocol for missing chunks
 

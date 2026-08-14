@@ -48,6 +48,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Incentives (tit-for-tat, proof-of-relay)
   - Protocol constants
 
+### Implemented
+- `qlive/chunk.py` — ephemeral chunk format implementation
+  - Binary chunk serialization/deserialization (155-byte header + payload)
+  - Ed25519 chunk signing and verification
+  - Payload hash validation (SHA-256)
+  - Fragment duration validation (500–2000ms)
+  - Stream ID validation (32 bytes)
+- `tests/python/test_chunk.py` — 24 tests covering chunk creation, signing, verification, serialization, and error handling (98% coverage on chunk module)
+
 ---
 
 *Changelog entries will be added as development progresses.*
