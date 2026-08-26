@@ -1,0 +1,105 @@
+# .clineignore — patterns excluded from AI context to reduce token spend
+# Globs are matched relative to project root.
+
+# ---- Build artifacts & dependencies ----
+node_modules/
+__pycache__/
+.venv/
+venv/
+env/
+ENV/
+virtualenv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.tox/
+
+# ---- Compiled / distribution output ----
+dist/
+build/
+*.pyc
+*.pyo
+*.egg
+*.egg-info/
+*.so
+*.class
+*.jar
+*.war
+*.nar
+.target/
+.gradle/
+
+# ---- JS/TS build output ----
+.next/
+.nuxt/
+.out/
+.vite/
+.vercel/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# ---- Coverage reports ----
+htmlcov/
+coverage/
+.nyc_output/
+coverage.xml
+.coverage
+.coverage.*
+
+# ---- IDE & editor config (ignored from context, not git) ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ---- Logs & temp ----
+logs/
+*.log
+*.tmp
+*.temp
+*.bak
+
+# ---- Large generated / binary data ----
+streams/
+tmp-streams/
+*.fmp4
+*.m4s
+*.cmfa
+*.m3u8
+*.mpd
+qortal-data/
+qortal-node/
+*.qortal
+secrets/
+credentials/
+pem/
+*.pem
+*.key
+*.crt
+
+# ---- Docker (unless you are working on Docker config) ----
+.docker/
+docker-compose.override.yml
+
+# ---- Git internals (never include in context) ----
+.git/objects/
+.git/hooks/
+.git/refs/
+
+# ---- Documents that are NOT ignored (kept for AI context) ----
+# README.md
+# SECURITY.md
+# CHANGELOG.md
+# TODO.md
+# TODO-QTUBE.md
+# TODO-QORTAL-CORE.md
+# TODO-WEB-UI.md
+# TODO-RESEARCH.md
+# CONTRIBUTING.md
+# AUTHORS.md
+# LICENSE.md
+# docs/
+# .clinerules/
