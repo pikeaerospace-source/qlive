@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Qortal core React library: auth (`useAuth`), QDN CRUD (`usePublish`, `useResources`), player & resource-list components, zustand global state, i18n, typed `qortalRequest` bridge
   - `TODO-QAPP-CORE.md` — integration plan (React 19 / MUI 7 migration, de-mocking `src/data/api.ts`, auth + QDN signaling)
   - `docs/architecture.md`, `README.md`, `TODO.md`, `TODO-WEB-UI.md`, `TODO-QORTAL-CORE.md` updated to track the submodule
+  - Web UI: `src/data/qapp.ts` injectable QDN `Api` adapter (mirrors `qortalRequest` actions: `SEARCH_QDN_RESOURCES`, `FETCH_QDN_RESOURCE`, `PUBLISH_QDN_RESOURCE`, `GET_NAME_DATA`), `selectApi()` mock↔QDN toggle in `src/data/api.ts`, plus offline seam tests (`qapp.test.ts`, 8 cases; full suite 16 passing)
 - Initial project scaffolding
   - `README.md` — project overview, architecture, and roadmap
   - `TODO.md` — phased task tracking, open design questions, milestones

@@ -1,6 +1,7 @@
 import type { Stream, Streamer, StreamStats } from "../types";
 import { createStatsClient, type StatsClient } from "./liveStats";
 import { mockStreams, mockStreamers } from "./mock";
+import { qappApi } from "./qapp";
 
 /**
  * Data service abstraction for the QLive Web UI.
@@ -42,8 +43,7 @@ export const api: Api = {
   listStreams: () => delay([...mockStreams]),
   getStream: (streamId) =>
     delay(mockStreams.find((s) => s.streamId === streamId)),
-  getStreamer: (name) =>
-    delay(mockStreamers.find((s) => s.name === name)),
+  getStreamer: (name) => delay(mockStreamers.find((s) => s.name === name)),
   getStreamerStreams: (name) =>
     delay(mockStreams.filter((s) => s.publisher === name)),
   getStreamStats: (streamId) => {
@@ -60,3 +60,20 @@ export const api: Api = {
     getStatsClient().subscribe(streamId, onUpdate),
 };
 
+/**
+ * Re-export the qapp-core-backed implementation so callers can opt into real
+ * QDN access. `Api` remains the only interface components depend on.
+ */
+export { createQappApi, createQortalBackend } from "./qapp";
+
+/**
+ * Seam toggle: prefer the QDN-backed api when the Qortal UI host has injected
+ * `qortalRequest` (i.e. running inside the Qortal UI / qapp-core wired up);
+ * otherwise fall back to the offline mock. Components should consume
+ * `selectApi()` instead of importing `api` directly once wired.
+ */
+export const selectApi = (): Api =>
+  typeof (globalThis as { qortalRequest?: unknown }).qortalRequest ===
+  "function"
+    ? qappApi
+    : api;

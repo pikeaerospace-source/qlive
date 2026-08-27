@@ -64,52 +64,80 @@ foundation.
 
 ## QLive Feature Mapping
 
+### Concrete `qortalRequest` actions used
+| Concern | qapp-core hook / util | qortalRequest action(s) | Notes |
+| --- | --- | --- | --- |
+| Auth / identity | `useAuth`, `useAuthStore` | `GET_USER_ACCOUNT`, `GET_PRIMARY_NAME` | Gives `address`, `publicKey`, `name`, `avatarUrl` |
+| Publish stream metadata | `usePublish` (store `setPublish`) | `PUBLISH_QDN_RESOURCE`, `PUBLISH_MULTIPLE_QDN_RESOURCES` | `ResourceToPublish`: `service, identifier, name, base64/data64/file, encryption?: {encryptionType:'streamed-v1', iv, key}` |
+| Fetch / play resource | `useResources.getPublishJson`, `GET_QDN_RESOURCE_URL` | `FETCH_QDN_RESOURCE`, `GET_QDN_RESOURCE_URL` | URL `/arbitrary/${service}/${name}/${identifier}` (`?encoding=base64` option) |
+| List live streams | `useResources`, `useListReturn` | `LIST_QDN_RESOURCES`, `SEARCH_QDN_RESOURCES` | Builds `/arbitrary/resources/search?...&service=JSON&name=...&includemetadata=true` |
+| Encryption (key envelopes) | `createIvAndKeyBase64` | — | AES-256 iv(16)+key(32) base64 ← matches per-stream envelope model |
+| Name resolution | `createAvatarLink`, `createQortalLink` | — | Avatar = `/arbitrary/THUMBNAIL/${name}/qortal_avatar?async=true` |
+
 ### Authentication & Identity
 - [ ] Replace mock broadcaster login with `useAuth` (Qortal Name / address)
-- [ ] Show authenticated streamer (avatar, name) in dashboard & profile
-- [ ] Gate broadcaster controls behind authenticated Qortal Name
-- [ ] Use resolved identity for chunk signing key association
+- [ ] Derive QLive stream `publisher` from authenticated `useAuthStore.name`
+- [ ] Bind broadcaster `address`/`publicKey` to chunk-signing key association (cross-check with `qlive/chunk.py` signing)
+- [ ] Surface streamer avatar + "verified" badge from `useAuthStore`
+- [ ] Handle `isLoadingUser` / `errorLoadingUser` states in dashboard & profile
 
-### QDN / Stream signaling
-- [ ] Publish stream metadata via `usePublish` (replaces mock registry)
-- [ ] Enumerate active/upcoming streams via `useResources` + `ResourceListDisplay`
-- [ ] Fetch stream metadata + peer lists from QDN using `useListData`
-- [ ] Map QLive signaling schema to `QortalMetadata` resource types
+### QDN / Stream signaling — schema mapping
+QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core like this:
+
+- **Service / resource type:** publish `qlive-stream` JSON docs under QDN `Service.JSON` (or `METADATA`), identified by a reserved identifier (e.g. `QLIVE_STREAMS` per-name) and discovered via `SEARCH_QDN_RESOURCES` (`QortalSearchParams: service, name, keywords, query, followedOnly`).
+- **Metadata envelope:** each QDN `QortalMetadata` carries `metadata.title/description/tags/category`, aligning to QLive's `title, description, category, thumbnail`. The stream's `status` lifecycle (`announced → live → ended → archived`) is mutated via `PUBLISH_QDN_RESOURCE` re-publish on state change (cadence per `QDN-SIGNALING-FREQUENCY.md`).
+- **Swarm / keys:** live peer lists + encryption key envelopes are published as separate `Service.JSON` resources (or a `METADATA` companion object) and refreshed on the documented delta-triggered / 30–60s cadence.
+- **Resource shape:** `useResources` resolves each stream to a `Resource = { qortalMetadata: QortalMetadata; data: any }` — `data` is the parsed `qlive-stream` document; `qortalMetadata.metadata.title` feeds discovery sort/filter.
+- [ ] Implement stream-metadata QDN publish adapter (`usePublish` → `PUBLISH_QDN_RESOURCE`) replacing mock registry
+- [ ] Enumerate active/upcoming/archived streams via `useResources`/`useListReturn` + `ResourceListDisplay` (replaces `src/data/api.ts` list)
+- [ ] Fetch stream detail + peer list via `getPublishJson` (replaces mock `getStream`)
+- [ ] Map QLive `category`/`tags`/`title` ↔ QDN metadata fields for Qortal search to succeed
 
 ### Media
-- [ ] Evaluate `VideoPlayer`/`AudioPlayer` for the viewer experience
-- [ ] Integrate live playback with qapp-core's video/encryption utilities
-- [ ] Reuse `ImagePicker` for stream thumbnails / avatars
+- [ ] Evaluate `VideoPlayerParent` (props: `qortalVideoResource: QortalGetMetadata`, `encryption?: EncryptionConfig`, `timelineActions?: TimelineAction[]`, `autoPlay`, `poster`) for the archived/VOD watch path
+- [ ] Note: QLive *live* playback uses the ephemeral mesh + WebSocket transport, not QDN direct-fetch — so `VideoPlayerParent` fits the **archived → Q-Tube** flow (Phase 3) via `GET_QDN_RESOURCE_URL`, while the live watch path keeps `hls.js`/mesh socket
+- [ ] Reuse `ImagePicker` for stream thumbnails / broadcaster avatar uploads
+- [ ] Reuse `sanitizedContent`/`processText` for stream descriptions
 
 ### Global state & i18n
-- [ ] Adopt qapp-core stores for app-wide state instead of bespoke hooks
-- [ ] Enable qapp-core's i18n (11 locales) for the UI
-- [ ] Use qapp-core event bus / toast / loading helpers for consistent UX
+- [ ] Migrate from the bespoke React-hooks `Api` to qapp-core zustand stores (`app`, `auth`, `cache`, `indexes`, `lists`, `publishes`)
+- [ ] Mount `GlobalProvider` + `useGlobal` at the app root; reconcile with existing layout
+- [ ] Adopt qapp-core's `Index` / `IndexCategory` types for the discovery "by category" view
+- [ ] Adopt qapp-core i18n (loaded via `useLibTranslation`) for 11-locale support
+- [ ] Use qapp-core event bus / toast (`showLoading`, `showSuccess`, `showError`, `dismissToast`) for consistent UX
 
 ---
 
 ## Migration of `src/data/api.ts` (Mock → Real)
 
-- [ ] Keep `api.ts` as the seam; back it with qapp-core calls behind a toggle
-- [ ] Provide mock fallback for offline development / CI (no Qortal node)
-- [ ] Manageability: keep API-boundary mocks for tests (per standards)
+> **Key constraint:** `qapp-core` resolves QDN via relative URLs (`/arbitrary/...`,
+> `/arbitrary/resources/search?...`) and the global `qortalRequest()` function that
+> the **Qortal UI host** injects at runtime. In QLive's standalone Vite dev server
+> these don't resolve, so the mock `api.ts` seam must remain the default for offline
+> dev/CI, with qapp-core only engaged when `qortalRequest` / a Qortal UI host is
+> present (feature-flag / provider prop).
+
+- [x] Keep `api.ts` as the seam; back it with qapp-core calls behind a toggle → `selectApi()` switch + `qapp.ts` adapter
+- [x] Provide mock fallback for offline development / CI (no Qortal node) → `selectApi()` falls back to `api` (mock) when `window.qortalRequest` is absent
+- [x] Manageability: keep API-boundary mocks for tests (per standards) → mock `Api` untouched; new adapter unit-testable via injected `QortalBackend`
 - [ ] Document how to run offline vs. pointing at a local Qortal node
-- [ ] Tests: unit-test the adapter layer, not qapp-core internals
+- [x] Tests: unit-test the adapter layer, not qapp-core internals → `src/data/qapp.test.ts` (8 tests, offline)
 
 ---
 
 ## Testing & QA
 
 - [ ] Verify Web UI still builds after qapp-core adoption (`npm run build`)
-- [ ] Type-check against qapp-core's types (`tsc --noEmit`)
-- [ ] Keep Vitest suite green; add minimal tests for the integration seam
+- [ ] Type-check against qapp-core's types (`tsc --noEmit`) — *note: `src/js` currently has a pre-existing `hls.js` resolution error in `Player.tsx` unrelated to this work*
+- [x] Keep Vitest suite green; add minimal tests for the integration seam — `qapp.test.ts` (8) + existing `api.test.ts` (6) all pass
 - [ ] Manual smoke test with a running Qortal UI node (`qortalRequest` wired)
 
 ---
 
 ## Milestones
 
-- [~] **Q1 — Vendor:** submodule added, documented, buildable
+- [x] **Q1 — Vendor:** submodule added, documented, buildable
+- [~] **Q1.5 — Seam (offline):** injectable QDN adapter `qapp.ts` + `selectApi()` toggle + seam tests (no host required)
 - [ ] **Q2 — Foundation:** React 19 + MUI upgrade, GlobalStateProvider in place
 - [ ] **Q3 — Auth & signaling:** Qortal auth + stream metadata over QDN
 - [ ] **Q4 — Playback:** viewer video via qapp-core components
@@ -122,6 +150,7 @@ foundation.
 | Date | Decision | Rationale |
 | --- | --- | --- |
 | 2026-08-26 | Add `qapp-core` as a vendored git submodule | Reuse Qortal's tested React foundation (auth, QDN CRUD, player, state) instead of building our own Qortal networking layer |
+| 2026-08-26 | Model the QDN bridge as an injectable `QortalBackend`, not a direct qapp-core import | qapp-core has no `dist/` until built and needs a Qortal-UI host runtime; an injected backend keeps the adapter offline-testable and defers the React 19/MUI upgrade. `selectApi()` toggles mock↔QDN by host presence |
 
 ---
 
