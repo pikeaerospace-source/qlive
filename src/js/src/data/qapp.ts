@@ -14,6 +14,11 @@
  */
 
 import type { Api } from "./api";
+// Type-only bridge to the qapp-core submodule: proves the vendored dependency
+// (and its built `dist/index.d.ts`) resolve under the QLive Web UI. Erased at
+// runtime, so the offline seam tests are unaffected. Replace the local mirrors
+// below with qapp-core's exports as the integration deepens.
+import type { QortalMetadata } from "qapp-core";
 import type {
   Stream,
   Streamer,
@@ -24,6 +29,9 @@ import type {
 } from "../types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- qortalRequest returns are opaque */
+
+/** Re-export the qapp-core metadata type for consumers of the QDN adapter. */
+export type { QortalMetadata };
 
 /** Reserved QDN identifier prefix under which QLive publishes stream docs. */
 export const QLIVE_STREAM_PREFIX = "QLIVE_STREAM_";
@@ -43,16 +51,7 @@ export const streamIdFromIdentifier = (
 export type QortalService =
   "JSON" | "VIDEO" | "AUDIO" | "THUMBNAIL" | (string & {});
 
-/** Mirror of qapp-core's `QortalMetadata`. */
-export interface QortalMetadata {
-  size: number;
-  created: number;
-  name: string;
-  identifier: string;
-  service: QortalService;
-  metadata?: { title?: string; description?: string; tags?: string[] };
-  updated?: number;
-}
+/** `QortalMetadata` is re-exported from the `qapp-core` submodule (see import above). */
 
 /** Mirror of qapp-core's `QortalSearchParams` (only the fields QLive uses). */
 export interface QortalSearchParams {

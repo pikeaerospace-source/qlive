@@ -183,9 +183,12 @@ npm install
 npm run build                # builds dist/ (prepare runs automatically)
 ```
 
-> ⚠️ `qapp-core` targets **React 19 + MUI v7** (peer deps). Migrating the QLive
-> Web UI to those versions is tracked in [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md).
-> The current `src/js` app still runs offline against mock data.
+ > ⚠️ **Status:** The `src/js` toolchain has been upgraded to **React 19 + MUI v7 +
+ > Router 7** and `qapp-core` is declared as a `file:` dependency (build =
+ > `npm run build`). `tsc --noEmit`, `vitest` (16/16), and `vite build` are green.
+ > The remaining runtime step — mounting `qapp-core`'s `GlobalProvider` and wiring
+ > real Qortal auth/signaling — is deferred (see [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md),
+ > Q3). Until then the Web UI still runs offline against mock data.
 
 ### CLI (illustrative)
 

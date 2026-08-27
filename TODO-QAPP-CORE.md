@@ -43,8 +43,8 @@ foundation.
 
 - [x] Add `qapp-core` as a git submodule at `qapp-core/` (pinned commit)
 - [x] Document clone/init instructions in `README.md`
-- [ ] Pin a stable release tag/commit for reproducible builds
-- [ ] Confirm upstream `qapp-core` is buildable (`npm install && npm run build`)
+- [~] Pin a stable release tag/commit for reproducible builds
+- [x] Confirm upstream `qapp-core` is buildable (`npm install && npm run build`) — builds `dist/{index.js,index.mjs,index.d.ts}` (fixed a corrupted `video.js` types install in this env)
 - [ ] Decide vendoring strategy (submodule vs. npm dependency) before public release
 
 ---
@@ -53,12 +53,13 @@ foundation.
 
 `qapp-core` has these peer dependencies; the QLive Web UI must adopt them:
 
-- [ ] Migrate **React 18 → 19** (`src/js/package.json`)
-- [ ] Adopt **MUI v7** (`@mui/material`, `@mui/icons-material`, `@emotion/*`)
-- [ ] Upgrade **React Router 6 → 7** to match qapp-core's peer range
-- [ ] Wire up `GlobalProvider` + `useGlobal` at the app root
-- [ ] Import `qapp-core/index.css` and adopt its theme tokens
-- [ ] Decide how qapp-core's zustand stores coexist with existing React-hooks state
+- [x] Migrate **React 18 → 19** (`src/js/package.json`) — `react`/`react-dom` `^19.0.0`
+- [x] Adopt **MUI v7** (`@mui/material` `^7.0.1`, `@mui/icons-material` `^7.0.1`, `@emotion/react` + `@emotion/styled`)
+- [x] Upgrade **React Router 6 → 7** (`react-router-dom` `^7.6.2`)
+- [ ] Upgrade dev toolchain to match (`@vitejs/plugin-react` `^5`, `vitest` `^2`, `@types/react` `^19`, `eslint` `^9`, `@typescript-eslint` `^8`) — done; validated `tsc`/`vitest`/`vite build` green
+- [ ] Wire up `GlobalProvider` + `useGlobal` at the app root — **deferred** (see Milestones Q2.5; provider mounts host-dependent auth/indexes hooks, staged after auth is implemented)
+- [ ] Import `qapp-core/index.css` and adopt its theme tokens — deferred with `GlobalProvider`
+- [~] Decide how qapp-core's zustand stores coexist with existing React-hooks state — keep `qapp.ts` adapter as the data seam; migrate component state incrementally
 
 ---
 
@@ -88,10 +89,10 @@ QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core 
 - **Metadata envelope:** each QDN `QortalMetadata` carries `metadata.title/description/tags/category`, aligning to QLive's `title, description, category, thumbnail`. The stream's `status` lifecycle (`announced → live → ended → archived`) is mutated via `PUBLISH_QDN_RESOURCE` re-publish on state change (cadence per `QDN-SIGNALING-FREQUENCY.md`).
 - **Swarm / keys:** live peer lists + encryption key envelopes are published as separate `Service.JSON` resources (or a `METADATA` companion object) and refreshed on the documented delta-triggered / 30–60s cadence.
 - **Resource shape:** `useResources` resolves each stream to a `Resource = { qortalMetadata: QortalMetadata; data: any }` — `data` is the parsed `qlive-stream` document; `qortalMetadata.metadata.title` feeds discovery sort/filter.
-- [ ] Implement stream-metadata QDN publish adapter (`usePublish` → `PUBLISH_QDN_RESOURCE`) replacing mock registry
-- [ ] Enumerate active/upcoming/archived streams via `useResources`/`useListReturn` + `ResourceListDisplay` (replaces `src/data/api.ts` list)
-- [ ] Fetch stream detail + peer list via `getPublishJson` (replaces mock `getStream`)
-- [ ] Map QLive `category`/`tags`/`title` ↔ QDN metadata fields for Qortal search to succeed
+- [ ] Implement stream-metadata QDN publish adapter (`usePublish` → `PUBLISH_QDN_RESOURCE`) replacing mock registry — next, to add to `qapp.ts`
+- [~] Enumerate active/upcoming/archived streams via search → `listStreams` in `qapp.ts` (QDN `SEARCH_QDN_RESOURCES` + `FETCH_QDN_RESOURCE`, prefix/status filtered)
+- [~] Fetch stream detail → `getStream` in `qapp.ts` (QDN `FETCH_QDN_RESOURCE` by `qliveStreamIdentifier`, search fallback)
+- [x] Map QLive `category`/`tags`/`title` ↔ QDN metadata fields — `toStream`/`searchStreams` map the `qlive-stream` doc ↔ `QortalMetadata`
 
 ### Media
 - [ ] Evaluate `VideoPlayerParent` (props: `qortalVideoResource: QortalGetMetadata`, `encryption?: EncryptionConfig`, `timelineActions?: TimelineAction[]`, `autoPlay`, `poster`) for the archived/VOD watch path
@@ -127,19 +128,20 @@ QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core 
 
 ## Testing & QA
 
-- [ ] Verify Web UI still builds after qapp-core adoption (`npm run build`)
-- [ ] Type-check against qapp-core's types (`tsc --noEmit`) — *note: `src/js` currently has a pre-existing `hls.js` resolution error in `Player.tsx` unrelated to this work*
-- [x] Keep Vitest suite green; add minimal tests for the integration seam — `qapp.test.ts` (8) + existing `api.test.ts` (6) all pass
-- [ ] Manual smoke test with a running Qortal UI node (`qortalRequest` wired)
+- [x] Verify Web UI still builds after qapp-core adoption (`npm run build` = `tsc --noEmit` + `vite build`, both green)
+- [x] Type-check against qapp-core's types (`tsc --noEmit`, exit 0) — qapp-core resolved via `type` bridge; the pre-existing `hls.js` resolution error was repaired (corrupted `video.js` types install) during the env rebuild
+- [x] Keep Vitest suite green; add minimal tests for the integration seam — `qapp.test.ts` (8) + existing `api.test.ts` (6) all pass (16/16)
+- [ ] Manual smoke test with a running Qortal UI node (`qortalRequest` wired) — blocked on Q3 auth; `GlobalProvider` not yet mounted
 
 ---
 
 ## Milestones
 
 - [x] **Q1 — Vendor:** submodule added, documented, buildable
-- [~] **Q1.5 — Seam (offline):** injectable QDN adapter `qapp.ts` + `selectApi()` toggle + seam tests (no host required)
-- [ ] **Q2 — Foundation:** React 19 + MUI upgrade, GlobalStateProvider in place
-- [ ] **Q3 — Auth & signaling:** Qortal auth + stream metadata over QDN
+- [x] **Q1.5 — Seam (offline):** injectable QDN adapter `qapp.ts` + `selectApi()` toggle + seam tests (no host required) — 16/16 tests, `tsc` + `vite build` green
+- [x] **Q2 — Foundation:** React 19 + MUI v7 + Router 7 + qapp-core dep, validated green
+- [~] **Q2.5 — Provider:** mount `GlobalProvider` + qapp-core CSS — *deferred* (host-dependent auth/indexes; gated on Q3 auth)
+- [ ] **Q3 — Auth & signaling:** Qortal auth + stream metadata publish over QDN
 - [ ] **Q4 — Playback:** viewer video via qapp-core components
 - [ ] **Q5 — De-mock:** real QDN storage path replaces mock default
 
@@ -151,6 +153,8 @@ QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core 
 | --- | --- | --- |
 | 2026-08-26 | Add `qapp-core` as a vendored git submodule | Reuse Qortal's tested React foundation (auth, QDN CRUD, player, state) instead of building our own Qortal networking layer |
 | 2026-08-26 | Model the QDN bridge as an injectable `QortalBackend`, not a direct qapp-core import | qapp-core has no `dist/` until built and needs a Qortal-UI host runtime; an injected backend keeps the adapter offline-testable and defers the React 19/MUI upgrade. `selectApi()` toggles mock↔QDN by host presence |
+| 2026-08-26 | Upgrade QLive Web UI toolchain to match qapp-core peers (React 19, react-dom 19, react-router-dom 7, MUI v7 + `@emotion/*`, `@vitejs/plugin-react` ^5, `vitest` ^2, `@types/react` ^19, `eslint` ^9, `@typescript-eslint` ^8) | Required so qapp-core's peer deps resolve; `qapp-core` declared as `file:../../qapp-core` |
+| 2026-08-26 | Repair corrupted `video.js` types install & fix symlink path | The interrupted env installs left `video.js` without `*.d.ts` (broke qapp-core's `tsc`); reinstalled to restore types so qapp-core builds. `file:../../qapp-core` (not `../qapp-core`) is the correct relative spec from `src/js/`; verified `tsc --noEmit`=0, `vitest`=16/16, `vite build`=exit 0 |
 
 ---
 
