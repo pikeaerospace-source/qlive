@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Add **`qapp-core`** as a vendored git submodule (`qapp-core/`)
+  - Qortal core React library: auth (`useAuth`), QDN CRUD (`usePublish`, `useResources`), player & resource-list components, zustand global state, i18n, typed `qortalRequest` bridge
+  - `TODO-QAPP-CORE.md` — integration plan (React 19 / MUI 7 migration, de-mocking `src/data/api.ts`, auth + QDN signaling)
+  - `docs/architecture.md`, `README.md`, `TODO.md`, `TODO-WEB-UI.md`, `TODO-QORTAL-CORE.md` updated to track the submodule
 - Initial project scaffolding
   - `README.md` — project overview, architecture, and roadmap
   - `TODO.md` — phased task tracking, open design questions, milestones

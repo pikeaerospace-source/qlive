@@ -16,6 +16,7 @@ qlive/
 │   └── 03-architecture.md
 ├── .clineignore         # Files/directories excluded from AI context
 ├── docs/                # Protocol specs, design docs, research notes
+├── qapp-core/           # Qortal UI library (git submodule — auth, QDN CRUD, player, state)
 ├── src/
 │   ├── python/          # Python reference implementation
 │   │   └── qlive/       #   Core modules (chunk, buffer, swarm, etc.)
@@ -27,6 +28,7 @@ qlive/
 ├── TODO.md              # Living roadmap & task tracking
 ├── TODO-QTUBE.md        # Q-Tube integration tasks
 ├── TODO-QORTAL-CORE.md  # Qortal Core integration tasks
+├── TODO-QAPP-CORE.md    # qapp-core submodule integration tasks
 ├── TODO-WEB-UI.md       # Web UI tasks
 ├── TODO-RESEARCH.md     # Research & open design questions
 ├── CHANGELOG.md         # Release history (Keep a Changelog)

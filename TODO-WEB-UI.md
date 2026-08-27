@@ -103,11 +103,17 @@ The QLive web UI provides:
 
 ## Frontend Architecture
 
-- [x] Choose frontend framework (React/Vue/Svelte) → **React 18**
+> **Foundation:** Starting 2026-08-26 the Web UI vendors Qortal's **`qapp-core`**
+> library (submodule at `qapp-core/`) for auth, QDN CRUD, player components, and
+> global state. Adopting it requires the React 19 + MUI v7 + Router 7 migration
+> tracked in [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md). The tasks below have been re-scoped
+> around that foundation where relevant.
+
+- [x] Choose frontend framework (React/Vue/Svelte) → **React 18** (→ **19** via qapp-core)
 - [x] Set up build tooling (Vite/Webpack) → **Vite 5**
-- [x] Set up state management → React hooks + `Api` service abstraction
-- [x] Set up routing → React Router 6
-- [x] Set up API client for QLive backend → `src/data/api.ts` (mock, swappable)
+- [~] Set up state management → migrate to `qapp-core` zustand stores + `GlobalProvider` → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
+- [x] Set up routing → React Router 6 (upgrade **7** via qapp-core)
+- [~] Set up API client for QLive backend → replace `src/data/api.ts` mock with `qapp-core` `usePublish`/`useResources` → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
 - [x] Set up WebSocket client for real-time updates
 - [x] Set up testing framework → Vitest + Testing Library
 
@@ -145,7 +151,7 @@ The QLive web UI provides:
 
 | Date | Decision | Rationale |
 | --- | --- | --- |
-| — | — | — |
+| 2026-08-26 | Adopt `qapp-core` (submodule) as the Web UI foundation | Reuse Qortal's tested auth / QDN CRUD / player / state instead of hand-rolling the Qortal layer; requires React 19 + MUI 7. Tracks in [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md) |
 
 ---
 

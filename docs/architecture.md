@@ -64,6 +64,10 @@ to its implementation. It complements the formal specification in
   (in-memory registry, no QDN, no sockets) — 294 tests.
 - The React + Vite Web UI (`src/js/`) mirrors the signaling schema and runs
   offline against a mock `Api`.
+- As of 2026-08-26 the Web UI vendors **`qapp-core`** (submodule at `qapp-core/`)
+  as its Qortal foundation (auth, QDN CRUD, player, global state). Adopting it
+  migrates the signaling layer from mock `Api` to real `qortalRequest` calls —
+  tracked in [TODO-QAPP-CORE.md](../TODO-QAPP-CORE.md).
 - Live QDN signaling and real P2P transport are **not yet wired** (network-gated).
 
 ---

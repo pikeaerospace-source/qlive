@@ -139,14 +139,17 @@ To ensure peers actually relay video traffic rather than just leeching bandwidth
 
 ## Getting Started
 
-> **Status:** Active development. A Python reference implementation of the core protocol (chunking, buffering, swarm, signaling, archival, incentives) and a React web UI are in place — both run fully offline against mock data. Live Qortal network integration (QDN signaling, real P2P transport) is not yet wired up. See [TODO.md](TODO.md) for the roadmap.
+> **Status:** Active development. A Python reference implementation of the core protocol (chunking, buffering, swarm, signaling, archival, incentives) and a React web UI are in place — both run fully offline against mock data. The Web UI now vendors Qortal's `qapp-core` library (see below) as the path to real QDN signaling / Qortal auth. Live QDN signaling and real P2P transport are not yet wired up. See [TODO.md](TODO.md) for the roadmap.
+
+> **Cloning:** QLive uses git **submodules**. Clone with `--recurse-submodules`, or run `git submodule update --init --recursive` after cloning, to fetch `qapp-core/`. Remote is assumed to be `git@github.com:pikeaerospace-source/qlive.git`; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Prerequisites
 
 - Python 3.10+ (reference implementation)
-- Node.js 20+ (web UI)
+- Node.js 20+ (web UI + `qapp-core`)
+- React 19 + MUI v7 (via `qapp-core` peer deps)
 - FFmpeg (broadcaster encoder — optional for offline work)
-- A Qortal Core node (QDN signaling — not yet required)
+- A Qortal Core / UI node (`qortalRequest` — used once QDN signaling is wired)
 
 ### Reference implementation (Python)
 
@@ -164,6 +167,25 @@ cd src/js
 npm install
 npm run dev                  # http://localhost:5173 (offline, mock data)
 ```
+
+### qapp-core (Qortal UI library, submodule)
+
+The Web UI depends on **`qapp-core`** — Qortal's core React library — vendored as a
+git submodule at `qapp-core/`. It provides Qortal authentication, QDN CRUD,
+resource lists, a video/audio player, global state, and i18n, so QLive can talk
+to the real Qortal API instead of mocking it. See [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
+for the integration plan.
+
+```bash
+git submodule update --init --recursive
+cd qapp-core
+npm install
+npm run build                # builds dist/ (prepare runs automatically)
+```
+
+> ⚠️ `qapp-core` targets **React 19 + MUI v7** (peer deps). Migrating the QLive
+> Web UI to those versions is tracked in [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md).
+> The current `src/js` app still runs offline against mock data.
 
 ### CLI (illustrative)
 

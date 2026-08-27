@@ -12,6 +12,7 @@ External dependency areas have their own dedicated TODO documents:
 | --- | --- |
 | [TODO-QTUBE.md](TODO-QTUBE.md) | Q-Tube integration (live player, VOD replay, profiles) |
 | [TODO-QORTAL-CORE.md](TODO-QORTAL-CORE.md) | Qortal Core integration (QDN, identity, minting) |
+| [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md) | qapp-core submodule (Qortal UI lib: auth, QDN CRUD, player, state) |
 | [TODO-WEB-UI.md](TODO-WEB-UI.md) | Web UI & frontend (dashboard, player, discovery) |
 | [TODO-RESEARCH.md](TODO-RESEARCH.md) | Research & open design questions |
 
@@ -128,7 +129,7 @@ External dependency areas have their own dedicated TODO documents:
 
 ### Viewer App
 - [x] CLI tool for watching a stream (`qlive watch`)
-- [~] Web player (HLS/CMAF playback, low-latency mode)
+- [~] Web player (HLS/CMAF playback, low-latency mode) — adopt `qapp-core` VideoPlayer → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
 - [x] Stream discovery UI (browse active streams)
 - [ ] Chat integration (optional, via QDN or separate channel)
 
@@ -197,6 +198,7 @@ These are unresolved questions that need discussion/decision:
 | 2026-08-14 | Fanout 8; mesh 4–8; 1–2 retransmit attempts | Simulation: depth 3 / ~130 ms; 97–100% recovery with diminishing returns beyond 8 |
 | 2026-08-14 | Two-tier incentives (tit-for-tat + proof-of-relay) | Tit-for-tat deters viewers; only proof-of-relay rewards relays economically |
 | 2026-08-14 | Per-stream AES-256-GCM encryption implemented | Matches the encryption model; enables private streams |
+| 2026-08-26 | Add `qapp-core` as a vendored git submodule (`qapp-core/`) | Reuse Qortal's tested React foundation (auth, QDN CRUD, player, state) and expose `qortalRequest` for real Qortal integration. Tracks in [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md) |
 
 ---
 

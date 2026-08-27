@@ -20,6 +20,13 @@ Qortal Core provides the underlying infrastructure QLive depends on:
 3. **Peer network** — Node discovery and connectivity for the swarm
 4. **Minting** — Potential integration for proof-of-relay rewards
 
+> **Frontend shortcut:** The Web UI consumes Qortal Core through the **`qapp-core`**
+> submodule (`qapp-core/`), which already implements Qortal auth (`useAuth`), QDN
+> publish/fetch (`usePublish`, `useResources`), and the typed `qortalRequest` API
+> bridge. Prefer reusing it over building a bespoke client — see
+> [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md). The items below describe the underlying
+> capability work regardless of consumer.
+
 ---
 
 ## QDN Integration
@@ -91,7 +98,7 @@ Qortal Core provides the underlying infrastructure QLive depends on:
 ## Qortal Core API
 
 - [ ] Document all Qortal Core endpoints used
-- [ ] Create a Qortal Core client library
+- [~] Create a Qortal Core client library → reuse `qapp-core` (`qortalRequest`, `usePublish`, `useResources`) — see [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
 - [ ] Implement error handling for API failures
 - [ ] Handle API version compatibility
 - [ ] Test against a running Qortal Core node
