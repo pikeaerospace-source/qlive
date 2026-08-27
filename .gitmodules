@@ -1,0 +1,3 @@
+[submodule "qapp-core"]
+	path = qapp-core
+	url = git@github.com:pikeaerospace-source/qapp-core.git
