@@ -81,11 +81,11 @@ Qortal Core provides the underlying infrastructure QLive depends on:
 
 ## Minting & Reputation
 
-- [ ] Explore integration with Qortal minting weight
+- [x] Explore integration with Qortal minting weight → [docs/MINTING-INTEGRATION.md](../docs/MINTING-INTEGRATION.md) (phased: off-chain relay reputation now; on-chain minting feed deferred)
 - [ ] Design proof-of-relay receipt verification on-chain
 - [ ] Implement relay reward distribution via QORT
 - [ ] Integrate with Qortal's reputation system
-- [ ] Document incentive model economics
+- [x] Document incentive model economics → [docs/ECONOMIC-MODELING.md](../docs/ECONOMIC-MODELING.md)
 
 ### Reward Mechanics
 - [ ] Define QORT per MB pricing model

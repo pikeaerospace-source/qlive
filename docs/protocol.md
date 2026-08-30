@@ -100,12 +100,12 @@ Each chunk is a self-contained, signed unit of media data:
 | `Duration` | 2 bytes | Fragment duration in milliseconds (500–1000) |
 | `Payload Size` | 4 bytes | Size of the payload in bytes |
 | `Payload Hash` | 32 bytes | SHA-256 of the payload bytes |
-| `Signature` | 64 bytes | Ed25519 signature over all preceding header fields + payload |
+| `Signature` | 64 bytes | Ed25519 signature over the 91-byte header (the fields preceding it) |
 
 ### 3.3 Signing
 
 - The broadcaster signs each chunk with their Qortal Name's Ed25519 key pair
-- The signature covers: `Magic || Version || Stream ID || Sequence ID || Timestamp || Duration || Payload Size || Payload Hash || Payload`
+- The signature covers the header: `Magic || Version || Stream ID || Sequence ID || Timestamp || Duration || Payload Size || Payload Hash`. The header embeds the SHA-256 `payload_hash`, so the signature binds the payload while keeping sign/verify cost constant regardless of bitrate (see [ENCRYPTION-MODEL.md](ENCRYPTION-MODEL.md))
 - Viewer/relay nodes MUST verify the signature before accepting a chunk
 - Signature verification uses the broadcaster's public key, resolved from their Qortal Name
 

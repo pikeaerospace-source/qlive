@@ -92,12 +92,11 @@ This gives the following properties:
 | Relay forges its own receipt | ✗ impossible — needs the downstream's Ed25519 key |
 | Relay + downstream collude to inflate bytes | ⚠ possible; bounded by dispute window (24 h) + bounty pool |
 | Replay an old receipt | ✗ prevented — redemption marks the receipt `REDEEMED` |
-| Double-count the same bytes | ⚠ not yet prevented — receipts lack a sequence-range field |
+| Double-count the same bytes | ✗ prevented — receipts carry a `start_sequence`/`end_sequence` range and overlapping claims are rejected |
 
 **Recommendations:**
 
-1. **Add a `sequence_range` field** to receipts so overlapping claims can be
-   rejected (prevents double-counting) — currently a gap.
+1. **Keep the `start_sequence`/`end_sequence` range on receipts** so overlapping claims are rejected (prevents double-counting) — implemented.
 2. **Bound the bounty pool** so total redeemable reward is finite (limits
    collusion upside).
 3. **Keep the 24 h dispute window** (already `redemption_delay_seconds = 86400`)
@@ -131,7 +130,7 @@ Qortal Name key or a separate encryption key.
 ## Recommendations
 
 1. **Keep the bounty pool bounded** so sybil/receipt-farming upside is finite.
-2. **Add a `sequence_range` field to receipts** to prevent double-counting.
+2. **Keep the `start_sequence`/`end_sequence` range on receipts** so overlapping claims are rejected (prevents double-counting) — implemented.
 3. **Keep the 24 h dispute window** and consider a relay bond for high-value streams.
 4. **Tit-for-tat targets the worst free-riders** (only >50% free-riders hurt — see SWARM-SIMULATION.md).
 5. **Implement per-stream AES-256-GCM + hybrid key envelopes** for private streams (benchmarked at ~800+ MB/s, a non-issue for throughput).

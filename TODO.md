@@ -114,7 +114,7 @@ External dependency areas have their own dedicated TODO documents:
 - [x] Design signed bandwidth receipt format
 - [x] Implement receipt generation on relay nodes
 - [x] Implement receipt verification on receiving nodes
-- [ ] Explore integration with Qortal minting weight / node reputation
+- [x] Explore integration with Qortal minting weight / node reputation → [docs/MINTING-INTEGRATION.md](docs/MINTING-INTEGRATION.md) (phased: off-chain relay reputation now; minting feed deferred to Qortal Core)
 - [x] Document incentive model economics
 
 ---

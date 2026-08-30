@@ -40,6 +40,7 @@ Open research topics from [TODO.md](../TODO.md) → Phase 0 → Research Questio
 | [`THREAT-MODEL.md`](THREAT-MODEL.md) | Threat model (STRIDE + attack vectors) for live streaming |
 | [`SECURITY-MODEL.md`](SECURITY-MODEL.md) | Sybil resistance, DoS resilience, receipt forgery, key distribution |
 | [`ECONOMIC-MODELING.md`](ECONOMIC-MODELING.md) | Relay/streamer/viewer economics, proof-of-relay design, free-riders |
+| [`MINTING-INTEGRATION.md`](MINTING-INTEGRATION.md) | Proof-of-relay ↔ Qortal minting weight / node reputation integration |
 
 ---
 

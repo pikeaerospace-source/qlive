@@ -19,6 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Tests updated (`test_signing_data_covers_header_only`,
   `test_tampered_header_fails_verification`); docs (`chunk-format.md`,
   `THREAT-MODEL.md`, `ENCRYPTION-MODEL.md`, `CHUNK-SIZE-TUNING.md`) reflect it.
+- Docs consistency: `protocol.md` §3.2/§3.3 now describe the header-only
+  signature; `SECURITY-MODEL.md` §3 now reflects that receipts carry a
+  `start_sequence`/`end_sequence` range (double-counting already prevented).
+
+### Design
+
+- `docs/MINTING-INTEGRATION.md` — explore proof-of-relay ↔ Qortal minting
+  weight / node reputation (completes TODO.md Phase 4 + TODO-QORTAL-CORE
+  Minting). Phased recommendation: off-chain relay reputation tracker now
+  (offline-capable, from verified receipts), optional bonded relays, and the
+  on-chain minting-weight feed deferred to Qortal Core availability.
 
 ### Added
 
