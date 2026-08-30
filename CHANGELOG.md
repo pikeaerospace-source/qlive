@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `docs/architecture.md`, `README.md`, `TODO.md`, `TODO-WEB-UI.md`, `TODO-QORTAL-CORE.md` updated to track the submodule - Web UI: `src/data/qapp.ts` injectable QDN `Api` adapter (mirrors `qortalRequest` actions: `SEARCH_QDN_RESOURCES`, `FETCH_QDN_RESOURCE`, `GET_NAME_DATA`), `selectApi()` mock↔QDN toggle in `src/data/api.ts`, plus offline seam tests (`qapp.test.ts`, 8 cases; full suite 16 passing)
     - Web UI toolchain upgrade to match `qapp-core` peers: React 18→**19**, `react-router-dom` 6→**7**, added **MUI v7** + `@emotion/*`, `@vitejs/plugin-react` ^5, `vitest` ^2, `@types/react` ^19, `eslint` ^9, `@typescript-eslint` ^8; `qapp-core` added as `file:../../qapp-core` dependency. Validated: `tsc --noEmit` clean, `vitest` 16/16, `vite build` exit 0
     - `qapp-core` type bridge in `qapp.ts` (`import type { QortalMetadata } from "qapp-core"`) proving the vendored dependency resolves for typechecking; `GlobalProvider` mount deferred to Q3 (host-dependent auth)
+- Docs: `WEB-UI-DATA-SOURCES.md` — how to run the Web UI against the offline mock (default) vs. pointing at a local Qortal node / QDN (Qortal-UI host injection, `qortalRequest` dev shim, `QortalBackend` injectable); resolves `selectApi()`'s host-presence check; linked from `README.md` + `docs/README.md`
 - Initial project scaffolding
     - `README.md` — project overview, architecture, and roadmap
     - `TODO.md` — phased task tracking, open design questions, milestones

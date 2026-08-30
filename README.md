@@ -168,6 +168,13 @@ npm install
 npm run dev                  # http://localhost:5173 (offline, mock data)
 ```
 
+The Web UI runs against one of two data sources behind a single `Api`
+interface: an **offline mock** (default — canned data from `src/data/mock.ts`,
+no Qortal node, no network) or the **QDN-backed** adapter (real QDN resources
+via `qortalRequest` when running inside a Qortal UI host). To develop without a
+node use the default mock; to point at a local Qortal node, load the app in a
+Qortal UI (or inject a dev shim — see [docs/WEB-UI-DATA-SOURCES.md](docs/WEB-UI-DATA-SOURCES.md)).
+
 ### qapp-core (Qortal UI library, submodule)
 
 The Web UI depends on **`qapp-core`** — Qortal's core React library — vendored as a

@@ -17,6 +17,7 @@ This directory will contain the formal protocol specification, design documents,
 | `buffer-design.md` | Complete | RAM sliding-window buffer semantics |
 | `vod-pipeline.md` | Complete | Live → VOD archival pipeline design |
 | `incentives.md` | Complete | Tit-for-tat and proof-of-relay incentive model |
+| `WEB-UI-DATA-SOURCES.md` | Complete | Web UI operation — offline (mock) vs. local Qortal node / QDN data source |
 | `research/` | Complete | Research notes — individual files (see Research Documents below) |
 
 ---

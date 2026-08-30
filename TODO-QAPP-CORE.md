@@ -121,7 +121,7 @@ QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core 
 - [x] Keep `api.ts` as the seam; back it with qapp-core calls behind a toggle → `selectApi()` switch + `qapp.ts` adapter
 - [x] Provide mock fallback for offline development / CI (no Qortal node) → `selectApi()` falls back to `api` (mock) when `window.qortalRequest` is absent
 - [x] Manageability: keep API-boundary mocks for tests (per standards) → mock `Api` untouched; new adapter unit-testable via injected `QortalBackend`
-- [ ] Document how to run offline vs. pointing at a local Qortal node
+- [x] Document how to run offline vs. pointing at a local Qortal node → `docs/WEB-UI-DATA-SOURCES.md` (mock default vs. QDN-backed; `qortalRequest` injection + dev shim; `QortalBackend` injectable; quick-reference + limitations)
 - [x] Tests: unit-test the adapter layer, not qapp-core internals → `src/data/qapp.test.ts` (8 tests, offline)
 
 ---
@@ -155,6 +155,7 @@ QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core 
 | 2026-08-26 | Model the QDN bridge as an injectable `QortalBackend`, not a direct qapp-core import | qapp-core has no `dist/` until built and needs a Qortal-UI host runtime; an injected backend keeps the adapter offline-testable and defers the React 19/MUI upgrade. `selectApi()` toggles mock↔QDN by host presence |
 | 2026-08-26 | Upgrade QLive Web UI toolchain to match qapp-core peers (React 19, react-dom 19, react-router-dom 7, MUI v7 + `@emotion/*`, `@vitejs/plugin-react` ^5, `vitest` ^2, `@types/react` ^19, `eslint` ^9, `@typescript-eslint` ^8) | Required so qapp-core's peer deps resolve; `qapp-core` declared as `file:../../qapp-core` |
 | 2026-08-26 | Repair corrupted `video.js` types install & fix symlink path | The interrupted env installs left `video.js` without `*.d.ts` (broke qapp-core's `tsc`); reinstalled to restore types so qapp-core builds. `file:../../qapp-core` (not `../qapp-core`) is the correct relative spec from `src/js/`; verified `tsc --noEmit`=0, `vitest`=16/16, `vite build`=exit 0 |
+| 2026-08-30 | Document operating the Web UI offline vs. against a local Qortal node (`docs/WEB-UI-DATA-SOURCES.md`) | The `selectApi()` seam is a host-presence check on `window.qortalRequest`; the doc captures how each mode is entered (mock default, Qortal-UI host injection, dev shim), and the `QortalBackend` injectable for tests/custom endpoints |
 
 ---
 
