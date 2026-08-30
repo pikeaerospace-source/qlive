@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `qlive/chunk.py` — chunks now sign **only the header** (91 bytes, which embeds
+  the SHA-256 `payload_hash`) instead of `header + payload`, making Ed25519
+  sign/verify cost constant regardless of bitrate. Implements the documented
+  decision (docs/ENCRYPTION-MODEL.md §2/§5, "Sign payload hash, not payload").
+  Integrity is preserved: payload tampering changes the signed payload hash.
+  Tests updated (`test_signing_data_covers_header_only`,
+  `test_tampered_header_fails_verification`); docs (`chunk-format.md`,
+  `THREAT-MODEL.md`, `ENCRYPTION-MODEL.md`, `CHUNK-SIZE-TUNING.md`) reflect it.
+
 ### Added
 
 - Add **`qapp-core`** as a vendored git submodule (`qapp-core/`)

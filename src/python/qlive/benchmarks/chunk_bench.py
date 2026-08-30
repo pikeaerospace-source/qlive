@@ -62,7 +62,7 @@ class ChunkSuite(Suite):
                     f"sign.{bitrate}kbps",
                     sign_s * 1e6,
                     "us",
-                    "Ed25519 over header+payload",
+                    "Ed25519 over header (payload hash)",
                 )
             )
             results.append(Result(f"verify.{bitrate}kbps", verify_s * 1e6, "us", "Ed25519"))

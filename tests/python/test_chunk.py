@@ -88,9 +88,14 @@ class TestChunkProperties:
         chunk = create_chunk(stream_id, 1, sample_payload)
         assert chunk.header[0:4] == MAGIC
 
-    def test_signing_data_includes_payload(self, stream_id, sample_payload):
+    def test_signing_data_covers_header_only(self, stream_id, sample_payload):
+        """The signature covers the header (which embeds the payload hash), not
+        the full payload — keeps sign/verify constant-cost (ENCRYPTION-MODEL)."""
         chunk = create_chunk(stream_id, 1, sample_payload)
-        assert chunk.signing_data == chunk.header + chunk.payload
+        assert chunk.signing_data == chunk.header
+        assert chunk.signing_data != chunk.header + chunk.payload
+        # The header itself embeds the payload hash, preserving integrity.
+        assert hashlib.sha256(sample_payload).digest() in chunk.header
 
 
 class TestSigning:
@@ -126,6 +131,17 @@ class TestSigning:
 
         # Tamper with the payload
         chunk.payload = b"\xff" * len(sample_payload)
+        assert chunk.verify(public_key) is False
+
+    def test_tampered_header_fails_verification(
+        self, stream_id, sample_payload, key_pair
+    ):
+        private_key, public_key = key_pair
+        chunk = create_chunk(stream_id, 1, sample_payload)
+        chunk.sign(private_key)
+
+        # Alter a header field after signing
+        chunk.sequence_id = 999
         assert chunk.verify(public_key) is False
 
 

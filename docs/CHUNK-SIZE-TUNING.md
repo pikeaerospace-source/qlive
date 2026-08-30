@@ -78,7 +78,13 @@ Ed25519 sign/verify and SHA-256 hashing, measured on Python 3.12 (CPython, `cryp
 | 4500 kbps | 562 KB | 1480 µs | 959 µs | 343 µs |
 | 6000 kbps | 750 KB | 1986 µs | 1222 µs | 416 µs |
 
-**Key finding:** Signing and verification cost scales **linearly with payload size**. This is because the current `Chunk.signing_data` covers `header + payload` (the entire payload), not just the payload hash. See [ENCRYPTION-MODEL.md](ENCRYPTION-MODEL.md) for the recommendation to sign only the hash.
+**Key finding as of the 2026-08-14 measurement:** signing the full payload
+scaled with bitrate because `Chunk.signing_data` covered `header + payload`.
+Per the [ENCRYPTION-MODEL.md](ENCRYPTION-MODEL.md) decision, `chunk.py` now
+signs **only the header** (which embeds the `payload_hash`), so Ed25519
+sign/verify cost is **constant** (~50–100 µs) regardless of payload size; the
+SHA-256 hash step above is the only residual per-byte cost. Re-run `chunk_bench`
+against the updated implementation to re-measure.
 
 - At 1s fragments, signing a 4.5 Mbps chunk costs ~1.5ms — ~0.15% of the 1s budget on the broadcaster. Negligible for a single stream.
 - At 500ms fragments, chunk rate doubles, so per-second signing cost doubles (~0.3% at 4.5 Mbps). Still negligible for one stream, but it compounds on relay nodes that verify every chunk for every downstream peer.

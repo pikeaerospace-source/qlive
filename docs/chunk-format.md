@@ -18,7 +18,7 @@ A chunk is a self-contained, signed unit of media data (a CMAF/fMP4 fragment).
 | Duration | 2 | Fragment duration ms (500–2000) |
 | Payload Size | 4 | Payload bytes |
 | Payload Hash | 32 | SHA-256 of payload |
-| Signature | 64 | Ed25519 over header + payload |
+| Signature | 64 | Ed25519 over header (91 bytes incl. payload hash) |
 | Payload | var | CMAF/fMP4 media (optionally encrypted) |
 
 ---
@@ -26,12 +26,11 @@ A chunk is a self-contained, signed unit of media data (a CMAF/fMP4 fragment).
 ## Signing
 
 Each chunk is signed with the broadcaster's Ed25519 key. The signature covers
-`header + payload`. Viewers verify against the broadcaster's public key
-(resolved from the Qortal Name).
-
-> **Known optimization:** signing the full payload makes sign/verify cost
-> scale with bitrate. [ENCRYPTION-MODEL.md](ENCRYPTION-MODEL.md) recommends
-> signing only the `payload_hash` instead.
+the **header only** (91 bytes), which embeds the SHA-256 `payload_hash`. Viewers
+verify against the broadcaster's public key (resolved from the Qortal Name);
+payload integrity is guaranteed because the signed header carries the payload's
+hash. Signing the header — not the payload — keeps sign/verify cost constant
+regardless of bitrate; see [ENCRYPTION-MODEL.md](ENCRYPTION-MODEL.md).
 
 ---
 

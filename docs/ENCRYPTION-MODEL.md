@@ -23,6 +23,7 @@
 - [~] Public (signed-only) vs. private (encrypted) streams — support both?
 - [x] Quantify encryption throughput (AES-256-GCM).
 - [x] Quantify signing cost and identify a scaling problem in the current design.
+- [x] Sign only the header (which embeds the payload hash) instead of the full payload — implemented in `chunk.py` (constant-cost sign/verify; see §3)
 - [ ] Design key distribution for private streams (QDN-encrypted key envelopes).
 
 ---
@@ -46,15 +47,19 @@ AES-256-GCM is far faster than any realistic stream bitrate (≤ 6 Mbps = 0.75 M
 | 4500 kbps | 562 KB | 1480 µs | 959 µs |
 | 6000 kbps | 750 KB | 1986 µs | 1222 µs |
 
-**Problem:** `Chunk.signing_data` currently covers `header + payload` (the full payload), so Ed25519 sign/verify cost grows linearly with bitrate. This is unnecessary — the header already contains a SHA-256 `payload_hash`.
+**Problem (resolved 2026-08-30):** `Chunk.signing_data` previously covered `header + payload` (the full payload), so Ed25519 sign/verify cost grew linearly with bitrate. This was unnecessary — the header already contains a SHA-256 `payload_hash`.
 
 **Recommendation:** Sign only `header` (which includes `payload_hash`), not the full payload. This makes sign/verify cost **constant** (~50–100 µs) regardless of payload size, and preserves integrity (tampering with the payload changes its hash, which is covered by the signature).
 
 ### 3. Current state of the code
 
-- `chunk.py` implements Ed25519 signing/verification over `header + payload`.
-- `signaling.py` has an `EncryptionInfo` dataclass (`enabled`, `key_id`) but no actual encryption implementation yet.
-- `protocol.md` §8.2 specifies AES-256-GCM with keys distributed via QDN, rotated every 5–10 min.
+- `chunk.py` sign/verify now covers **only the header** (91 bytes, which embeds
+  the SHA-256 `payload_hash`), implementing the §5 recommendation — Ed25519
+  sign/verify cost is constant regardless of bitrate.
+- `signaling.py` has an `EncryptionInfo` dataclass (`enabled`, `key_id`) but no
+  actual encryption implementation yet.
+- `protocol.md` §8.2 specifies AES-256-GCM with keys distributed via QDN,
+  rotated every 5–10 min.
 
 ---
 

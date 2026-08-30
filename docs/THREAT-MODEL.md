@@ -60,15 +60,15 @@
 ### 1. Chunk injection (Tampering / Spoofing)
 
 An attacker sends forged or modified chunks to a viewer. Each chunk carries an
-Ed25519 signature over `header + payload` (the header includes a SHA-256
-`payload_hash`). A viewer verifies the signature against the broadcaster's
-public key (resolved from the Qortal Name) and rejects any chunk whose
-signature or hash fails.
+Ed25519 signature over the `header` (which embeds a SHA-256 `payload_hash`). A
+viewer verifies the signature against the broadcaster's public key (resolved
+from the Qortal Name) and rejects any chunk whose signature or hash fails —
+payload tampering changes the signed `payload_hash` and is rejected both by the
+signature check and the deserialize hash check.
 
 **Residual risk:** a malicious *relay* can still **selectively drop** chunks
 (availability, not integrity) — addressed by mesh retransmission (see
-SWARM-SIMULATION.md). Signing the full payload (rather than only the hash)
-is a known inefficiency, but not a security hole (see ENCRYPTION-MODEL.md).
+SWARM-SIMULATION.md).
 
 ### 2. Stream spoofing (Spoofing)
 

@@ -84,8 +84,15 @@ class Chunk:
 
     @property
     def signing_data(self) -> bytes:
-        """Data covered by the signature: header + payload."""
-        return self.header + self.payload
+        """Data covered by the signature: the header.
+
+        The serialized header already embeds the SHA-256 ``payload_hash``, so
+        signing the 91-byte header — not the full payload — keeps the Ed25519
+        sign/verify cost constant regardless of bitrate while still binding the
+        signature to the payload (tampering changes the header's ``payload_hash``)
+        — see docs/ENCRYPTION-MODEL.md.
+        """
+        return self.header
 
     def sign(self, private_key: ed25519.Ed25519PrivateKey) -> Chunk:
         """Sign this chunk with the broadcaster's Ed25519 private key."""
