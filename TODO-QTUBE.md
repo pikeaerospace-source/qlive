@@ -58,18 +58,23 @@ Q-Tube is Qortal's decentralized video platform. QLive integration enables:
 
 ## VOD Replay
 
-- [ ] Implement "Watch Replay" link on live stream pages
-- [ ] Implement live → VOD transition UX (no re-encoding)
+> Implemented on the QLive side ahead of the Q-Tube host integration — see
+> [docs/vod-pipeline.md](../docs/vod-pipeline.md) §Viewer Replay UX. Items marked
+> *(QLive Web UI)* are done in QLive's own player surface; the equivalent
+> Q-Tube-hosted surface follows once the player is embedded (see Live Player Embedding).
+
+- [x] Implement "Watch Replay" link on live stream pages *(QLive Web UI)*
+- [x] Implement live → VOD transition UX (no re-encoding) *(QLive Web UI)*
 - [ ] Auto-publish completed streams to Q-Tube
-- [ ] Show "Replay Available" after stream ends
-- [ ] Link live stream page to archived VOD
-- [ ] Handle partial archives (interrupted streams)
+- [x] Show "Replay Available" after stream ends *(QLive Web UI)*
+- [x] Link live stream page to archived VOD *(QLive Web UI)*
+- [x] Handle partial archives (interrupted streams) *(QLive Web UI)*
 
 ### VOD Pipeline
 - [ ] Verify QDN chunk commit works with Q-Tube's storage
 - [ ] Test hash chain integrity across Q-Tube's retrieval
 - [ ] Implement archive status tracking in Q-Tube UI
-- [ ] Add "Archiving..." progress indicator
+- [x] Add "Archiving..." progress indicator *(QLive Web UI; Q-Tube embedding pending)*
 
 ---
 
@@ -117,7 +122,7 @@ Q-Tube is Qortal's decentralized video platform. QLive integration enables:
 
 | Date | Decision | Rationale |
 | --- | --- | --- |
-| — | — | — |
+| 2026-09-22 | Build the replay UX on the QLive side first | QLive owns the player surface that Q-Tube embeds, so the archive metadata + replay state machine (`none`/`archiving`/`ready`/`partial`) lives here, host-agnostic and offline-testable ([docs/vod-pipeline.md](../docs/vod-pipeline.md)). Q-Tube manifest compatibility and embedding remain open |
 
 ---
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Stat from "../components/Stat";
 import StreamCard from "../components/StreamCard";
 import { api } from "../data/api";
+import { replaySortKey, replayState } from "../data/archive";
 import type { Stream } from "../types";
 
 const CATEGORIES = ["all", "gaming", "tech", "music"];
@@ -36,17 +37,29 @@ export default function DiscoveryPage() {
 
   const live = streams.filter((s) => s.status === "live");
   const upcoming = streams.filter((s) => s.status === "announced");
+  // Finished streams whose archive exists or is on its way to QDN.
+  const replays = streams.filter(
+    (s) =>
+      s.status !== "live" &&
+      s.status !== "announced" &&
+      replayState(s) !== "none",
+  );
 
   const q = query.trim().toLowerCase();
+  const matches = (s: Stream) =>
+    (category === "all" || s.category === category) &&
+    (!q ||
+      s.title.toLowerCase().includes(q) ||
+      s.publisher.toLowerCase().includes(q));
+
   const visible = streams
-    .filter((s) => category === "all" || s.category === category)
-    .filter(
-      (s) =>
-        !q ||
-        s.title.toLowerCase().includes(q) ||
-        s.publisher.toLowerCase().includes(q),
-    )
+    .filter((s) => s.status === "live" || s.status === "announced")
+    .filter(matches)
     .sort((a, b) => compareStreams(a, b, sort));
+
+  const visibleReplays = replays
+    .filter(matches)
+    .sort((a, b) => replaySortKey(b) - replaySortKey(a));
 
   return (
     <>
@@ -62,6 +75,7 @@ export default function DiscoveryPage() {
           label="Total viewers"
           value={live.reduce((n, s) => n + s.viewers, 0).toLocaleString()}
         />
+        <Stat label="Replays" value={replays.length} />
       </div>
 
       <div className="toolbar">
@@ -108,14 +122,32 @@ export default function DiscoveryPage() {
         </div>
       </div>
 
-      {visible.length === 0 ? (
+      {visible.length === 0 && visibleReplays.length === 0 ? (
         <div className="empty">No streams match your search.</div>
       ) : (
-        <div className="grid">
-          {visible.map((s) => (
-            <StreamCard key={s.streamId} stream={s} />
-          ))}
-        </div>
+        <>
+          {visible.length > 0 && (
+            <div className="grid">
+              {visible.map((s) => (
+                <StreamCard key={s.streamId} stream={s} />
+              ))}
+            </div>
+          )}
+
+          {visibleReplays.length > 0 && (
+            <section style={{ marginTop: 32 }}>
+              <h2 className="section-title">Recently ended</h2>
+              <p className="page-subtitle">
+                Replays archived from finished live streams.
+              </p>
+              <div className="grid">
+                {visibleReplays.map((s) => (
+                  <StreamCard key={s.streamId} stream={s} />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
     </>
   );

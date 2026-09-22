@@ -172,11 +172,12 @@ compatible").
 
 - [ ] Verify the exact Qortal minting-weight formula & whether external
       reputation is consumable (running node).
-- [ ] Implement the off-chain relay reputation tracker + tests (first step of
-      the recommendation).
+- [x] Implement the off-chain relay reputation tracker + tests (first step of
+      the recommendation) → `qlive/reputation.py`, `tests/python/test_reputation.py`.
 - [ ] Is a relay bond necessary, or is the dispute window + bounded pool + cap
       sufficient? (Mirrors [SECURITY-MODEL.md](SECURITY-MODEL.md).)
-- [ ] Reputation decay/diversity parameters.
+- [x] Reputation decay/diversity parameters → defaults in `qlive/reputation.py`
+      (`decay_per_day=0.5`, `downstream_target=4`, `stream_target=2`), tunable per deployment.
 
 ---
 
@@ -185,6 +186,7 @@ compatible").
 | Date | Decision | Rationale |
 | --- | --- | --- |
 | 2026-08-30 | Phase integration: off-chain relay reputation now; bonded relays optional; minting-weight feed deferred to Qortal Core | Reputation is offline-capable and needs no chain writes; minting requires an on-chain oracle only meaningful once Qortal Core exposes it; aligns with no-chain-bloat and ECONOMIC-MODELING |
+| 2026-09-22 | Reputation defaults: 0.5/day decay, 4 distinct downstreams, 2 distinct streams, 24 h dispute window, 1000 score cap | Matches the bounded-pool/cap and dispute-window recommendations; the diversity targets make a small colluding cohort unable to reach full score. Tunable per deployment |
 
 ---
 

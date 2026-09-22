@@ -4,6 +4,12 @@ import Player from "../components/Player";
 import Stat from "../components/Stat";
 import StatusBadge from "../components/StatusBadge";
 import { api } from "../data/api";
+import {
+  formatBytes,
+  formatDuration,
+  replayLabel,
+  replayState,
+} from "../data/archive";
 import type { Stream, StreamStats } from "../types";
 
 export default function WatchPage() {
@@ -18,11 +24,23 @@ export default function WatchPage() {
       if (s) setStream(s);
       else setNotFound(true);
     });
-    return api.subscribeStats(streamId, setStats);
   }, [streamId]);
+
+  // Live stats only exist while broadcasting; a replay is a static archive.
+  useEffect(() => {
+    if (!streamId || stream?.status !== "live") return;
+    return api.subscribeStats(streamId, setStats);
+  }, [streamId, stream?.status]);
 
   if (notFound) return <div className="empty">Stream not found.</div>;
   if (!stream) return <div className="empty">Loading…</div>;
+
+  const isLive = stream.status === "live";
+  const replay = replayState(stream);
+  const archive = stream.archive;
+  const kbps = Math.round(
+    (stream.bitrate.video + stream.bitrate.audio) / 1000,
+  );
 
   return (
     <>
@@ -49,19 +67,88 @@ export default function WatchPage() {
 
       <p className="muted">{stream.description}</p>
 
+      {replay !== "none" && (
+        <section className={`notice notice--${replay}`} aria-live="polite">
+          {replay === "archiving" ? (
+            <>
+              <strong>{replayLabel(replay)}</strong>
+              <span className="muted">
+                This stream has ended. Its replay will appear here once the
+                archive has been published to QDN.
+              </span>
+            </>
+          ) : (
+            <>
+              <strong>
+                {replay === "partial" ? "Partial replay" : "Replay available"}
+              </strong>
+              <span className="muted">
+                Playing the archived live fragments — no re-encoding.
+              </span>
+              <div className="notice__meta">
+                {archive?.durationMs !== undefined && (
+                  <span>Duration {formatDuration(archive.durationMs)}</span>
+                )}
+                {archive?.sizeBytes !== undefined && (
+                  <span>Size {formatBytes(archive.sizeBytes)}</span>
+                )}
+                {archive?.fragmentCount !== undefined && (
+                  <span>{archive.fragmentCount.toLocaleString()} fragments</span>
+                )}
+              </div>
+              {replay === "partial" && (
+                <span className="muted">
+                  The stream was interrupted, so the replay is incomplete.
+                </span>
+              )}
+              {stream.playbackUrl ? (
+                <div className="notice__actions">
+                  <a className="btn" href={stream.playbackUrl}>
+                    {replayLabel(replay)}
+                  </a>
+                  <span className="muted">Served from QDN</span>
+                </div>
+              ) : (
+                <span className="muted">
+                  Replay source unavailable in mock/offline mode.
+                </span>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
       <div className="stats-row">
-        <div aria-live="polite">
-          <Stat label="Viewers" value={stats?.viewers ?? stream.viewers} />
-        </div>
-        <Stat
-          label="Bitrate"
-          value={`${Math.round(
-            (stream.bitrate.video + stream.bitrate.audio) / 1000,
-          )} kbps`}
-        />
-        <Stat label="Fragment" value={`${stream.fragmentDurationMs} ms`} />
-        <Stat label="Buffer" value={stats?.bufferState ?? "—"} />
-        <Stat label="Chunks" value={stats?.chunksProduced ?? "—"} />
+        {isLive ? (
+          <>
+            <div aria-live="polite">
+              <Stat label="Viewers" value={stats?.viewers ?? stream.viewers} />
+            </div>
+            <Stat label="Bitrate" value={`${kbps} kbps`} />
+            <Stat label="Fragment" value={`${stream.fragmentDurationMs} ms`} />
+            <Stat label="Buffer" value={stats?.bufferState ?? "—"} />
+            <Stat label="Chunks" value={stats?.chunksProduced ?? "—"} />
+          </>
+        ) : (
+          <>
+            {archive?.durationMs !== undefined && (
+              <Stat
+                label="Duration"
+                value={formatDuration(archive.durationMs)}
+              />
+            )}
+            {archive?.sizeBytes !== undefined && (
+              <Stat label="Archive size" value={formatBytes(archive.sizeBytes)} />
+            )}
+            {archive?.fragmentCount !== undefined && (
+              <Stat
+                label="Fragments"
+                value={archive.fragmentCount.toLocaleString()}
+              />
+            )}
+            <Stat label="Bitrate" value={`${kbps} kbps`} />
+          </>
+        )}
       </div>
     </>
   );

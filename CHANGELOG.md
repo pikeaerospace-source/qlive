@@ -33,6 +33,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **live → VOD replay** (completes TODO.md Phase 3 *Q-Tube Integration*)
+    - `src/types.ts` — `ArchiveStatus` + `StreamArchive` (QDN resource ids, status,
+      duration/size/fragment metrics) and `Stream.archive`
+    - `src/data/archive.ts` — replay-state helpers: `replayState`
+      (`none`/`archiving`/`ready`/`partial`), `hasReplay`, `replayLabel`,
+      `replaySortKey`, `formatDuration`, `formatBytes`
+    - `src/data/qapp.ts` — QDN adapter now maps the doc's `archive` block
+      (`archiveFromDoc`; unknown status → `pending`) so QDN-backed streams report
+      replay state too
+    - `StreamCard` — "Watch replay ▸" / "Watch partial replay ▸" link, archive
+      duration, and a "Replay archiving…" placeholder for finished-but-unpublished
+      streams
+    - `WatchPage` — replay notice with duration/size/fragment metrics, a
+      **Watch replay** link to the QDN resource, a partial-archive warning, and an
+      "Archiving…" notice; live-stat subscription now only runs while live and the
+      stat row switches to archive metrics for replays
+    - `DiscoveryPage` — new "Recently ended" section listing replays (sorted by
+      publish time) plus a `Replays` stat; the main grid is now live + upcoming only
+    - `Player` — `lowLatencyMode` only for live playback; replays play the same
+      archived fragments at normal latency (**no re-encoding**)
+    - `src/index.css` — `.notice`/`.section-title`/`.stream-card__replay` styles
+- Web UI tests: `src/data/archive.test.ts` (12), `src/pages/WatchPage.test.tsx` (5),
+  `src/pages/DiscoveryPage.test.tsx` (4), plus StreamCard replay cases and QDN
+  archive-mapping cases — Web UI suite now **43 passing** (was 16)
+- Docs: `docs/vod-pipeline.md` gains a **Viewer Replay UX** section documenting the
+  replay state machine and the no-re-encoding playback path
+- `qlive/reputation.py` — off-chain relay reputation tracker (time decay,
+  diversity weighting, capped contribution, dispute window, receipt dedup; drives
+  routing priority + bounty ordering), with `benchmarks/reputation_bench.py` and
+  `tests/python/test_reputation.py` — the "off-chain relay reputation now" phase of
+  `docs/MINTING-INTEGRATION.md`
 - Add **`qapp-core`** as a vendored git submodule (`qapp-core/`)
     - Qortal core React library: auth (`useAuth`), QDN CRUD (`usePublish`, `useResources`), player & resource-list components, zustand global state, i18n, typed `qortalRequest` bridge
     - `TODO-QAPP-CORE.md` — integration plan (React 19 / MUI 7 migration, de-mocking `src/data/api.ts`, auth + QDN signaling)

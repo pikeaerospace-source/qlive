@@ -1,4 +1,10 @@
 import { Link } from "react-router-dom";
+import {
+  formatDuration,
+  hasReplay,
+  replayLabel,
+  replayState,
+} from "../data/archive";
 import type { Stream } from "../types";
 import StatusBadge from "./StatusBadge";
 
@@ -10,6 +16,9 @@ function thumbHue(streamId: string): number {
 
 export default function StreamCard({ stream }: { stream: Stream }) {
   const hue = thumbHue(stream.streamId);
+  const replay = replayState(stream);
+  const replayable = hasReplay(stream);
+  const durationMs = stream.archive?.durationMs;
 
   return (
     <div className="card stream-card">
@@ -41,11 +50,24 @@ export default function StreamCard({ stream }: { stream: Stream }) {
         {stream.viewers > 0 && (
           <span>{stream.viewers.toLocaleString()} watching</span>
         )}
+        {replay === "archiving" && <span>Replay archiving…</span>}
+        {replayable && durationMs !== undefined && (
+          <span>{formatDuration(durationMs)}</span>
+        )}
       </div>
 
       <Link to={`/watch/${stream.streamId}`} className="stream-card__title">
         {stream.title}
       </Link>
+
+      {replayable && (
+        <Link
+          to={`/watch/${stream.streamId}`}
+          className="stream-card__replay"
+        >
+          {replayLabel(replay)} ▸
+        </Link>
+      )}
 
       <div className="stream-card__meta">
         <Link to={`/profile/${stream.publisher}`}>{stream.publisher}</Link>

@@ -237,4 +237,89 @@ describe("qapp adapter (QDN-backed Api)", () => {
       backend.qortalRequest({ action: "GET_USER_ACCOUNT" }),
     ).rejects.toThrow(/host 'qortalRequest' not found/);
   });
+
+  it("maps the archive reference of a completed stream", async () => {
+    const backend = makeBackend({
+      SEARCH_QDN_RESOURCES: () =>
+        Promise.resolve([
+          {
+            name: "bob",
+            identifier: `${QLIVE_STREAM_PREFIX}arch1`,
+            service: "JSON",
+            size: 12,
+            created: 1,
+          },
+        ]),
+      FETCH_QDN_RESOURCE: () =>
+        Promise.resolve({
+          ...DOC,
+          publisher: "bob",
+          status: "archived",
+          archive: {
+            status: "archived",
+            qdnResourceId: "qlive-archive-arch1",
+            qtubeManifestId: "qlive-manifest-arch1",
+          },
+        }),
+    });
+
+    const api = createQappApi(backend);
+    const [stream] = await api.listStreams();
+
+    expect(stream.archive).toEqual({
+      qdnResourceId: "qlive-archive-arch1",
+      qtubeManifestId: "qlive-manifest-arch1",
+      status: "archived",
+    });
+    expect(stream.playbackUrl).toBe(
+      "/arbitrary/VIDEO/bob/qlive-archive-arch1",
+    );
+  });
+
+  it("treats an unrecognised archive status as pending", async () => {
+    const backend = makeBackend({
+      SEARCH_QDN_RESOURCES: () =>
+        Promise.resolve([
+          {
+            name: "bob",
+            identifier: `${QLIVE_STREAM_PREFIX}arch2`,
+            service: "JSON",
+            size: 12,
+            created: 1,
+          },
+        ]),
+      FETCH_QDN_RESOURCE: () =>
+        Promise.resolve({
+          ...DOC,
+          status: "archived",
+          archive: { status: "finishing", qdnResourceId: "res-2" },
+        }),
+    });
+
+    const api = createQappApi(backend);
+    const [stream] = await api.listStreams();
+    expect(stream.archive?.status).toBe("pending");
+    // Not advertised as playable until confirmed archived.
+    expect(stream.playbackUrl).toBeUndefined();
+  });
+
+  it("leaves archive undefined when the doc references no archive", async () => {
+    const backend = makeBackend({
+      SEARCH_QDN_RESOURCES: () =>
+        Promise.resolve([
+          {
+            name: "alice",
+            identifier: `${QLIVE_STREAM_PREFIX}live1`,
+            service: "JSON",
+            size: 3,
+            created: 1,
+          },
+        ]),
+      FETCH_QDN_RESOURCE: () => Promise.resolve(DOC),
+    });
+
+    const api = createQappApi(backend);
+    const [stream] = await api.listStreams();
+    expect(stream.archive).toBeUndefined();
+  });
 });

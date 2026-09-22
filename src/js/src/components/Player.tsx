@@ -4,6 +4,7 @@ import type { Stream } from "../types";
 
 export default function Player({ stream }: { stream: Stream }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isLive = stream.status === "live";
 
   useEffect(() => {
     const video = videoRef.current;
@@ -23,7 +24,9 @@ export default function Player({ stream }: { stream: Stream }) {
     import("hls.js").then((mod) => {
       const HlsClass = mod.default;
       if (cancelled || !HlsClass.isSupported()) return;
-      hls = new HlsClass({ enableWorker: true, lowLatencyMode: true });
+      // Low-latency mode applies to the live edge only; a replay is the same
+      // archived fragments played back at normal latency (no re-encoding).
+      hls = new HlsClass({ enableWorker: true, lowLatencyMode: isLive });
       hls.loadSource(url);
       hls.attachMedia(video);
     });
@@ -32,13 +35,15 @@ export default function Player({ stream }: { stream: Stream }) {
       cancelled = true;
       hls?.destroy();
     };
-  }, [stream.playbackUrl]);
+  }, [stream.playbackUrl, isLive]);
 
   if (!stream.playbackUrl) {
     return (
       <div className="player player--placeholder">
         <strong>{stream.title}</strong>
-        <span className="muted">No live source available — mock/offline mode.</span>
+        <span className="muted">
+          No {isLive ? "live" : "replay"} source available — mock/offline mode.
+        </span>
       </div>
     );
   }

@@ -156,7 +156,7 @@ To ensure peers actually relay video traffic rather than just leeching bandwidth
 ```bash
 cd src/python
 pip install -e ".[dev]"
-pytest                       # 294 tests
+pytest                       # 311 tests
 python -m qlive.benchmarks   # offline benchmarks + simulation
 ```
 
@@ -192,7 +192,7 @@ npm run build                # builds dist/ (prepare runs automatically)
 
  > ⚠️ **Status:** The `src/js` toolchain has been upgraded to **React 19 + MUI v7 +
  > Router 7** and `qapp-core` is declared as a `file:` dependency (build =
- > `npm run build`). `tsc --noEmit`, `vitest` (16/16), and `vite build` are green.
+ > `npm run build`). `tsc --noEmit`, `vitest` (43/43), and `vite build` are green.
  > The remaining runtime step — mounting `qapp-core`'s `GlobalProvider` and wiring
  > real Qortal auth/signaling — is deferred (see [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md),
  > Q3). Until then the Web UI still runs offline against mock data.

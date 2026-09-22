@@ -18,6 +18,28 @@ const stream: Stream = {
   viewers: 42,
 };
 
+const archived: Stream = {
+  ...stream,
+  streamId: "archived-1",
+  status: "archived",
+  viewers: 0,
+  archive: {
+    qdnResourceId: "qlive-archive-archived-1",
+    status: "archived",
+    publishedAt: Date.now(),
+    durationMs: 2_520_000,
+    sizeBytes: 828_000_000,
+    fragmentCount: 2_520,
+  },
+};
+
+const ended: Stream = {
+  ...stream,
+  streamId: "ended-1",
+  status: "ended",
+  viewers: 0,
+};
+
 describe("StreamCard", () => {
   it("renders title, viewer count and live badge", () => {
     render(
@@ -41,5 +63,48 @@ describe("StreamCard", () => {
 
     expect(screen.queryByText(/watching/)).not.toBeInTheDocument();
     expect(screen.getByText("Upcoming")).toBeInTheDocument();
+  });
+
+  it("links to the replay of an archived stream", () => {
+    render(
+      <MemoryRouter>
+        <StreamCard stream={archived} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("link", { name: /Watch replay/ })).toHaveAttribute(
+      "href",
+      "/watch/archived-1",
+    );
+    expect(screen.getByText("42m")).toBeInTheDocument();
+    expect(screen.getByText("Replay")).toBeInTheDocument();
+  });
+
+  it("labels a partial archive", () => {
+    const partial: Stream = {
+      ...archived,
+      streamId: "partial-1",
+      status: "interrupted",
+      archive: { ...archived.archive!, status: "partial" },
+    };
+    render(
+      <MemoryRouter>
+        <StreamCard stream={partial} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText(/Watch partial replay/)).toBeInTheDocument();
+    expect(screen.getByText("Interrupted")).toBeInTheDocument();
+  });
+
+  it("shows an archiving placeholder for a finished stream", () => {
+    render(
+      <MemoryRouter>
+        <StreamCard stream={ended} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText(/Replay archiving/)).toBeInTheDocument();
+    expect(screen.queryByText(/Watch replay/)).not.toBeInTheDocument();
   });
 });

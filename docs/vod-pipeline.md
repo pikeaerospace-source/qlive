@@ -22,6 +22,29 @@ on stream end, publishes a Q-Tube manifest.
 A partial archive is marked `isPartial`; viewers can still watch what was
 recorded.
 
+## Viewer Replay UX
+
+The archive reuses the original live fragments verbatim — playback is **not
+re-encoded** — so a stream's replay is only a matter of publishing (or pointing
+at) the archived QDN resource.
+
+The Web UI derives a single viewer-facing replay state per stream
+(`src/js/src/data/archive.ts`):
+
+| State | Condition | UI |
+| --- | --- | --- |
+| `none` | `live` / `announced`, or no archive metadata | live player only |
+| `archiving` | `ended` / `interrupted`, or archive `status: pending` | "Archiving…" notice, no replay link |
+| `ready` | archive `status: archived` | "Replay available" + **Watch replay** link, duration/size/fragment metrics |
+| `partial` | archive `status: partial` | as `ready`, plus a warning that the replay is incomplete |
+
+Stream metadata points at the archive (`archive.qdnResourceId` /
+`archive.qtubeManifestId`); playback resolves to
+`/arbitrary/VIDEO/<publisher>/<qdnResourceId>`, i.e. the platform player fetches
+the same CMAF fragments that were relayed live. A finished stream moves
+`archiving → ready` with no transcoding step, and `interrupted` streams land on
+`partial` so viewers know the recording has gaps.
+
 ---
 
 ## Implementation

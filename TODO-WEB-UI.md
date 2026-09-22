@@ -73,7 +73,7 @@ The QLive web UI provides:
 ### Discovery Features
 - [ ] Featured streams section
 - [ ] Trending streams (by viewer count)
-- [ ] Recently ended streams (with replay links)
+- [x] Recently ended streams (with replay links)
 - [ ] Followed streamers section
 
 ---
@@ -152,6 +152,7 @@ The QLive web UI provides:
 | Date | Decision | Rationale |
 | --- | --- | --- |
 | 2026-08-26 | Adopt `qapp-core` (submodule) as the Web UI foundation | Reuse Qortal's tested auth / QDN CRUD / player / state instead of hand-rolling the Qortal layer; requires React 19 + MUI 7. Tracks in [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md) |
+| 2026-09-22 | Split discovery into a live/upcoming grid and a separate "Recently ended" replay section | Replays are not live; a dedicated section gives them archive metrics + replay links, and keeps the main grid focused on what is watchable now. Replay state is derived once from `Stream.archive` so QDN and mock data behave identically |
 
 ---
 

@@ -98,8 +98,8 @@ External dependency areas have their own dedicated TODO documents:
 
 ### Q-Tube Integration
 - [ ] Coordinate with Q-Tube team on manifest format compatibility
-- [ ] Implement "Watch Replay" link on live stream pages
-- [ ] Implement live → VOD transition UX (no re-encoding)
+- [x] Implement "Watch Replay" link on live stream pages — Web UI `StreamCard`/`WatchPage` + `src/js/src/data/archive.ts` → [TODO-QTUBE.md](TODO-QTUBE.md)
+- [x] Implement live → VOD transition UX (no re-encoding) — archive metadata drives `archiving → ready`/`partial`; the player plays the archived fragments unchanged → [docs/vod-pipeline.md](docs/vod-pipeline.md) §Viewer Replay UX
 
 ---
 
@@ -114,6 +114,7 @@ External dependency areas have their own dedicated TODO documents:
 - [x] Design signed bandwidth receipt format
 - [x] Implement receipt generation on relay nodes
 - [x] Implement receipt verification on receiving nodes
+- [x] Implement off-chain relay reputation tracker (time decay, diversity weighting, capped contribution) → `qlive/reputation.py` (step 1 of [docs/MINTING-INTEGRATION.md](docs/MINTING-INTEGRATION.md) §Recommendation)
 - [x] Explore integration with Qortal minting weight / node reputation → [docs/MINTING-INTEGRATION.md](docs/MINTING-INTEGRATION.md) (phased: off-chain relay reputation now; minting feed deferred to Qortal Core)
 - [x] Document incentive model economics
 

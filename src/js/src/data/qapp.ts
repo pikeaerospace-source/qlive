@@ -21,6 +21,8 @@ import type { Api } from "./api";
 import type { QortalMetadata } from "qapp-core";
 import type {
   Stream,
+  StreamArchive,
+  ArchiveStatus,
   Streamer,
   StreamStats,
   Resolution,
@@ -195,6 +197,30 @@ function toStream(
     viewers: doc.viewers ?? 0,
     thumbnail: thumbnailFromDoc(streamId, doc),
     playbackUrl: playbackUrlFromDoc(doc),
+    archive: archiveFromDoc(doc),
+  };
+}
+
+const ARCHIVE_STATUSES: ArchiveStatus[] = ["pending", "archived", "partial"];
+
+/**
+ * Map the QDN doc's `archive` block to the Web UI's `StreamArchive`.
+ *
+ * The stream doc only carries the archive *reference* (QDN resource + Q-Tube
+ * manifest id); duration/size/fragment-count live in the manifest document and
+ * are filled in when that resource is fetched. An unrecognised status is
+ * treated as `pending` so a replay is never advertised before it is confirmed.
+ */
+function archiveFromDoc(doc: QLiveStreamDoc): StreamArchive | undefined {
+  const archive = doc.archive;
+  if (!archive?.qdnResourceId) return undefined;
+  const status = ARCHIVE_STATUSES.includes(archive.status as ArchiveStatus)
+    ? (archive.status as ArchiveStatus)
+    : "pending";
+  return {
+    qdnResourceId: archive.qdnResourceId,
+    qtubeManifestId: archive.qtubeManifestId,
+    status,
   };
 }
 
