@@ -235,6 +235,28 @@ button {
   color: var(--text-muted);
 }
 
+.player-wrap {
+  position: relative;
+}
+
+.player-wrap .player {
+  display: block;
+}
+
+.player-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 16px;
+  text-align: center;
+  border-radius: var(--radius);
+  background: rgba(6, 8, 12, 0.66);
+  color: var(--text);
+}
+
 /* ---------- Stats ---------- */
 .stat {
   display: flex;

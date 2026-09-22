@@ -58,7 +58,8 @@ The QLive web UI provides:
 - [ ] Picture-in-picture support
 - [ ] Keyboard shortcuts
 - [ ] Mobile responsive layout
-- [ ] Error recovery (reconnect on stream drop)
+- [x] Error recovery (reconnect on stream drop) → `Player` playback states: auto-recovery (2× backoff on network errors, 1× media-error recovery) then a "Playback interrupted" overlay with Retry
+- [x] Playback status overlay (connecting / reconnecting / interrupted / unsupported)
 
 ---
 
@@ -98,7 +99,7 @@ The QLive web UI provides:
 - [~] Accessibility (WCAG 2.1)
 - [ ] Loading states and skeletons
 - [ ] Empty states
-- [ ] Error states
+- [~] Error states (player playback interruptions covered by the Player overlay + Retry; page-level error states pending)
 
 ---
 

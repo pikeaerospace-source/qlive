@@ -45,7 +45,7 @@ Q-Tube is Qortal's decentralized video platform. QLive integration enables:
 - [ ] Add "Live Now" section on Q-Tube homepage
 - [ ] Add live badge to streamer profiles
 - [ ] Implement stream status indicators (live, ended, archived)
-- [ ] Handle stream interruptions gracefully in the player
+- [x] Handle stream interruptions gracefully in the player *(QLive Web UI — playback states + retry overlay)*
 
 ### Player Features
 - [ ] Low-latency playback (sub-1s target)

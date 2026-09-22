@@ -33,6 +33,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **player error recovery** — `Player` now tracks a `PlaybackState`
+  (`connecting` / `playing` / `recovering` / `interrupted` / `unsupported`) and
+  survives stream drops: fatal hls.js **network** errors resume loading twice
+  with a 1.5 s backoff, fatal **media** errors call `recoverMediaError()` once,
+  and once recovery is exhausted a "Playback interrupted" overlay offers a
+  **Retry** that rebuilds the pipeline from scratch (old instance destroyed). The
+  native-HLS (Safari) path re-attaches the source, unsupported browsers get an
+  explicit message, non-fatal errors are ignored, and counters reset once
+  playback resumes. CSS: `.player-wrap` / `.player-overlay`; tests:
+  `Player.test.tsx` (9, `hls.js` mocked incl. the dynamic import) — suite
+  **68 passing** (was 59)
 - Web UI: **activated the QDN seams** and wired the broadcaster dashboard to the
   publish path
     - pages now read through `selectApi()` (Watch/Discovery/Profile) instead of
