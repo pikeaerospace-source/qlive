@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import Player from "../components/Player";
 import Stat from "../components/Stat";
 import StatusBadge from "../components/StatusBadge";
-import { api } from "../data/api";
+import { selectApi } from "../data/api";
 import {
   formatBytes,
   formatDuration,
@@ -20,16 +20,18 @@ export default function WatchPage() {
 
   useEffect(() => {
     if (!streamId) return;
-    api.getStream(streamId).then((s) => {
-      if (s) setStream(s);
-      else setNotFound(true);
-    });
+    selectApi()
+      .getStream(streamId)
+      .then((s) => {
+        if (s) setStream(s);
+        else setNotFound(true);
+      });
   }, [streamId]);
 
   // Live stats only exist while broadcasting; a replay is a static archive.
   useEffect(() => {
     if (!streamId || stream?.status !== "live") return;
-    return api.subscribeStats(streamId, setStats);
+    return selectApi().subscribeStats(streamId, setStats);
   }, [streamId, stream?.status]);
 
   if (notFound) return <div className="empty">Stream not found.</div>;

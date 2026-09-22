@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Stat from "../components/Stat";
 import StreamCard from "../components/StreamCard";
-import { api } from "../data/api";
+import { selectApi } from "../data/api";
 import { replaySortKey, replayState } from "../data/archive";
 import type { Stream } from "../types";
 
@@ -32,7 +32,7 @@ export default function DiscoveryPage() {
   const [sort, setSort] = useState<SortMode>("live");
 
   useEffect(() => {
-    api.listStreams().then(setStreams);
+    selectApi().listStreams().then(setStreams);
   }, []);
 
   const live = streams.filter((s) => s.status === "live");

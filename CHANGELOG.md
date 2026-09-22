@@ -33,6 +33,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **activated the QDN seams** and wired the broadcaster dashboard to the
+  publish path
+    - pages now read through `selectApi()` (Watch/Discovery/Profile) instead of
+      importing the mock `api` directly — previously `selectApi()` was unused, so a
+      Qortal UI host would still have rendered mock data
+    - `src/js/src/data/publisher.ts` — `selectPublisher()` write seam plus
+      `MockStreamPublisher`, an in-memory registry used offline (`getDoc`,
+      `streamIds`, `clear`); nothing leaves the browser without a host
+    - `DashboardPage` publishes `live` on **Start broadcast** and re-publishes
+      `ended` on **Stop broadcast** using the same stream id (QDN resource updated
+      in place), surfacing a signaling panel (identifier/service/publisher/status)
+      or an error notice; a new session gets a fresh id
+    - `src/index.css` — `.notice--success` / `.notice--error`
+    - tests: `publisher.test.ts` (5) + `DashboardPage.test.tsx` (4); page tests now
+      mock the seam — suite **59 passing** (was 50)
 - Web UI: **QDN publish (write) path** — `createStreamPublisher` /
   `qliveStreamPublisher` in `src/js/src/data/qapp.ts` (re-exported from `api.ts`)
   publish a stream's `qlive-stream` doc via `PUBLISH_QDN_RESOURCE` (`data64` =

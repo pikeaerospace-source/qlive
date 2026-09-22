@@ -120,6 +120,7 @@ QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core 
 > present (feature-flag / provider prop).
 
 - [x] Keep `api.ts` as the seam; back it with qapp-core calls behind a toggle → `selectApi()` switch + `qapp.ts` adapter
+- [x] Components consume the seams (no direct backend imports) → `selectApi()` in Watch/Discovery/Profile; `selectPublisher()` (+ `MockStreamPublisher`) in the dashboard
 - [x] Provide mock fallback for offline development / CI (no Qortal node) → `selectApi()` falls back to `api` (mock) when `window.qortalRequest` is absent
 - [x] Manageability: keep API-boundary mocks for tests (per standards) → mock `Api` untouched; new adapter unit-testable via injected `QortalBackend`
 - [x] Document how to run offline vs. pointing at a local Qortal node → `docs/WEB-UI-DATA-SOURCES.md` (mock default vs. QDN-backed; `qortalRequest` injection + dev shim; `QortalBackend` injectable; quick-reference + limitations)
@@ -142,7 +143,7 @@ QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core 
 - [x] **Q1.5 — Seam (offline):** injectable QDN adapter `qapp.ts` + `selectApi()` toggle + seam tests (no host required) — 16/16 tests, `tsc` + `vite build` green
 - [x] **Q2 — Foundation:** React 19 + MUI v7 + Router 7 + qapp-core dep, validated green
 - [~] **Q2.5 — Provider:** mount `GlobalProvider` + qapp-core CSS — *deferred* (host-dependent auth/indexes; gated on Q3 auth)
-- [~] **Q3 — Auth & signaling:** Qortal auth + stream metadata publish over QDN — publish adapter done (`createStreamPublisher`); host auth (`useAuth`/`GlobalProvider`) and dashboard wiring pending
+- [~] **Q3 — Auth & signaling:** Qortal auth + stream metadata publish over QDN — publish adapter + dashboard wiring done (`createStreamPublisher` via `selectPublisher()`); host auth (`useAuth`/`GlobalProvider`) and a real-node roundtrip pending
 - [ ] **Q4 — Playback:** viewer video via qapp-core components
 - [ ] **Q5 — De-mock:** real QDN storage path replaces mock default
 

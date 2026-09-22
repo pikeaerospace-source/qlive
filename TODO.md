@@ -125,6 +125,7 @@ External dependency areas have their own dedicated TODO documents:
 ### Broadcaster App
 - [x] CLI tool for starting a broadcast (`qlive broadcast`)
 - [x] Web UI for stream management (start/stop, preview, stats)
+- [x] Publish stream metadata on start/stop (Web UI `selectPublisher()` seam → QDN `PUBLISH_QDN_RESOURCE`, offline in-memory registry)
 - [x] FFmpeg integration (RTMP/RTSP/device input)
 - [x] Stream health dashboard (viewer count, bandwidth, buffer status)
 

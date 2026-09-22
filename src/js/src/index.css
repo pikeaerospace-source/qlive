@@ -385,6 +385,14 @@ button {
   border-left-color: var(--accent);
 }
 
+.notice--success {
+  border-left-color: var(--success);
+}
+
+.notice--error {
+  border-left-color: var(--danger);
+}
+
 .notice__meta {
   display: flex;
   flex-wrap: wrap;

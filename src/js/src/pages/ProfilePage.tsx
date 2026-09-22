@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Stat from "../components/Stat";
 import StreamCard from "../components/StreamCard";
-import { api } from "../data/api";
+import { selectApi } from "../data/api";
 import type { Stream, Streamer } from "../types";
 
 export default function ProfilePage() {
@@ -12,6 +12,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!name) return;
+    const api = selectApi();
     api.getStreamer(name).then(setStreamer);
     api.getStreamerStreams(name).then(setStreams);
   }, [name]);

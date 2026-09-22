@@ -25,12 +25,13 @@ The QLive web UI provides:
 ## Broadcaster Dashboard
 
 - [x] Web UI for stream management (start/stop, preview, stats)
+- [x] Publish stream metadata on start/stop (QDN signaling via `selectPublisher()`; offline in-memory registry)
 - [x] Stream configuration form (title, description, category, bitrate)
 - [ ] Live preview of the stream
 - [x] Start/stop broadcast controls
 - [x] Stream health dashboard (viewer count, bandwidth, buffer status)
 - [ ] Archive status indicator
-- [ ] Error and warning notifications
+- [~] Error and warning notifications (publish/signaling failures surfaced; stream/encoder warnings pending)
 
 ### Dashboard Features
 - [ ] Real-time viewer count
@@ -113,7 +114,7 @@ The QLive web UI provides:
 - [x] Set up build tooling (Vite/Webpack) → **Vite 5**
 - [~] Set up state management → migrate to `qapp-core` zustand stores + `GlobalProvider` → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
 - [x] Set up routing → React Router 6 (upgrade **7** via qapp-core)
-- [~] Set up API client for QLive backend → `qapp-core` `usePublish`/`useResources`; read + publish adapters done in `qapp.ts` (`createQappApi`, `createStreamPublisher`), UI still mock-default → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
+- [x] Set up API client for QLive backend → QDN adapters in `qapp.ts`/`publisher.ts` (read + publish) exposed through the `selectApi()`/`selectPublisher()` seams and consumed by the pages/dashboard (qapp-core hooks adoption deferred with `GlobalProvider`) → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
 - [x] Set up WebSocket client for real-time updates
 - [x] Set up testing framework → Vitest + Testing Library
 

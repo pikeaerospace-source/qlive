@@ -18,10 +18,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../data/api", () => ({
-  api: {
+  selectApi: () => ({
     getStream: mocks.getStream,
     subscribeStats: mocks.subscribeStats,
-  },
+  }),
 }));
 
 const stream = (overrides: Partial<Stream> = {}): Stream => ({

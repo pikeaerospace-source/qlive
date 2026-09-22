@@ -15,7 +15,7 @@ import DiscoveryPage from "./DiscoveryPage";
 const mocks = vi.hoisted(() => ({ listStreams: vi.fn() }));
 
 vi.mock("../data/api", () => ({
-  api: { listStreams: mocks.listStreams },
+  selectApi: () => ({ listStreams: mocks.listStreams }),
 }));
 
 const stream = (overrides: Partial<Stream> = {}): Stream => ({

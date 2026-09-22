@@ -192,7 +192,7 @@ npm run build                # builds dist/ (prepare runs automatically)
 
  > ⚠️ **Status:** The `src/js` toolchain has been upgraded to **React 19 + MUI v7 +
  > Router 7** and `qapp-core` is declared as a `file:` dependency (build =
- > `npm run build`). `tsc --noEmit`, `vitest` (43/43), and `vite build` are green.
+ > `npm run build`). `tsc --noEmit`, `vitest` (59/59), and `vite build` are green.
  > The remaining runtime step — mounting `qapp-core`'s `GlobalProvider` and wiring
  > real Qortal auth/signaling — is deferred (see [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md),
  > Q3). Until then the Web UI still runs offline against mock data.

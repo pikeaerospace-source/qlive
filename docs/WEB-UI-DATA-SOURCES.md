@@ -37,6 +37,19 @@ injected `window.qortalRequest` (a function), the app talks to QDN; otherwise
 it falls back to the in-memory mock. There is no config flag to flip and no
 build-time switch — the environment decides.
 
+The **write-path sibling** is `selectPublisher()` in
+`src/js/src/data/publisher.ts`, using the same rule:
+
+```ts
+export const selectPublisher = (): StreamPublisher =>
+  hasHost() ? qliveStreamPublisher   // QDN (PUBLISH_QDN_RESOURCE)
+            : mockPublisher;         // in-memory registry (offline)
+```
+
+Pages consume the seams — `selectApi()` in Watch/Discovery/Profile and
+`selectPublisher()` in the broadcaster dashboard — so no component imports a
+backend directly.
+
 | Environment | `window.qortalRequest` | `selectApi()` → | Data |
 | --- | --- | --- | --- |
 | `npm run dev` (standalone Vite) | absent | `api` (mock) | `mock.ts` |
@@ -185,12 +198,12 @@ export interface QortalBackend {
 
 Reading QDN is `createQappApi(backend)`; **writing** it is
 `createStreamPublisher(backend, { name? })` — both re-exported from
-`src/js/src/data/api.ts`:
+`src/js/src/data/api.ts`. UI code should not call either directly: use the seams
+(`selectApi()`, `selectPublisher()`) so the same component works offline and on
+QDN.
 
 ```ts
-const publisher = createStreamPublisher(createQortalBackend(), {
-  name: "alice", // or omit to use the host-injected window.qortalName
-});
+const publisher = selectPublisher(); // QDN in a host, offline registry otherwise
 
 await publisher.publishStream({
   streamId: "a1b2c3d4e5f6",
@@ -208,13 +221,19 @@ await publisher.publishStream({
   lifecycle change (`announced → live → ended → archived`) — state changes only,
   never periodically (see [QDN-SIGNALING-FREQUENCY.md](QDN-SIGNALING-FREQUENCY.md)).
   `streamToPublication(stream)` derives the input from an existing `Stream`.
-- **An authenticated Qortal Name is required** (the doc's `publisher` field). It
-  comes from `options.name`, falling back to `window.qortalName`; if neither
-  exists the call throws instead of publishing an anonymous doc.
+- **An authenticated Qortal Name is required** for QDN publishing (the doc's
+  `publisher` field). It comes from `options.name`, falling back to
+  `window.qortalName`; if neither exists the call throws instead of publishing an
+  anonymous doc. The offline registry instead reports `publisher: offline`.
 - QDN has no true delete: `unpublishStream(streamId)` replaces the resource with
   qapp-core's 1-byte tombstone payload (`data64: "RA=="`).
-- Offline, inject a fake `QortalBackend` (as the tests do). Only *reaching a real
-  node* needs a host — the adapter itself is host-agnostic.
+- **Offline nothing leaves the browser**: `selectPublisher()` returns
+  `mockPublisher`, which records documents in an in-memory registry. Inspect it
+  with `mockPublisher.getDoc(streamId)` / `mockPublisher.streamIds` — the
+  dashboard's signaling panel and the tests do exactly that.
+- The broadcaster dashboard publishes on **Start / Stop broadcast**
+  (`live` → `ended`, same identifier) and shows the result in a signaling panel;
+  a failed publish (e.g. missing Name on a real host) is surfaced as an error notice.
 
 ---
 
@@ -238,11 +257,11 @@ await publisher.publishStream({
 - **Stats are still mock/transport-layer.** `getStreamStats` / `subscribeStats`
   in the QDN adapter default to a no-op until the live swarm/WebSocket socket
   is wired; real viewer/bandwidth data is not (yet) available from QDN.
-- **Publish (write path) is an adapter, not yet wired into the UI.**
-  `createStreamPublisher` publishes/re-publishes stream metadata via
-  `PUBLISH_QDN_RESOURCE` (with `unpublishStream` tombstones) and is covered by
-  offline tests, but the broadcaster dashboard still uses local component state —
-  wiring it to the publisher is part of the Q3 signaling work
+- **Publish (write path) is wired into the dashboard; auth is not.** The
+  dashboard publishes/re-publishes stream metadata through `selectPublisher()`
+  (QDN in a host, in-memory registry offline), but the broadcaster identity still
+  comes from the host (`window.qortalName`) rather than `qapp-core`'s `useAuth`,
+  and a real node roundtrip is untested — Q3 signaling work
   (see [TODO-QAPP-CORE.md](../TODO-QAPP-CORE.md)).
 
 ---
