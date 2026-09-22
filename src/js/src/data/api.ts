@@ -61,10 +61,23 @@ export const api: Api = {
 };
 
 /**
- * Re-export the qapp-core-backed implementation so callers can opt into real
- * QDN access. `Api` remains the only interface components depend on.
+ * Re-export the qapp-core-backed implementations so callers can opt into real
+ * QDN access — reads (`createQappApi`) and writes (`createStreamPublisher`).
+ * `Api` remains the only interface components depend on.
  */
-export { createQappApi, createQortalBackend } from "./qapp";
+export {
+  createQappApi,
+  createQortalBackend,
+  createStreamPublisher,
+  qliveStreamPublisher,
+  streamToPublication,
+} from "./qapp";
+
+export type {
+  StreamPublication,
+  StreamPublisher,
+  StreamPublishResult,
+} from "./qapp";
 
 /**
  * Seam toggle: prefer the QDN-backed api when the Qortal UI host has injected

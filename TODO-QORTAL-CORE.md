@@ -31,7 +31,7 @@ Qortal Core provides the underlying infrastructure QLive depends on:
 
 ## QDN Integration
 
-- [ ] Implement QDN publish for stream metadata documents
+- [x] Implement QDN publish for stream metadata documents → Web UI adapter `createStreamPublisher` (`src/js/src/data/qapp.ts`, `PUBLISH_QDN_RESOURCE`); see [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md). Node roundtrip test still pending
 - [ ] Implement QDN publish for VOD archive chunks
 - [ ] Implement QDN retrieval for stream discovery
 - [ ] Implement QDN retrieval for VOD playback
@@ -43,7 +43,7 @@ Qortal Core provides the underlying infrastructure QLive depends on:
 - [ ] Document QDN REST API endpoints used
 - [ ] Document QDN WebSocket events for real-time updates
 - [ ] Map QLive metadata schema to QDN resource types
-- [ ] Define QDN resource naming convention for streams
+- [x] Define QDN resource naming convention for streams → `QLIVE_STREAM_<streamId>` (`QLIVE_STREAM_PREFIX` in `src/js/src/data/qapp.ts`, documented in [docs/signaling-schema.md](../docs/signaling-schema.md))
 
 ---
 

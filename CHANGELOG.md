@@ -33,6 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **QDN publish (write) path** — `createStreamPublisher` /
+  `qliveStreamPublisher` in `src/js/src/data/qapp.ts` (re-exported from `api.ts`)
+  publish a stream's `qlive-stream` doc via `PUBLISH_QDN_RESOURCE` (`data64` =
+  base64 doc, `title`/`category`/`tags` QDN metadata, identifier
+  `QLIVE_STREAM_<streamId>`), plus `unpublishStream` (tombstone) and
+  `streamToPublication` for lifecycle re-publish
+  (`announced → live → ended → archived`). Requires an authenticated Qortal Name
+  (`options.name` or host `qortalName`) and fails loudly without one.
+  `QLiveStreamDoc` gains the `type: "qlive-stream"` marker and a typed `archive`
+  ref (`QLiveArchiveRef`); `qapp.test.ts` 11 → 18 tests (suite **50 passing**)
 - Web UI: **live → VOD replay** (completes TODO.md Phase 3 *Q-Tube Integration*)
     - `src/types.ts` — `ArchiveStatus` + `StreamArchive` (QDN resource ids, status,
       duration/size/fragment metrics) and `Stream.archive`

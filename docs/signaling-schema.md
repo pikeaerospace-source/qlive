@@ -55,5 +55,18 @@ See [QDN-SIGNALING-FREQUENCY.md](QDN-SIGNALING-FREQUENCY.md) for the rationale.
 
 - `qlive/signaling.py` — `StreamMetadata`, `StreamRegistry` (in-memory QDN stand-in).
 - `src/js/src/types.ts` — the TypeScript mirror of this schema.
+- `src/js/src/data/qapp.ts` — QDN signaling adapter:
+    - **read** — `createQappApi` (`SEARCH_QDN_RESOURCES` / `FETCH_QDN_RESOURCE` /
+      `GET_NAME_DATA`) maps QDN resources ↔ `Stream`.
+    - **write** — `createStreamPublisher` publishes the document under the
+      broadcaster's Qortal Name via `PUBLISH_QDN_RESOURCE` with
+      `service: "JSON"`, `identifier: "QLIVE_STREAM_<streamId>"` and the JSON doc
+      base64-encoded in `data64` (qapp-core's convention). `title`, `description`,
+      `category` and `tags: ["qlive", category, status]` are sent as QDN metadata
+      so `SEARCH_QDN_RESOURCES` can sort/filter without fetching the doc.
+      Lifecycle changes are **re-publishes of the same identifier** (state changes
+      only — see [QDN-SIGNALING-FREQUENCY.md](QDN-SIGNALING-FREQUENCY.md));
+      `unpublishStream` replaces the resource with a tombstone because QDN has no
+      true delete.
 
 *See [protocol.md](protocol.md) §4 for the full specification.*

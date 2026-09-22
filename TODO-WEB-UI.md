@@ -113,7 +113,7 @@ The QLive web UI provides:
 - [x] Set up build tooling (Vite/Webpack) → **Vite 5**
 - [~] Set up state management → migrate to `qapp-core` zustand stores + `GlobalProvider` → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
 - [x] Set up routing → React Router 6 (upgrade **7** via qapp-core)
-- [~] Set up API client for QLive backend → replace `src/data/api.ts` mock with `qapp-core` `usePublish`/`useResources` → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
+- [~] Set up API client for QLive backend → `qapp-core` `usePublish`/`useResources`; read + publish adapters done in `qapp.ts` (`createQappApi`, `createStreamPublisher`), UI still mock-default → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
 - [x] Set up WebSocket client for real-time updates
 - [x] Set up testing framework → Vitest + Testing Library
 

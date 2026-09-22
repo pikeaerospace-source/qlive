@@ -70,6 +70,7 @@ foundation.
 | --- | --- | --- | --- |
 | Auth / identity | `useAuth`, `useAuthStore` | `GET_USER_ACCOUNT`, `GET_PRIMARY_NAME` | Gives `address`, `publicKey`, `name`, `avatarUrl` |
 | Publish stream metadata | `usePublish` (store `setPublish`) | `PUBLISH_QDN_RESOURCE`, `PUBLISH_MULTIPLE_QDN_RESOURCES` | `ResourceToPublish`: `service, identifier, name, base64/data64/file, encryption?: {encryptionType:'streamed-v1', iv, key}` |
+| Publish stream metadata (QLive adapter) | `createStreamPublisher(backend, { name })` in `qapp.ts` | `PUBLISH_QDN_RESOURCE` | Publishes the `qlive-stream` doc as `service: "JSON"`, `identifier: "QLIVE_STREAM_<streamId>"`, doc base64 in `data64`, plus `title`/`category`/`tags: ["qlive", category, status]`; re-publish on lifecycle change; requires an authenticated Name (`options.name` or host `qortalName`) |
 | Fetch / play resource | `useResources.getPublishJson`, `GET_QDN_RESOURCE_URL` | `FETCH_QDN_RESOURCE`, `GET_QDN_RESOURCE_URL` | URL `/arbitrary/${service}/${name}/${identifier}` (`?encoding=base64` option) |
 | List live streams | `useResources`, `useListReturn` | `LIST_QDN_RESOURCES`, `SEARCH_QDN_RESOURCES` | Builds `/arbitrary/resources/search?...&service=JSON&name=...&includemetadata=true` |
 | Encryption (key envelopes) | `createIvAndKeyBase64` | — | AES-256 iv(16)+key(32) base64 ← matches per-stream envelope model |
@@ -89,7 +90,7 @@ QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core 
 - **Metadata envelope:** each QDN `QortalMetadata` carries `metadata.title/description/tags/category`, aligning to QLive's `title, description, category, thumbnail`. The stream's `status` lifecycle (`announced → live → ended → archived`) is mutated via `PUBLISH_QDN_RESOURCE` re-publish on state change (cadence per `QDN-SIGNALING-FREQUENCY.md`).
 - **Swarm / keys:** live peer lists + encryption key envelopes are published as separate `Service.JSON` resources (or a `METADATA` companion object) and refreshed on the documented delta-triggered / 30–60s cadence.
 - **Resource shape:** `useResources` resolves each stream to a `Resource = { qortalMetadata: QortalMetadata; data: any }` — `data` is the parsed `qlive-stream` document; `qortalMetadata.metadata.title` feeds discovery sort/filter.
-- [ ] Implement stream-metadata QDN publish adapter (`usePublish` → `PUBLISH_QDN_RESOURCE`) replacing mock registry — next, to add to `qapp.ts`
+- [x] Implement stream-metadata QDN publish adapter (`PUBLISH_QDN_RESOURCE`) replacing mock registry → `createStreamPublisher`/`qliveStreamPublisher` in `qapp.ts` (`publishStream`, `unpublishStream`, `streamToPublication`); re-exported from `api.ts`; 18 offline tests in `qapp.test.ts`
 - [~] Enumerate active/upcoming/archived streams via search → `listStreams` in `qapp.ts` (QDN `SEARCH_QDN_RESOURCES` + `FETCH_QDN_RESOURCE`, prefix/status filtered)
 - [~] Fetch stream detail → `getStream` in `qapp.ts` (QDN `FETCH_QDN_RESOURCE` by `qliveStreamIdentifier`, search fallback)
 - [x] Map QLive `category`/`tags`/`title` ↔ QDN metadata fields — `toStream`/`searchStreams` map the `qlive-stream` doc ↔ `QortalMetadata`
@@ -141,7 +142,7 @@ QLive's `QDN Signaling Schema` (`docs/signaling-schema.md`) maps onto qapp-core 
 - [x] **Q1.5 — Seam (offline):** injectable QDN adapter `qapp.ts` + `selectApi()` toggle + seam tests (no host required) — 16/16 tests, `tsc` + `vite build` green
 - [x] **Q2 — Foundation:** React 19 + MUI v7 + Router 7 + qapp-core dep, validated green
 - [~] **Q2.5 — Provider:** mount `GlobalProvider` + qapp-core CSS — *deferred* (host-dependent auth/indexes; gated on Q3 auth)
-- [ ] **Q3 — Auth & signaling:** Qortal auth + stream metadata publish over QDN
+- [~] **Q3 — Auth & signaling:** Qortal auth + stream metadata publish over QDN — publish adapter done (`createStreamPublisher`); host auth (`useAuth`/`GlobalProvider`) and dashboard wiring pending
 - [ ] **Q4 — Playback:** viewer video via qapp-core components
 - [ ] **Q5 — De-mock:** real QDN storage path replaces mock default
 

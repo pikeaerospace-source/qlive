@@ -173,10 +173,48 @@ export interface QortalBackend {
 - **Default** — `createQortalBackend()` delegates to the host-injected
   `window.qortalRequest`, and rejects loudly if the host is absent (so
   mis-wiring fails instead of silently returning empty data).
-- **Tests** — `qapp.test.ts` passes a fake backend, so the QDN mapping is
-  exercisable with zero infrastructure.
+- **Tests** — `qapp.test.ts` passes a fake backend, so the QDN mapping *and* the
+  publish path are exercisable with zero infrastructure.
 - **Custom nodes** — implement a `QortalBackend` that forwards to any
-  Qortal-compatible endpoint and pass it to `createQappApi(backend)`.
+  Qortal-compatible endpoint and pass it to `createQappApi(backend)` (reads) or
+  `createStreamPublisher(backend, …)` (writes).
+
+---
+
+## Write path — publishing stream metadata
+
+Reading QDN is `createQappApi(backend)`; **writing** it is
+`createStreamPublisher(backend, { name? })` — both re-exported from
+`src/js/src/data/api.ts`:
+
+```ts
+const publisher = createStreamPublisher(createQortalBackend(), {
+  name: "alice", // or omit to use the host-injected window.qortalName
+});
+
+await publisher.publishStream({
+  streamId: "a1b2c3d4e5f6",
+  title: "Speedrunning Hollow Knight",
+  category: "gaming",
+  status: "live",
+  fragmentDurationMs: 1000,
+  resolution: { width: 1920, height: 1080, fps: 60 },
+  bitrate: { video: 6_000_000, audio: 128_000 },
+});
+```
+
+- One call publishes (or re-publishes) the `qlive-stream` doc under
+  `QLIVE_STREAM_<streamId>` via `PUBLISH_QDN_RESOURCE`. Call it again on each
+  lifecycle change (`announced → live → ended → archived`) — state changes only,
+  never periodically (see [QDN-SIGNALING-FREQUENCY.md](QDN-SIGNALING-FREQUENCY.md)).
+  `streamToPublication(stream)` derives the input from an existing `Stream`.
+- **An authenticated Qortal Name is required** (the doc's `publisher` field). It
+  comes from `options.name`, falling back to `window.qortalName`; if neither
+  exists the call throws instead of publishing an anonymous doc.
+- QDN has no true delete: `unpublishStream(streamId)` replaces the resource with
+  qapp-core's 1-byte tombstone payload (`data64: "RA=="`).
+- Offline, inject a fake `QortalBackend` (as the tests do). Only *reaching a real
+  node* needs a host — the adapter itself is host-agnostic.
 
 ---
 
@@ -200,9 +238,12 @@ export interface QortalBackend {
 - **Stats are still mock/transport-layer.** `getStreamStats` / `subscribeStats`
   in the QDN adapter default to a no-op until the live swarm/WebSocket socket
   is wired; real viewer/bandwidth data is not (yet) available from QDN.
-- **Publish (write path) is not wired in the UI.** The QDN adapter currently
-  only *reads* QDN (`SEARCH`/`FETCH`/`GET_NAME_DATA`); broadcasting metadata
-  via `PUBLISH_QDN_RESOURCE` is part of the Q3 signaling work.
+- **Publish (write path) is an adapter, not yet wired into the UI.**
+  `createStreamPublisher` publishes/re-publishes stream metadata via
+  `PUBLISH_QDN_RESOURCE` (with `unpublishStream` tombstones) and is covered by
+  offline tests, but the broadcaster dashboard still uses local component state —
+  wiring it to the publisher is part of the Q3 signaling work
+  (see [TODO-QAPP-CORE.md](../TODO-QAPP-CORE.md)).
 
 ---
 

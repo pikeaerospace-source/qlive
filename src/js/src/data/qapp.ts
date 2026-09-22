@@ -80,8 +80,17 @@ export interface QortalSearchHit {
   metadata?: { title?: string; description?: string; tags?: string[] };
 }
 
+/** The `archive` block of a `qlive-stream` doc (see `StreamArchive`). */
+export interface QLiveArchiveRef {
+  status?: ArchiveStatus;
+  qdnResourceId?: string;
+  qtubeManifestId?: string;
+}
+
 /** The `qlive-stream` JSON document stored as QDN JSON resource data. */
 export interface QLiveStreamDoc {
+  /** Signaling doc type marker (docs/signaling-schema.md); optional on read. */
+  type?: "qlive-stream";
   version: number;
   publisher: string;
   title: string;
@@ -96,11 +105,7 @@ export interface QLiveStreamDoc {
   views?: number;
   encryption?: { enabled: boolean; keyId?: string };
   swarm?: { primaryTree: unknown[]; meshPeers: string[] };
-  archive?: {
-    status?: string;
-    qdnResourceId?: string;
-    qtubeManifestId?: string;
-  };
+  archive?: QLiveArchiveRef;
   /** Live concurrent viewers (swarm-derived; filled on state change). */
   viewers?: number;
 }
@@ -214,9 +219,11 @@ const ARCHIVE_STATUSES: ArchiveStatus[] = ["pending", "archived", "partial"];
 function archiveFromDoc(doc: QLiveStreamDoc): StreamArchive | undefined {
   const archive = doc.archive;
   if (!archive?.qdnResourceId) return undefined;
-  const status = ARCHIVE_STATUSES.includes(archive.status as ArchiveStatus)
-    ? (archive.status as ArchiveStatus)
-    : "pending";
+  // Untrusted QDN data: coerce an unrecognised status to `pending`.
+  const status =
+    archive.status && ARCHIVE_STATUSES.includes(archive.status)
+      ? archive.status
+      : "pending";
   return {
     qdnResourceId: archive.qdnResourceId,
     qtubeManifestId: archive.qtubeManifestId,
@@ -378,3 +385,193 @@ export const createQappApi = (
 export const qappApi: Api = createQappApi(createQortalBackend());
 
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+/* ------------------------------------------------------------------------- *
+ * Publishing — broadcaster → QDN signaling (the write half of the adapter)
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Input for (re)publishing a stream's signaling document.
+ *
+ * Only identity/format fields are required, so a broadcaster can publish a
+ * minimal `announced` doc and enrich it later (swarm, encryption, archive).
+ */
+export interface StreamPublication {
+  streamId: string;
+  title: string;
+  description?: string;
+  category: string;
+  status: StreamStatus;
+  fragmentDurationMs: number;
+  resolution: Resolution;
+  bitrate: Bitrate;
+  /** Unix epoch ms; defaults to now when omitted. */
+  startedAt?: number;
+  renditions?: number[];
+  /** Live concurrent viewers (swarm-derived). */
+  viewers?: number;
+  encryption?: { enabled: boolean; keyId?: string };
+  swarm?: { primaryTree: unknown[]; meshPeers: string[] };
+  archive?: QLiveArchiveRef;
+}
+
+/** Outcome of a successful publish. */
+export interface StreamPublishResult {
+  /** Qortal Name the doc was published under. */
+  name: string;
+  /** QDN identifier (`QLIVE_STREAM_<streamId>`). */
+  identifier: string;
+  service: QortalService;
+  /** The exact document that was published. */
+  doc: QLiveStreamDoc;
+}
+
+/**
+ * Write half of the QDN signaling adapter: publish / refresh a stream's
+ * `qlive-stream` doc under the authenticated Qortal Name.
+ *
+ * Re-publishing the same `streamId` replaces the QDN resource, which is how the
+ * lifecycle (`announced → live → ended → archived`) is signalled — state changes
+ * only, per docs/QDN-SIGNALING-FREQUENCY.md.
+ */
+export interface StreamPublisher {
+  publishStream(pub: StreamPublication): Promise<StreamPublishResult>;
+  /** Tombstone a stream's doc (QDN has no true delete — see the impl note). */
+  unpublishStream(streamId: string): Promise<void>;
+}
+
+/** Build the QDN document for a publication (adds type/version/publisher). */
+export function streamPublicationToDoc(
+  pub: StreamPublication,
+  publisher: string,
+): QLiveStreamDoc {
+  return {
+    type: "qlive-stream",
+    version: 1,
+    publisher,
+    title: pub.title,
+    description: pub.description,
+    category: pub.category,
+    startedAt: pub.startedAt ?? Date.now(),
+    status: pub.status,
+    fragmentDurationMs: pub.fragmentDurationMs,
+    resolution: pub.resolution,
+    bitrate: pub.bitrate,
+    renditions: pub.renditions,
+    // Viewers are swarm-derived: only meaningful while live.
+    viewers: pub.status === "live" ? (pub.viewers ?? 0) : 0,
+    encryption: pub.encryption,
+    swarm: pub.swarm,
+    archive: pub.archive,
+  };
+}
+
+/**
+ * Derive a publication from a known `Stream` so the UI can re-publish on a
+ * lifecycle change (e.g. `announced → live`) without rebuilding the document.
+ */
+export function streamToPublication(
+  stream: Stream,
+  overrides: Partial<StreamPublication> = {},
+): StreamPublication {
+  const archive: QLiveArchiveRef | undefined = stream.archive
+    ? {
+        status: stream.archive.status,
+        qdnResourceId: stream.archive.qdnResourceId,
+        qtubeManifestId: stream.archive.qtubeManifestId,
+      }
+    : undefined;
+  return {
+    streamId: stream.streamId,
+    title: stream.title,
+    description: stream.description,
+    category: stream.category,
+    status: stream.status,
+    fragmentDurationMs: stream.fragmentDurationMs,
+    resolution: stream.resolution,
+    bitrate: stream.bitrate,
+    startedAt: stream.startedAt,
+    viewers: stream.viewers,
+    archive,
+    ...overrides,
+  };
+}
+
+/** Base64-encode a JSON document — the inverse of `base64ToStreamDoc`. */
+function objectToBase64(value: unknown): string {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+/**
+ * qapp-core's delete convention: base64 of a 1-byte payload (`"D"`). QDN has no
+ * true delete, so the resource is replaced with a tombstone instead.
+ */
+const DELETE_TOMBSTONE_BASE64 = "RA==";
+
+/**
+ * Build a `StreamPublisher` on a `QortalBackend`.
+ *
+ * `options.name` overrides the host-injected `qortalName` — useful in tests, or
+ * when authentication comes from `qapp-core`'s `useAuth` rather than the global.
+ * Publishing without a name fails loudly: the doc's `publisher` field must be
+ * the authenticated Qortal Name.
+ */
+export function createStreamPublisher(
+  backend: QortalBackend,
+  options: { name?: string } = {},
+): StreamPublisher {
+  const requireName = (): string => {
+    const name = options.name ?? windowLike().qortalName;
+    if (!name) {
+      throw new Error(
+        "qlive: publishing requires an authenticated Qortal Name — pass " +
+          "{ name } or run inside a Qortal UI host that sets 'qortalName'.",
+      );
+    }
+    return name;
+  };
+
+  return {
+    publishStream: async (pub) => {
+      if (!pub.streamId.trim()) {
+        throw new Error("qlive: publishStream requires a streamId");
+      }
+      const name = requireName();
+      const identifier = qliveStreamIdentifier(pub.streamId);
+      const doc = streamPublicationToDoc(pub, name);
+      await backend.qortalRequest({
+        action: "PUBLISH_QDN_RESOURCE",
+        service: "JSON",
+        name,
+        identifier,
+        // qapp-core publishes JSON resources as base64 in `data64`.
+        data64: objectToBase64(doc),
+        // Metadata drives discovery sort/filter (SEARCH_QDN_RESOURCES).
+        title: doc.title,
+        description: doc.description,
+        category: doc.category,
+        tags: ["qlive", doc.category, doc.status],
+      });
+      return { name, identifier, service: "JSON", doc };
+    },
+
+    unpublishStream: async (streamId) => {
+      const name = requireName();
+      await backend.qortalRequest({
+        action: "PUBLISH_QDN_RESOURCE",
+        service: "JSON",
+        name,
+        identifier: qliveStreamIdentifier(streamId),
+        data64: DELETE_TOMBSTONE_BASE64,
+      });
+    },
+  };
+}
+
+/** Default publisher bound to the host `qortalRequest` and host Qortal Name. */
+export const qliveStreamPublisher: StreamPublisher = createStreamPublisher(
+  createQortalBackend(),
+);

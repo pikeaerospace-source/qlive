@@ -12,9 +12,11 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createQappApi,
   createQortalBackend,
+  createStreamPublisher,
   QLIVE_STREAM_PREFIX,
+  streamToPublication,
 } from "./qapp";
-import type { StreamStats } from "../types";
+import type { Stream, StreamStats } from "../types";
 
 const DOC = {
   version: 1,
@@ -321,5 +323,179 @@ describe("qapp adapter (QDN-backed Api)", () => {
     const api = createQappApi(backend);
     const [stream] = await api.listStreams();
     expect(stream.archive).toBeUndefined();
+  });
+});
+
+const PUBLICATION = {
+  streamId: "abc123",
+  title: "Speedrunning Hollow Knight",
+  description: "PB attempt",
+  category: "gaming",
+  status: "announced" as const,
+  fragmentDurationMs: 1000,
+  resolution: { width: 1920, height: 1080, fps: 60 },
+  bitrate: { video: 6_000_000, audio: 128_000 },
+  startedAt: 1_700_000_000_000,
+};
+
+type RecordedCall = { action: string; [k: string]: unknown };
+
+const recordingBackend = (calls: RecordedCall[]) => ({
+  qortalRequest: (opts: RecordedCall) => {
+    calls.push(opts);
+    return Promise.resolve({ signature: "sig" });
+  },
+});
+
+describe("qapp stream publisher (QDN write path)", () => {
+  it("publishes the qlive-stream doc under the authenticated name", async () => {
+    const calls: RecordedCall[] = [];
+    const publisher = createStreamPublisher(recordingBackend(calls), {
+      name: "alice",
+    });
+
+    const result = await publisher.publishStream(PUBLICATION);
+
+    expect(result.identifier).toBe(`${QLIVE_STREAM_PREFIX}abc123`);
+    expect(result.service).toBe("JSON");
+    expect(result.doc).toEqual(
+      expect.objectContaining({
+        type: "qlive-stream",
+        version: 1,
+        publisher: "alice",
+        title: PUBLICATION.title,
+        status: "announced",
+        startedAt: PUBLICATION.startedAt,
+        viewers: 0,
+      }),
+    );
+
+    expect(calls).toHaveLength(1);
+    const call = calls[0];
+    expect(call.action).toBe("PUBLISH_QDN_RESOURCE");
+    expect(call.service).toBe("JSON");
+    expect(call.name).toBe("alice");
+    expect(call.identifier).toBe(`${QLIVE_STREAM_PREFIX}abc123`);
+    expect(call.title).toBe(PUBLICATION.title);
+    expect(call.category).toBe("gaming");
+    expect(call.tags).toEqual(["qlive", "gaming", "announced"]);
+    // The base64 payload decodes back to the document that was published.
+    expect(JSON.parse(atob(String(call.data64)))).toEqual(result.doc);
+  });
+
+  it("uses the host-injected Qortal Name when no name is given", async () => {
+    setGlobal("qortalName", "carol");
+    try {
+      const publisher = createStreamPublisher(recordingBackend([]));
+      const result = await publisher.publishStream(PUBLICATION);
+      expect(result.name).toBe("carol");
+      expect(result.doc.publisher).toBe("carol");
+    } finally {
+      unsetGlobal("qortalName");
+    }
+  });
+
+  it("fails loudly when no Qortal Name is available", async () => {
+    unsetGlobal("qortalName");
+    const publisher = createStreamPublisher(makeBackend({}));
+    await expect(publisher.publishStream(PUBLICATION)).rejects.toThrow(
+      /authenticated Qortal Name/,
+    );
+  });
+
+  it("requires a streamId", async () => {
+    const publisher = createStreamPublisher(makeBackend({}), { name: "alice" });
+    await expect(
+      publisher.publishStream({ ...PUBLICATION, streamId: "  " }),
+    ).rejects.toThrow(/requires a streamId/);
+  });
+
+  it("tombstones the stream doc on unpublish", async () => {
+    const calls: RecordedCall[] = [];
+    await createStreamPublisher(recordingBackend(calls), {
+      name: "alice",
+    }).unpublishStream("abc123");
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0].action).toBe("PUBLISH_QDN_RESOURCE");
+    expect(calls[0].identifier).toBe(`${QLIVE_STREAM_PREFIX}abc123`);
+    expect(calls[0].data64).toBe("RA==");
+  });
+
+  it("round-trips a published doc back into a Stream", async () => {
+    const published: string[] = [];
+    const backend = makeBackend({
+      PUBLISH_QDN_RESOURCE: (opts) => {
+        published.push(String(opts.data64));
+        return Promise.resolve({ signature: "sig" });
+      },
+      SEARCH_QDN_RESOURCES: () =>
+        Promise.resolve([
+          {
+            name: "alice",
+            identifier: `${QLIVE_STREAM_PREFIX}abc123`,
+            service: "JSON",
+            size: 40,
+            created: 1,
+          },
+        ]),
+      FETCH_QDN_RESOURCE: () => Promise.resolve(published[0]),
+    });
+
+    const { doc } = await createStreamPublisher(backend, {
+      name: "alice",
+    }).publishStream({
+      ...PUBLICATION,
+      status: "archived",
+      archive: { status: "archived", qdnResourceId: "qlive-archive-abc123" },
+    });
+
+    const [stream] = await createQappApi(backend).listStreams();
+
+    expect(doc.publisher).toBe("alice");
+    expect(stream).toEqual(
+      expect.objectContaining({
+        streamId: "abc123",
+        publisher: "alice",
+        title: PUBLICATION.title,
+        category: "gaming",
+        status: "archived",
+        resolution: PUBLICATION.resolution,
+        bitrate: PUBLICATION.bitrate,
+      }),
+    );
+    expect(stream.archive?.status).toBe("archived");
+    expect(stream.playbackUrl).toBe(
+      "/arbitrary/VIDEO/alice/qlive-archive-abc123",
+    );
+  });
+
+  it("derives a publication from an existing stream", () => {
+    const stream: Stream = {
+      streamId: "s1",
+      publisher: "alice",
+      title: "Test stream",
+      description: "",
+      category: "gaming",
+      startedAt: 10,
+      status: "live",
+      fragmentDurationMs: 1000,
+      resolution: { width: 1280, height: 720, fps: 30 },
+      bitrate: { video: 2_500_000, audio: 128_000 },
+      viewers: 7,
+      archive: { qdnResourceId: "res-1", status: "archived", durationMs: 1000 },
+    };
+
+    const pub = streamToPublication(stream, { status: "ended" });
+
+    expect(pub).toEqual(
+      expect.objectContaining({
+        streamId: "s1",
+        status: "ended",
+        viewers: 7,
+        startedAt: 10,
+        archive: { status: "archived", qdnResourceId: "res-1" },
+      }),
+    );
   });
 });
