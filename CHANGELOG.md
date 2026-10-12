@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Design
 
+- `docs/QDN-STORAGE-ECONOMICS.md` — resolves the QDN & Blockchain research
+  cluster from [TODO-RESEARCH.md](TODO-RESEARCH.md) with **offline-derived**
+  figures: QDN chunk geometry (GB/hour and chunk counts at 2.5/4.5/6 Mbps),
+  the measured `qlive-stream` doc size (≈ 0.8–1.1 KB, peer-list-dominated), the
+  pay-per-publish cost model, and the on-chain vs. off-chain split. Key finding:
+  `ArchivalPipeline` flushes at the **10 MB floor** (`max_chunk_bytes` is never
+  consulted), making archives ~5× chunkier than the 50 MB ceiling allows —
+  recommending a flush-toward-ceiling change (tracked as a follow-up). Qortal
+  network facts (publish fee, tx size, retention) are flagged **to verify**.
 - `docs/DESIGN-DECISIONS.md` — **decision register** consolidating the ten open
   design questions (previously spread across per-topic research docs and the
   TODO logs) with status (Decided / Proposed / Open), rationale, and evidence

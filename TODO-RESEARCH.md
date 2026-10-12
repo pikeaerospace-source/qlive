@@ -53,14 +53,14 @@ This document tracks research items that need investigation before or during imp
 ## QDN & Blockchain
 
 - [~] **QDN signaling frequency:** How often should swarm peer lists be refreshed on QDN without bloating the chain? → [docs/QDN-SIGNALING-FREQUENCY.md](docs/QDN-SIGNALING-FREQUENCY.md)
-- [ ] **QDN chunk sizing:** Validate 10MB–50MB chunk size for QDN storage
-- [ ] **Transaction costs:** Estimate QORT costs for stream registration and VOD archival
-- [ ] **Chain bloat:** Analyze the impact of stream metadata on blockchain size
+- [~] **QDN chunk sizing:** Validate 10MB–50MB chunk size for QDN storage → analysis + ceiling-flush recommendation in [docs/QDN-STORAGE-ECONOMICS.md](docs/QDN-STORAGE-ECONOMICS.md) §1 (empirical validation pending)
+- [~] **Transaction costs:** Estimate QORT costs for stream registration and VOD archival → pay-per-publish cost model in [docs/QDN-STORAGE-ECONOMICS.md](docs/QDN-STORAGE-ECONOMICS.md) §3 (per-publish fee to verify)
+- [x] **Chain bloat:** Analyze the impact of stream metadata on blockchain size → [docs/QDN-STORAGE-ECONOMICS.md](docs/QDN-STORAGE-ECONOMICS.md) §2 (bounded: < 1.2 KB doc, media off-chain)
 
 ### Research Notes
-- [ ] Document QDN storage limits and best practices
-- [ ] Document QDN publish transaction costs
-- [ ] Analyze QDN data retention policies
+- [~] Document QDN storage limits and best practices → [docs/QDN-STORAGE-ECONOMICS.md](docs/QDN-STORAGE-ECONOMICS.md) §4 (limits/retention to verify)
+- [~] Document QDN publish transaction costs → [docs/QDN-STORAGE-ECONOMICS.md](docs/QDN-STORAGE-ECONOMICS.md) §3 (model documented; fee to verify)
+- [~] Analyze QDN data retention policies → [docs/QDN-STORAGE-ECONOMICS.md](docs/QDN-STORAGE-ECONOMICS.md) §4
 
 ---
 

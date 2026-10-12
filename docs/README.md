@@ -36,6 +36,7 @@ Open research topics from [TODO.md](../TODO.md) → Phase 0 → Research Questio
 | [`NAT-TRAVERSAL.md`](NAT-TRAVERSAL.md) | NAT traversal strategy (STUN/TURN, hole punching, Reticulum) |
 | [`RETICULUM-INTEGRATION.md`](RETICULUM-INTEGRATION.md) | Reticulum routing for peer discovery; latency vs. WebRTC |
 | [`QDN-SIGNALING-FREQUENCY.md`](QDN-SIGNALING-FREQUENCY.md) | Swarm peer-list refresh cadence without chain bloat |
+| [`QDN-STORAGE-ECONOMICS.md`](QDN-STORAGE-ECONOMICS.md) | QDN chunk sizing, chain footprint, transaction costs, storage limits/retention |
 | [`QORTAL-CORE-API.md`](QORTAL-CORE-API.md) | Reusable Qortal Core endpoints (QDN, names, peers) |
 | [`SWARM-SIMULATION.md`](SWARM-SIMULATION.md) | Discrete-event swarm simulation — fanout, mesh, retransmit, buffer, churn |
 | [`THREAT-MODEL.md`](THREAT-MODEL.md) | Threat model (STRIDE + attack vectors) for live streaming |
