@@ -377,16 +377,22 @@ When the stream ends:
 
 ## 11. Open Questions
 
-This spec is a draft. Open questions that need resolution:
+This spec is a draft. The open questions that shaped it — and their current
+status (Decided / Proposed / Open) with rationale and evidence — are tracked in
+**[DESIGN-DECISIONS.md](DESIGN-DECISIONS.md)**. In brief:
 
-1. **Transport:** WebRTC vs. Reticulum vs. both?
-2. **NAT traversal:** STUN/TURN, hole punching, or Reticulum transport?
-3. **Adaptive bitrate:** Multi-bitrate ladders in v1?
-4. **Archive ownership:** Broadcaster-only or any node with full history?
-5. **Encryption model:** Per-stream symmetric vs. per-viewer asymmetric?
-6. **Latency target:** Sub-1s (WebRTC-style) vs. 2–5s (low-latency HLS)?
+| # | Question | Status |
+| --- | --- | --- |
+| 1 | Transport: WebRTC vs. Reticulum vs. both? | Decided — WebRTC data plane, Reticulum control plane |
+| 2 | Encryption: per-stream symmetric vs. per-viewer asymmetric? | Decided — per-stream symmetric + hybrid envelopes |
+| 3 | Adaptive bitrate: multi-bitrate ladder in v1? | Decided — rendition ladder + adaptive controller |
+| 4 | Archive ownership: broadcaster-only or any node? | Decided — any node with full history MAY commit |
+| 5 | Stream persistence on broadcaster failure? | Proposed — no swarm takeover in v1 |
+| 6 | Latency target: sub-1 s vs. 2–5 s? | Proposed — ~2–3 s baseline, opt-in low-latency |
 
-See [TODO.md](../TODO.md) → **Open Design Questions** for the full list.
+See [DESIGN-DECISIONS.md](DESIGN-DECISIONS.md) for the full register (including
+the remaining open questions) and [TODO.md](../TODO.md) → **Open Design
+Questions**.
 
 ---
 

@@ -11,6 +11,7 @@ This directory will contain the formal protocol specification, design documents,
 | `protocol.md` | Draft | Formal protocol specification (chunk format, signaling schema, swarm protocol) |
 | `monetization.md` | Draft | QORT token economy, monetization models, and incentive design |
 | `architecture.md` | Complete | Detailed architecture and component design |
+| `DESIGN-DECISIONS.md` | Living | Decision register — the open design questions with status (Decided/Proposed/Open), rationale, and evidence |
 | `signaling-schema.md` | Complete | QDN signaling schema (stream metadata, peer lists, encryption keys) |
 | `chunk-format.md` | Complete | CMAF/fMP4 ephemeral chunk format specification |
 | `swarm-protocol.md` | Complete | Tree + mesh hybrid swarm membership and fallback logic |

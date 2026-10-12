@@ -98,10 +98,10 @@ This document tracks research items that need investigation before or during imp
 
 ## UX Research
 
-- [ ] **Latency target:** What's the acceptable end-to-end latency? Sub-1s (WebRTC-style) vs. 2–5s (low-latency HLS)? This drives the entire architecture.
-- [ ] **Mobile support:** Should v1 target desktop browsers only, or also mobile (iOS Safari has WebRTC/CMAF constraints)?
-- [ ] **Streamer onboarding:** What's the minimum setup for new streamers?
-- [ ] **Viewer experience:** What features matter most to viewers?
+- [~] **Latency target:** What's the acceptable end-to-end latency? Sub-1s (WebRTC-style) vs. 2–5s (low-latency HLS)? This drives the entire architecture. → proposed (~2–3 s baseline + opt-in low-latency) in [docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md) §9
+- [~] **Mobile support:** Should v1 target desktop browsers only, or also mobile (iOS Safari has WebRTC/CMAF constraints)? → desktop-first recommendation in [docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md) §10
+- [~] **Streamer onboarding:** What's the minimum setup for new streamers? → proposed (Qortal Name + FFmpeg + one action) in [docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md) §11
+- [~] **Viewer experience:** What features matter most to viewers? → prioritised list in [docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md) §11
 
 ### User Studies
 - [ ] Interview potential streamers
@@ -113,18 +113,19 @@ This document tracks research items that need investigation before or during imp
 
 ## Open Design Questions
 
-These are unresolved questions that need discussion/decision:
+Consolidated — with status, rationale, and evidence — in
+[docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md):
 
-1. **Transport layer:** WebRTC vs. Reticulum vs. both?
-2. **Encryption:** Should streams be public (unencrypted, signed only) or private (encrypted, key-gated)? Support both?
-3. **Adaptive bitrate:** Should QLive support multi-bitrate ladders (like HLS) or single-bitrate for v1?
-4. **Archive ownership:** Who commits the VOD archive — the broadcaster only, or any node that has the full stream?
-5. **Proof-of-relay economics:** Should relay rewards be minting-weight-based, reputation-based, or purely social?
-6. **QDN signaling cadence:** How often to refresh swarm peer lists on QDN?
-7. **Stream persistence:** What happens if the broadcaster's node dies mid-stream?
-8. **Multi-streamer support:** Can multiple broadcasters stream simultaneously on the same Qortal Name?
-9. **Latency target:** Sub-1s vs. 2–5s?
-10. **Mobile support:** Desktop only or also mobile?
+1. **Transport layer:** WebRTC vs. Reticulum vs. both? → **Decided** (§1: WebRTC data / Reticulum control)
+2. **Encryption:** public vs. private, support both? → **Decided** (§2: both; per-stream AES-256-GCM)
+3. **Adaptive bitrate:** multi-bitrate ladder in v1? → **Decided** (§3: rendition ladder + controller)
+4. **Archive ownership:** broadcaster only, or any node with full history? → **Decided** (§4: any node MAY, partial marked)
+5. **Proof-of-relay economics:** minting / reputation / social? → **Decided** (§5: two-tier + off-chain reputation)
+6. **QDN signaling cadence:** peer-list refresh frequency? → **Decided** (§6: delta-triggered, 30–60 s cap)
+7. **Stream persistence:** broadcaster node dies mid-stream? → **Proposed** (§7: no takeover in v1)
+8. **Multi-streamer support:** several broadcasters on one Qortal Name? → **Proposed** (§8: allowed; one primary)
+9. **Latency target:** sub-1s vs. 2–5s? → **Proposed** (§9: ~2–3 s baseline, opt-in low-latency)
+10. **Mobile support:** desktop only, or also mobile? → **Open** (§10: desktop-first)
 
 ---
 

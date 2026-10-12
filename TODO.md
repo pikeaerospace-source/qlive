@@ -144,18 +144,18 @@ External dependency areas have their own dedicated TODO documents:
 
 ## Open Design Questions
 
-These are unresolved questions that need discussion/decision:
+These are consolidated — with status, rationale, and evidence — in
+[docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md). Summary:
 
-1. **Transport layer:** WebRTC vs. Reticulum vs. both? WebRTC is battle-tested for media; Reticulum is Qortal-native but less proven for high-bandwidth video.
-2. **Encryption:** Should streams be public (unencrypted, signed only) or private (encrypted, key-gated)? Support both?
-3. **Adaptive bitrate:** Should QLive support multi-bitrate ladders (like HLS) or single-bitrate for v1? Multi-bitrate adds complexity but improves UX on poor connections.
-4. **Archive ownership:** Who commits the VOD archive — the broadcaster only, or any node that has the full stream? (Fault tolerance vs. spam risk.)
-5. **Proof-of-relay economics:** Should relay rewards be minting-weight-based, reputation-based, or purely social (tit-for-tat)? What prevents gaming?
-6. **QDN signaling cadence:** How often to refresh swarm peer lists on QDN? Too frequent = chain bloat; too infrequent = stale peer lists.
-7. **Stream persistence:** What happens if the broadcaster's node dies mid-stream? Graceful "stream ended" vs. swarm takeover?
-8. **Multi-streamer support:** Can multiple broadcasters stream simultaneously on the same Qortal Name? (e.g., multi-camera events.)
-9. **Latency target:** What's the acceptable end-to-end latency? Sub-1s (WebRTC-style) vs. 2–5s (low-latency HLS)? This drives the entire architecture.
-10. **Mobile support:** Should v1 target desktop browsers only, or also mobile (iOS Safari has WebRTC/CMAF constraints)?
+- **Decided** (in the spec and/or code): transport (§1), encryption (§2),
+  adaptive bitrate (§3), archive ownership (§4), proof-of-relay economics (§5),
+  QDN signaling cadence (§6).
+- **Proposed** (recommendation, pending confirmation): stream persistence (§7),
+  multi-streamer support (§8), latency target (§9).
+- **Open:** mobile support (§10); streamer/viewer user studies.
+
+Confirm a **Proposed** item to mark it Decided. The register's Follow-ups table
+lists what each open/proposed item needs.
 
 ---
 
@@ -201,6 +201,7 @@ These are unresolved questions that need discussion/decision:
 | 2026-08-14 | Two-tier incentives (tit-for-tat + proof-of-relay) | Tit-for-tat deters viewers; only proof-of-relay rewards relays economically |
 | 2026-08-14 | Per-stream AES-256-GCM encryption implemented | Matches the encryption model; enables private streams |
 | 2026-08-26 | Add `qapp-core` as a vendored git submodule (`qapp-core/`) | Reuse Qortal's tested React foundation (auth, QDN CRUD, player, state) and expose `qortalRequest` for real Qortal integration. Tracks in [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md) |
+| 2026-10-12 | Consolidate the open design questions into [docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md) | The 10 open questions were spread across per-topic research docs and this log, with several already decided. The register states each question's status (Decided/Proposed/Open), rationale, and evidence, and lists follow-ups. Open Design Questions here now point to it |
 
 ---
 

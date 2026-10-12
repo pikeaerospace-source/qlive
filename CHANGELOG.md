@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Design
 
+- `docs/DESIGN-DECISIONS.md` — **decision register** consolidating the ten open
+  design questions (previously spread across per-topic research docs and the
+  TODO logs) with status (Decided / Proposed / Open), rationale, and evidence
+  links, plus the UX-research items and a Follow-ups table. Six are recorded as
+  **Decided** (transport, encryption, adaptive bitrate, archive ownership,
+  proof-of-relay economics, QDN signaling cadence) by pointing at the existing
+  specs/code; three are **Proposed** (stream persistence, multi-streamer,
+  latency target) and one **Open** (mobile). `TODO.md`, `TODO-RESEARCH.md`,
+  `docs/protocol.md` §11, and `docs/README.md` now point at it.
 - `docs/MINTING-INTEGRATION.md` — explore proof-of-relay ↔ Qortal minting
   weight / node reputation (completes TODO.md Phase 4 + TODO-QORTAL-CORE
   Minting). Phased recommendation: off-chain relay reputation tracker now
