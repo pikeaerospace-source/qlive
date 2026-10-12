@@ -84,6 +84,17 @@ describe("DashboardPage signaling", () => {
     expect(second[0].startedAt).toBe(first[0].startedAt);
   });
 
+  it("shows an archiving indicator once the broadcast stops", async () => {
+    render(<DashboardPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Start broadcast" }));
+    await screen.findByText("Metadata published");
+    expect(screen.queryByText("Archiving…")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Stop broadcast" }));
+
+    expect(await screen.findByText("Archiving…")).toBeInTheDocument();
+  });
+
   it("starts a new stream id for the next broadcast", async () => {
     render(<DashboardPage />);
     fireEvent.click(screen.getByRole("button", { name: "Start broadcast" }));

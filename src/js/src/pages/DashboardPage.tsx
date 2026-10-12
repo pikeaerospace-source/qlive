@@ -79,12 +79,34 @@ export default function DashboardPage() {
     }
   }
 
+  // The VOD engine picks up archiving once the `ended` doc lands on QDN
+  // (docs/vod-pipeline.md); the dashboard has no read-back of that progress
+  // yet, so it can only show that archiving has started, not that it's done.
+  const archiving =
+    !live &&
+    signaling.state === "published" &&
+    signaling.result.doc.status === "ended";
+
   return (
     <>
       <h1 className="page-title">Broadcaster Dashboard</h1>
       <p className="page-subtitle">
         Manage your live stream and monitor its health.
       </p>
+
+      {archiving && (
+        <section
+          className="notice notice--archiving"
+          aria-live="polite"
+          style={{ maxWidth: 560 }}
+        >
+          <span className="badge badge--archived">Archiving…</span>
+          <span className="muted">
+            Stream ended — the VOD engine is finalizing the replay archive on
+            QDN.
+          </span>
+        </section>
+      )}
 
       <div className="card" style={{ maxWidth: 560, marginBottom: 20 }}>
         <div className="field">
@@ -179,7 +201,10 @@ export default function DashboardPage() {
       )}
 
       <div className="stats-row">
-        <Stat label="Status" value={live ? "Live" : "Idle"} />
+        <Stat
+          label="Status"
+          value={live ? "Live" : archiving ? "Archiving" : "Idle"}
+        />
         <Stat label="Stream" value={streamId ?? "—"} />
         <Stat label="Viewers" value={live ? 128 : 0} />
         <Stat label="Bandwidth" value={live ? "4.5 Mbps" : "—"} />

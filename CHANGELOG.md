@@ -33,6 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **archive status indicator** on the broadcaster dashboard — after
+  **Stop broadcast** publishes the `ended` doc, the dashboard shows an
+  `Archiving…` notice (`.notice--archiving`) and the **Status** stat reads
+  `Archiving` instead of `Idle`, reflecting that the VOD engine has picked the
+  stream up (docs/vod-pipeline.md). The dashboard has no read-back of archive
+  *completion* yet, so it can only show that archiving started, not that it
+  finished. Tests: `DashboardPage.test.tsx` (1 new —
+  `shows an archiving indicator once the broadcast stops`) — suite
+  **69 passing** (was 68)
 - Web UI: **player error recovery** — `Player` now tracks a `PlaybackState`
   (`connecting` / `playing` / `recovering` / `interrupted` / `unsupported`) and
   survives stream drops: fatal hls.js **network** errors resume loading twice
