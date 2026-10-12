@@ -9,6 +9,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { clearFollows } from "../data/follows";
 import type { Stream, Streamer } from "../types";
 import ProfilePage from "./ProfilePage";
 
@@ -57,6 +58,7 @@ function renderAt(name: string) {
 
 describe("ProfilePage", () => {
   beforeEach(() => {
+    clearFollows();
     mocks.getStreamer.mockReset();
     mocks.getStreamerStreams.mockReset();
     mocks.getStreamer.mockResolvedValue(streamer);
@@ -72,6 +74,36 @@ describe("ProfilePage", () => {
     expect(screen.getByText("Building things on Qortal.")).toBeInTheDocument();
     expect(screen.getByText("Verified")).toBeInTheDocument();
     expect(await screen.findByText("Live stream")).toBeInTheDocument();
+  });
+
+  it("toggles the follow state for the streamer", async () => {
+    renderAt("alice");
+    await screen.findByRole("heading", { name: /alice/ });
+
+    const follow = screen.getByRole("button", { name: "Follow" });
+    expect(follow).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(follow);
+    const following = screen.getByRole("button", { name: "Following" });
+    expect(following).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(following);
+    expect(screen.getByRole("button", { name: "Follow" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("remembers a follow across mounts", async () => {
+    renderAt("alice");
+    await screen.findByRole("heading", { name: /alice/ });
+    fireEvent.click(screen.getByRole("button", { name: "Follow" }));
+
+    // A fresh mount (e.g. navigation) reflects the persisted follow.
+    renderAt("alice");
+    expect(
+      await screen.findByRole("button", { name: "Following" }),
+    ).toBeInTheDocument();
   });
 
   it("shows an empty state when the streamer has no streams", async () => {

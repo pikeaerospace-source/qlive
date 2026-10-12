@@ -73,10 +73,10 @@ The QLive web UI provides:
 - [x] Sort and filter options
 
 ### Discovery Features
-- [ ] Featured streams section
-- [ ] Trending streams (by viewer count)
+- [x] Featured streams section — curated `Stream.featured` row (disjoint from Trending)
+- [x] Trending streams (by viewer count) — top live streams row, cap 3, excludes featured
 - [x] Recently ended streams (with replay links)
-- [ ] Followed streamers section
+- [x] Followed streamers section — "Following" row driven by the offline follow store (`src/js/src/data/follows.ts`)
 
 ---
 
@@ -86,7 +86,7 @@ The QLive web UI provides:
 - [x] Show active streams
 - [x] Show past streams (VOD)
 - [x] Show streamer bio and stats
-- [ ] Follow/unfollow button
+- [x] Follow/unfollow button — offline `localStorage`-backed follow store (`follows.ts`), `aria-pressed` toggle
 - [ ] Notification preferences
 
 ---

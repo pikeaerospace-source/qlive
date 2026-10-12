@@ -50,6 +50,7 @@ export const mockStreams: Stream[] = [
     resolution: { width: 1280, height: 720, fps: 30 },
     bitrate: { video: 2_500_000, audio: 128_000 },
     viewers: 89,
+    featured: true,
   },
   {
     streamId: "112233445566",
@@ -63,6 +64,7 @@ export const mockStreams: Stream[] = [
     resolution: { width: 1920, height: 1080, fps: 30 },
     bitrate: { video: 4_500_000, audio: 192_000 },
     viewers: 540,
+    featured: true,
   },
   {
     streamId: "998877665544",

@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useParams } from "react-router-dom";
 import Skeleton from "../components/Skeleton";
 import Stat from "../components/Stat";
 import StreamCard from "../components/StreamCard";
 import { selectApi } from "../data/api";
+import { listFollowing, subscribe, toggleFollow } from "../data/follows";
 import type { Stream, Streamer } from "../types";
 
 export default function ProfilePage() {
@@ -13,6 +14,11 @@ export default function ProfilePage() {
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string>();
   const [reload, setReload] = useState(0);
+  const following = useSyncExternalStore(
+    subscribe,
+    listFollowing,
+    listFollowing,
+  );
 
   useEffect(() => {
     if (!name) return;
@@ -71,6 +77,8 @@ export default function ProfilePage() {
     );
   }
 
+  const followsStreamer = name !== undefined && following.includes(name);
+
   return (
     <>
       <h1 className="page-title">
@@ -82,6 +90,19 @@ export default function ProfilePage() {
         )}
       </h1>
       <p className="page-subtitle">{streamer.bio}</p>
+
+      <div style={{ marginBottom: 20 }}>
+        <button
+          type="button"
+          className={followsStreamer ? "btn btn--ghost" : "btn"}
+          aria-pressed={followsStreamer}
+          onClick={() => {
+            if (name) toggleFollow(name);
+          }}
+        >
+          {followsStreamer ? "Following" : "Follow"}
+        </button>
+      </div>
 
       <div className="stats-row" style={{ marginBottom: 20 }}>
         <Stat label="Followers" value={streamer.followers.toLocaleString()} />

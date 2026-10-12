@@ -62,6 +62,8 @@ export interface Stream {
   /** Current concurrent viewers (derived from swarm). */
   viewers: number;
   thumbnail?: string;
+  /** Curated by the discovery layer for the Featured row (not broadcaster-set). */
+  featured?: boolean;
   /** Optional HLS/CMAF playback URL. Absent in offline/mock mode. */
   playbackUrl?: string;
   /** Archive metadata once the VOD engine has committed the stream. */

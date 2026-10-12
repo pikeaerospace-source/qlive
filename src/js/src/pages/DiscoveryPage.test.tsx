@@ -5,10 +5,11 @@
  * offline and assert the live grid plus the "Recently ended" replay section.
  */
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { clearFollows, toggleFollow } from "../data/follows";
 import type { Stream } from "../types";
 import DiscoveryPage from "./DiscoveryPage";
 
@@ -55,6 +56,14 @@ const archiving = stream({
   viewers: 0,
 });
 
+const featured = stream({
+  streamId: "feat1",
+  title: "Featured stream",
+  publisher: "carol",
+  viewers: 900,
+  featured: true,
+});
+
 function renderPage() {
   return render(
     <MemoryRouter>
@@ -65,13 +74,20 @@ function renderPage() {
 
 describe("DiscoveryPage", () => {
   beforeEach(() => {
+    clearFollows();
     mocks.listStreams.mockReset();
     mocks.listStreams.mockResolvedValue([stream(), replayable, archiving]);
   });
 
   it("lists live streams in the main grid", async () => {
     renderPage();
-    expect(await screen.findByText("Live stream")).toBeInTheDocument();
+    // The live stream also shows in the Trending row, so it appears at least once.
+    expect((await screen.findAllByText("Live stream")).length).toBeGreaterThan(
+      0,
+    );
+    expect(
+      screen.getByRole("heading", { name: "Live & upcoming" }),
+    ).toBeInTheDocument();
 
     const recentHeading = screen.getByRole("heading", {
       name: "Recently ended",
@@ -97,15 +113,59 @@ describe("DiscoveryPage", () => {
 
   it("filters both sections by the search query", async () => {
     renderPage();
-    expect(await screen.findByText("Live stream")).toBeInTheDocument();
+    expect((await screen.findAllByText("Live stream")).length).toBeGreaterThan(
+      0,
+    );
 
     fireEvent.change(screen.getByLabelText("Search streams"), {
       target: { value: "archived talk" },
     });
 
     expect(screen.getByText("Archived talk")).toBeInTheDocument();
-    expect(screen.queryByText("Live stream")).not.toBeInTheDocument();
+    expect(screen.queryAllByText("Live stream")).toHaveLength(0);
     expect(screen.queryByText("Just ended")).not.toBeInTheDocument();
+  });
+
+  it("shows a Featured row for curated streams", async () => {
+    mocks.listStreams.mockResolvedValue([stream(), featured]);
+    renderPage();
+
+    await screen.findAllByText("Featured stream");
+    const section = screen.getByRole("heading", { name: "Featured" })
+      .parentElement as HTMLElement;
+    expect(within(section).getByText("Featured stream")).toBeInTheDocument();
+  });
+
+  it("shows a Trending row excluding featured streams", async () => {
+    mocks.listStreams.mockResolvedValue([stream(), featured]);
+    renderPage();
+
+    await screen.findByRole("heading", { name: "Trending now" });
+    const trending = screen.getByRole("heading", { name: "Trending now" })
+      .parentElement as HTMLElement;
+    expect(within(trending).getByText("Live stream")).toBeInTheDocument();
+    // The featured stream is highlighted separately, not in Trending.
+    expect(
+      within(trending).queryByText("Featured stream"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a Following row once the viewer follows a streamer", async () => {
+    toggleFollow("alice");
+    renderPage();
+
+    expect(
+      await screen.findByRole("heading", { name: "Following" }),
+    ).toBeInTheDocument();
+  });
+
+  it("omits the Following row when nothing is followed", async () => {
+    renderPage();
+    await screen.findAllByText("Live stream");
+
+    expect(
+      screen.queryByRole("heading", { name: "Following" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows a loading skeleton while fetching", () => {
@@ -130,6 +190,8 @@ describe("DiscoveryPage", () => {
     mocks.listStreams.mockResolvedValue([stream()]);
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
-    expect(await screen.findByText("Live stream")).toBeInTheDocument();
+    expect((await screen.findAllByText("Live stream")).length).toBeGreaterThan(
+      0,
+    );
   });
 });

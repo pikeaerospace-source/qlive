@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Skeleton from "../components/Skeleton";
 import Stat from "../components/Stat";
 import StreamCard from "../components/StreamCard";
 import { selectApi } from "../data/api";
 import { replaySortKey, replayState } from "../data/archive";
+import { listFollowing, subscribe } from "../data/follows";
 import type { Stream } from "../types";
 
 const CATEGORIES = ["all", "gaming", "tech", "music"];
+/** Max cards in the Trending (by viewers) row. */
+const TRENDING_LIMIT = 3;
 
 type SortMode = "live" | "viewers" | "newest";
 
@@ -26,6 +29,29 @@ function compareStreams(a: Stream, b: Stream, sort: SortMode): number {
   return b.viewers - a.viewers;
 }
 
+/** An editorial row of stream cards (Featured / Trending / Following). */
+function StreamSection({
+  title,
+  subtitle,
+  streams,
+}: {
+  title: string;
+  subtitle: string;
+  streams: Stream[];
+}) {
+  return (
+    <section style={{ marginBottom: 32 }}>
+      <h2 className="section-title">{title}</h2>
+      <p className="page-subtitle">{subtitle}</p>
+      <div className="grid">
+        {streams.map((s) => (
+          <StreamCard key={s.streamId} stream={s} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function DiscoveryPage() {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +60,11 @@ export default function DiscoveryPage() {
   const [category, setCategory] = useState("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortMode>("live");
+  const following = useSyncExternalStore(
+    subscribe,
+    listFollowing,
+    listFollowing,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +114,29 @@ export default function DiscoveryPage() {
   const visibleReplays = replays
     .filter(matches)
     .sort((a, b) => replaySortKey(b) - replaySortKey(a));
+
+  // Editorial rows (featured / trending / following), all honouring the
+  // category + search filters above. `featured` and `trending` are disjoint so
+  // a promoted stream appears once as a highlight; Trending is capped.
+  const discoverable = streams.filter(
+    (s) => s.status === "live" || s.status === "announced",
+  );
+  const featured = discoverable
+    .filter((s) => s.featured)
+    .filter(matches)
+    .sort((a, b) => b.viewers - a.viewers);
+  const trending = discoverable
+    .filter((s) => s.status === "live" && !s.featured)
+    .filter(matches)
+    .sort((a, b) => b.viewers - a.viewers)
+    .slice(0, TRENDING_LIMIT);
+  const followingStreams =
+    following.length > 0
+      ? discoverable
+          .filter((s) => following.includes(s.publisher))
+          .filter(matches)
+          .sort((a, b) => b.viewers - a.viewers)
+      : [];
 
   if (error) {
     return (
@@ -181,26 +235,50 @@ export default function DiscoveryPage() {
         <div className="empty">No streams match your search.</div>
       ) : (
         <>
-          {visible.length > 0 && (
-            <div className="grid">
-              {visible.map((s) => (
-                <StreamCard key={s.streamId} stream={s} />
-              ))}
-            </div>
+          {featured.length > 0 && (
+            <StreamSection
+              title="Featured"
+              subtitle="Hand-picked live and upcoming streams."
+              streams={featured}
+            />
           )}
 
-          {visibleReplays.length > 0 && (
-            <section style={{ marginTop: 32 }}>
-              <h2 className="section-title">Recently ended</h2>
+          {followingStreams.length > 0 && (
+            <StreamSection
+              title="Following"
+              subtitle="Live and upcoming from the streamers you follow."
+              streams={followingStreams}
+            />
+          )}
+
+          {trending.length > 0 && (
+            <StreamSection
+              title="Trending now"
+              subtitle="Live streams with the most viewers."
+              streams={trending}
+            />
+          )}
+
+          {visible.length > 0 && (
+            <section style={{ marginBottom: 32 }}>
+              <h2 className="section-title">Live &amp; upcoming</h2>
               <p className="page-subtitle">
-                Replays archived from finished live streams.
+                Everything that's live now or scheduled.
               </p>
               <div className="grid">
-                {visibleReplays.map((s) => (
+                {visible.map((s) => (
                   <StreamCard key={s.streamId} stream={s} />
                 ))}
               </div>
             </section>
+          )}
+
+          {visibleReplays.length > 0 && (
+            <StreamSection
+              title="Recently ended"
+              subtitle="Replays archived from finished live streams."
+              streams={visibleReplays}
+            />
           )}
         </>
       )}

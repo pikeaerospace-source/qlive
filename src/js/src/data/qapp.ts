@@ -103,6 +103,8 @@ export interface QLiveStreamDoc {
   bitrate: Bitrate;
   renditions?: number[];
   views?: number;
+  /** Curated discovery flag (set by the platform, not the broadcaster). */
+  featured?: boolean;
   encryption?: { enabled: boolean; keyId?: string };
   swarm?: { primaryTree: unknown[]; meshPeers: string[] };
   archive?: QLiveArchiveRef;
@@ -203,6 +205,7 @@ function toStream(
     thumbnail: thumbnailFromDoc(streamId, doc),
     playbackUrl: playbackUrlFromDoc(doc),
     archive: archiveFromDoc(doc),
+    featured: doc.featured === true,
   };
 }
 

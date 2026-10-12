@@ -33,6 +33,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **followed streamers + discovery rows** — a new offline
+  `localStorage`-backed follow store (`src/js/src/data/follows.ts`, with
+  `isFollowing`/`toggleFollow`/`listFollowing`/`subscribe`) drives a
+  **Follow/Following** toggle on the streamer profile (persists across mounts)
+  and a **"Following"** row on Discover. Discover also gains a curated
+  **"Featured"** row (new optional `Stream.featured`, threaded through the QDN
+  doc) and a **"Trending now"** row (top live streams by viewers, cap 3,
+  disjoint from Featured); the live grid is now labelled "Live & upcoming", and
+  the section markup is factored into a shared `StreamSection`. Tests:
+  `follows.test.ts` (new, 6), `DiscoveryPage.test.tsx` (+4),
+  `ProfilePage.test.tsx` (+2) — suite **105 passing** (was 93)
 - Web UI: **player depth — picture-in-picture, low-latency toggle, buffer
   health** — the `Player` control bar gains a **PiP** button (feature-detected
   via `document.pictureInPictureEnabled`; disabled where unsupported) with an `I`
