@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Stat from "../components/Stat";
+import { selectApi } from "../data/api";
 import { selectPublisher } from "../data/publisher";
 import type { StreamPublishResult } from "../data/qapp";
 import type { StreamStatus } from "../types";
@@ -21,6 +22,8 @@ function newStreamId(): string {
 const RESOLUTION = { width: 1920, height: 1080, fps: 30 };
 const BITRATE = { video: 4_500_000, audio: 128_000 };
 const FRAGMENT_DURATION_MS = 1000;
+/** How often to re-read the stream doc while archiving (exported for tests). */
+export const ARCHIVE_POLL_MS = 5000;
 
 /** Result of the last signaling write (QDN, or the offline registry). */
 type Signaling =
@@ -36,6 +39,8 @@ export default function DashboardPage() {
   const [streamId, setStreamId] = useState<string>();
   const [startedAt, setStartedAt] = useState<number>();
   const [signaling, setSignaling] = useState<Signaling>({ state: "idle" });
+  /** True once the stream doc read-back reports the archive is complete. */
+  const [archiveDone, setArchiveDone] = useState(false);
 
   /** Publish (or re-publish) the stream's signaling document. */
   async function publish(id: string, status: StreamStatus, started: number) {
@@ -66,6 +71,7 @@ export default function DashboardPage() {
     setStreamId(id);
     setStartedAt(started);
     setLive(true);
+    setArchiveDone(false);
     // Lifecycle: announced → live. The dashboard goes straight to `live`; the
     // `announced` state is for scheduled streams.
     await publish(id, "live", started);
@@ -80,12 +86,30 @@ export default function DashboardPage() {
   }
 
   // The VOD engine picks up archiving once the `ended` doc lands on QDN
-  // (docs/vod-pipeline.md); the dashboard has no read-back of that progress
-  // yet, so it can only show that archiving has started, not that it's done.
+  // (docs/vod-pipeline.md). Poll the stream doc so the dashboard can tell when
+  // archiving has *finished* (doc status → `archived`), not just that it started.
   const archiving =
     !live &&
     signaling.state === "published" &&
     signaling.result.doc.status === "ended";
+
+  useEffect(() => {
+    if (!archiving || archiveDone || !streamId) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const doc = await selectApi().getStream(streamId);
+        if (!cancelled && doc?.status === "archived") setArchiveDone(true);
+      } catch {
+        // A failed read-back just keeps the "Archiving…" state; retry next tick.
+      }
+    };
+    const timer = setInterval(() => void poll(), ARCHIVE_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [archiving, archiveDone, streamId]);
 
   return (
     <>
@@ -94,7 +118,7 @@ export default function DashboardPage() {
         Manage your live stream and monitor its health.
       </p>
 
-      {archiving && (
+      {archiving && !archiveDone && (
         <section
           className="notice notice--archiving"
           aria-live="polite"
@@ -104,6 +128,19 @@ export default function DashboardPage() {
           <span className="muted">
             Stream ended — the VOD engine is finalizing the replay archive on
             QDN.
+          </span>
+        </section>
+      )}
+
+      {archiving && archiveDone && (
+        <section
+          className="notice notice--ready"
+          aria-live="polite"
+          style={{ maxWidth: 560 }}
+        >
+          <span className="badge badge--archived">Archived</span>
+          <span className="muted">
+            Replay archive published to QDN — available on the Discover page.
           </span>
         </section>
       )}
@@ -205,7 +242,15 @@ export default function DashboardPage() {
           <>
             <Stat
               label="Status"
-              value={live ? "Live" : archiving ? "Archiving" : "Idle"}
+              value={
+                live
+                  ? "Live"
+                  : archiving
+                    ? archiveDone
+                      ? "Archived"
+                      : "Archiving"
+                    : "Idle"
+              }
             />
             <Stat label="Stream" value={streamId ?? "—"} />
             <Stat label="Viewers" value={live ? 128 : 0} />

@@ -238,6 +238,52 @@ class TestArchivalPipeline:
         pipeline.qdn_chunks[1].data = b"\xff" * pipeline.qdn_chunks[1].size
         assert pipeline.verify_integrity() is False
 
+    def test_verify_integrity_tampered_first_chunk(self, stream_id):
+        # Tampering the *first* chunk is detected by the chain link to the next
+        # chunk (whose recorded previous_hash no longer matches).
+        pipeline = ArchivalPipeline(
+            stream_id=stream_id,
+            publisher="test-name",
+            title="Test Stream",
+            min_chunk_bytes=2048,
+        )
+        for seq in range(1, 7):
+            pipeline.add_chunk(make_chunk(stream_id, seq))
+
+        pipeline.qdn_chunks[0].data = b"\xff" * pipeline.qdn_chunks[0].size
+        assert pipeline.verify_integrity() is False
+
+    def test_flush_on_empty_buffer_is_noop(self, stream_id):
+        # _flush() guards an empty buffer. This guard is never reached via
+        # add_chunk/finalize, which only flush when the buffer is non-empty.
+        pipeline = ArchivalPipeline(
+            stream_id=stream_id,
+            publisher="test-name",
+            title="Test Stream",
+            min_chunk_bytes=2048,
+        )
+        assert pipeline.qdn_chunks == []
+        pipeline._flush()
+        assert pipeline.qdn_chunks == []
+        assert pipeline.stats.qdn_chunks_created == 0
+
+    def test_finalize_after_auto_flush(self, stream_id):
+        # finalize() with the buffer already emptied by an add_chunk auto-flush.
+        pipeline = ArchivalPipeline(
+            stream_id=stream_id,
+            publisher="test-name",
+            title="Test Stream",
+            min_chunk_bytes=2048,
+        )
+        for seq in range(1, 7):
+            pipeline.add_chunk(make_chunk(stream_id, seq))
+        assert pipeline.stats.current_buffer_size == 0  # 6 KB → 3 auto-flushes
+
+        manifest = pipeline.finalize()
+        assert manifest.fragment_count == 6
+        assert len(manifest.chunk_hashes) == 3
+        assert pipeline.verify_integrity() is True
+
     def test_stats(self, stream_id):
         pipeline = ArchivalPipeline(
             stream_id=stream_id,

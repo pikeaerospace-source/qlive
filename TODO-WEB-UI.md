@@ -30,7 +30,7 @@ The QLive web UI provides:
 - [ ] Live preview of the stream
 - [x] Start/stop broadcast controls
 - [x] Stream health dashboard (viewer count, bandwidth, buffer status)
-- [x] Archive status indicator (dashboard shows "Archiving…" once the ended doc is published; no read-back of completion yet)
+- [x] Archive status indicator — dashboard shows "Archiving…" once the ended doc is published, then "Archived" once the stream-doc read-back reports the archive is complete (polls `getStream` while archiving)
 - [~] Error and warning notifications (publish/signaling failures surfaced; stream/encoder warnings pending)
 
 ### Dashboard Features

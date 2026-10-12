@@ -33,6 +33,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **archive completion read-back** on the broadcaster dashboard — while
+  a stream is archiving, the dashboard polls `selectApi().getStream()` (every 5 s,
+  `ARCHIVE_POLL_MS`) and, once the stream doc reports `status: archived`, replaces
+  the "Archiving…" notice with an "Archived" notice and switches the **Status**
+  stat to `Archived`. Closes the previous caveat that the dashboard could only
+  show that archiving had *started*. Test: `DashboardPage.test.tsx` (+1) — suite
+  **86 passing** (was 85)
+- `tests/python/test_archival.py` — added integrity cases: tampering the
+  **first** QDN chunk (caught by the chain link into the next chunk) and the
+  empty-buffer `_flush()` guard (never reached via the public API, so exercised
+  directly). `qlive/archival.py` now **99%** covered (was 98%); the one
+  remaining branch (`verify_integrity`'s recomputed-hash comparison) is a
+  defensive tautology — `QDNDataChunk.hash` is derived from `data`, so it always
+  equals the recomputation once the chain link matches.
 - Docs + tests: **Q-Tube manifest mapping** — `docs/qtube-integration.md`
   documents QLive's emitted `QTubeManifest` schema and a proposed
   field-by-field mapping to Q-Tube's expected format (required-vs-optional
