@@ -33,6 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **player depth — picture-in-picture, low-latency toggle, buffer
+  health** — the `Player` control bar gains a **PiP** button (feature-detected
+  via `document.pictureInPictureEnabled`; disabled where unsupported) with an `I`
+  keyboard shortcut, a **low-latency** toggle (on by default for live, hidden for
+  replays; toggling rebuilds the hls.js pipeline since `lowLatencyMode` is a
+  constructor option), and a **buffer-health chip**
+  (`buffering`/`low`/`healthy`) driven by a new exported `bufferHealth()` helper
+  over the buffered-ahead window. Tests: `Player.test.tsx` (22, was 15) — suite
+  **93 passing** (was 86)
 - Web UI: **archive completion read-back** on the broadcaster dashboard — while
   a stream is archiving, the dashboard polls `selectApi().getStream()` (every 5 s,
   `ARCHIVE_POLL_MS`) and, once the stream doc reports `status: archived`, replaces

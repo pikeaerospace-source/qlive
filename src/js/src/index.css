@@ -299,7 +299,8 @@ button {
 }
 
 .player-controls__badge,
-.player-controls__quality {
+.player-controls__quality,
+.player-controls__buffer {
   font-size: 12px;
   color: var(--text);
   background: var(--bg-hover);
@@ -307,6 +308,27 @@ button {
   border-radius: 999px;
   padding: 2px 8px;
   white-space: nowrap;
+}
+
+.player-controls__buffer--buffering {
+  color: var(--warning);
+  border-color: var(--warning);
+}
+
+.player-controls__buffer--low {
+  color: var(--upcoming);
+  border-color: var(--upcoming);
+}
+
+.player-controls__buffer--healthy {
+  color: var(--success);
+  border-color: var(--success);
+}
+
+/* Active low-latency toggle mirrors the accent used for the live badge. */
+.player-controls__toggle[aria-pressed="true"] {
+  background: var(--accent);
+  color: #0a0d14;
 }
 
 /* ---------- Loading skeletons ---------- */

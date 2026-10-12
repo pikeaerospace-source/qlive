@@ -9,7 +9,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Stream } from "../types";
-import Player, { RETRY_BACKOFF_MS } from "./Player";
+import Player, { RETRY_BACKOFF_MS, bufferHealth } from "./Player";
 
 type Handler = (event: string, data: unknown) => void;
 type FatalData = { fatal: boolean; type: string };
@@ -307,5 +307,109 @@ describe("Player controls", () => {
 
     fireEvent.keyDown(input, { key: "ArrowUp" });
     expect(video().volume).toBeCloseTo(1); // untouched
+  });
+});
+
+describe("Player buffer health", () => {
+  it("classifies buffering / low / healthy from state and buffer", () => {
+    expect(bufferHealth("connecting", 5)).toBe("buffering");
+    expect(bufferHealth("playing", 0.2)).toBe("buffering");
+    expect(bufferHealth("playing", 1)).toBe("low");
+    expect(bufferHealth("playing", 5)).toBe("healthy");
+  });
+
+  it("renders a buffering chip until playback has a buffer", async () => {
+    await renderPlayer();
+
+    // jsdom reports an empty `buffered` range, so the chip starts buffering.
+    expect(screen.getByText("Buffering")).toHaveAttribute(
+      "data-buffer-health",
+      "buffering",
+    );
+  });
+});
+
+describe("Player low-latency mode", () => {
+  beforeEach(() => {
+    FakeHls.reset();
+  });
+
+  it("enables low latency by default for a live stream", async () => {
+    await renderPlayer();
+
+    expect(
+      screen.getByRole("button", { name: "Low latency mode" }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("hides the low-latency toggle for a replay", async () => {
+    await renderPlayer({ status: "archived" });
+
+    expect(
+      screen.queryByRole("button", { name: "Low latency mode" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("rebuilds the pipeline with low latency off when toggled", async () => {
+    const first = await renderPlayer();
+    expect(first.config.lowLatencyMode).toBe(true);
+
+    fireEvent.click(screen.getByRole("button", { name: "Low latency mode" }));
+    for (let i = 0; i < 5; i += 1) await act(async () => {});
+
+    expect(
+      screen.getByRole("button", { name: "Low latency mode" }),
+    ).toHaveAttribute("aria-pressed", "false");
+    const latest = FakeHls.instances[FakeHls.instances.length - 1];
+    expect(latest.config.lowLatencyMode).toBe(false);
+    expect(first.destroyed).toBe(true);
+  });
+});
+
+describe("Player picture-in-picture", () => {
+  beforeEach(() => {
+    FakeHls.reset();
+  });
+
+  afterEach(() => {
+    delete (document as { pictureInPictureEnabled?: boolean })
+      .pictureInPictureEnabled;
+    delete (
+      HTMLVideoElement.prototype as {
+        requestPictureInPicture?: unknown;
+      }
+    ).requestPictureInPicture;
+  });
+
+  it("disables the button when picture-in-picture is unsupported", async () => {
+    await renderPlayer();
+
+    expect(
+      screen.getByRole("button", { name: "Picture in picture" }),
+    ).toBeDisabled();
+  });
+
+  it("enters picture-in-picture when the browser supports it", async () => {
+    Object.defineProperty(document, "pictureInPictureEnabled", {
+      value: true,
+      configurable: true,
+    });
+    const request = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(
+      HTMLVideoElement.prototype,
+      "requestPictureInPicture",
+      {
+        value: request,
+        configurable: true,
+        writable: true,
+      },
+    );
+
+    await renderPlayer();
+    const button = screen.getByRole("button", { name: "Picture in picture" });
+    expect(button).toBeEnabled();
+
+    fireEvent.click(button);
+    expect(request).toHaveBeenCalledTimes(1);
   });
 });

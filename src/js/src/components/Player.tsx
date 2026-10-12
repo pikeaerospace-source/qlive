@@ -11,6 +11,24 @@ export const RETRY_BACKOFF_MS = 1500;
 export type PlaybackState =
   "connecting" | "playing" | "recovering" | "interrupted" | "unsupported";
 
+/** Viewer-facing buffer health derived from the buffered-ahead window. */
+export type BufferHealth = "buffering" | "low" | "healthy";
+
+/**
+ * Classify buffer health from the playback state and seconds buffered ahead.
+ *
+ * `buffering` when playback isn't running or the buffer is under half a second,
+ * `low` under a 2 s threshold, otherwise `healthy`.
+ */
+export function bufferHealth(
+  state: PlaybackState,
+  bufferedAheadSec: number,
+): BufferHealth {
+  if (state !== "playing" || bufferedAheadSec < 0.5) return "buffering";
+  if (bufferedAheadSec < 2) return "low";
+  return "healthy";
+}
+
 /** Playlist / quality label rendered in the control bar. */
 export type QualityLabel = string | "Auto" | "Source";
 
@@ -19,6 +37,7 @@ export interface PlayerControls {
   togglePlay(): void;
   toggleMute(): void;
   toggleFullscreen(): void;
+  togglePip(): void;
   nudgeVolume(delta: number): void;
 }
 
@@ -32,6 +51,9 @@ interface MediaStatus {
   /** Native fullscreen support (jsdom and older browsers lack it). */
   fullscreen: boolean;
   canFullscreen: boolean;
+  /** Picture-in-picture is engaged for this element. */
+  pip: boolean;
+  canPip: boolean;
 }
 
 const INITIAL_MEDIA: MediaStatus = {
@@ -42,6 +64,18 @@ const INITIAL_MEDIA: MediaStatus = {
   liveEdgeSec: 0,
   fullscreen: false,
   canFullscreen: false,
+  pip: false,
+  canPip: false,
+};
+
+/** Narrow view of the (non-standard in TS DOM lib) PiP members we touch. */
+type PipDocument = Document & {
+  pictureInPictureEnabled?: boolean;
+  pictureInPictureElement?: Element | null;
+  exitPictureInPicture?: () => Promise<void>;
+};
+type PipVideo = HTMLVideoElement & {
+  requestPictureInPicture?: () => Promise<unknown>;
 };
 
 export default function Player({
@@ -64,6 +98,18 @@ export default function Player({
   const isLive = stream.status === "live";
   const url = stream.playbackUrl;
 
+  /**
+   * Low-latency playback mode. Defaults to on for a live stream (chase the live
+   * edge) and off for a replay (a static archive has no edge). hls.js only reads
+   * this at construction, so toggling it rebuilds the pipeline.
+   */
+  const [lowLatency, setLowLatency] = useState(isLive);
+
+  // A replay has no live edge, so reset the mode whenever the stream changes.
+  useEffect(() => {
+    setLowLatency(isLive);
+  }, [isLive]);
+
   // Mirror the media element's state into React. Kept as a `useEffect` (rather
   // than inline handlers) so the controls stay in sync with both the hls.js and
   // native playback paths.
@@ -83,6 +129,7 @@ export default function Player({
           break;
         }
       }
+      const doc = document as PipDocument;
       setMedia({
         paused: video.paused,
         muted: video.muted,
@@ -93,6 +140,10 @@ export default function Player({
         liveEdgeSec: isLive && buffered.length > 0 ? bufferedAhead : 0,
         fullscreen: document.fullscreenElement === video,
         canFullscreen: typeof video.requestFullscreen === "function",
+        pip: doc.pictureInPictureElement === video,
+        canPip:
+          doc.pictureInPictureEnabled === true &&
+          typeof (video as PipVideo).requestPictureInPicture === "function",
       });
     };
 
@@ -103,6 +154,8 @@ export default function Player({
       "progress",
       "playing",
       "waiting",
+      "enterpictureinpicture",
+      "leavepictureinpicture",
     ] as const;
     events.forEach((event) => video.addEventListener(event, sync));
     document.addEventListener("fullscreenchange", sync);
@@ -148,6 +201,23 @@ export default function Player({
     }
   }, []);
 
+  const togglePip = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const doc = document as PipDocument;
+    if (doc.pictureInPictureElement === video) {
+      void doc.exitPictureInPicture?.().catch(() => undefined);
+      return;
+    }
+    const request = (video as PipVideo).requestPictureInPicture;
+    if (typeof request === "function") {
+      const result = request.call(video) as Promise<unknown> | undefined;
+      if (result && typeof result.catch === "function") {
+        result.catch(() => undefined);
+      }
+    }
+  }, []);
+
   // Publish the controls so a host (e.g. the watch page) can wire shortcuts.
   useEffect(() => {
     if (!controlsRef) return;
@@ -155,16 +225,25 @@ export default function Player({
       togglePlay,
       toggleMute,
       toggleFullscreen,
+      togglePip,
       nudgeVolume,
     };
     return () => {
       if (controlsRef) controlsRef.current = null;
     };
-  }, [controlsRef, togglePlay, toggleMute, toggleFullscreen, nudgeVolume]);
+  }, [
+    controlsRef,
+    togglePlay,
+    toggleMute,
+    toggleFullscreen,
+    togglePip,
+    nudgeVolume,
+  ]);
 
   // Keyboard shortcuts (Space/K = play-pause, M = mute, F = fullscreen,
-  // ↑/↓ = volume). Scoped to the player wrapper so they don't hijack typing in
-  // the page's search/inputs. `preventDefault` stops Space from scrolling.
+  // I = picture-in-picture, ↑/↓ = volume). Scoped to the player wrapper so they
+  // don't hijack typing in the page's search/inputs. `preventDefault` stops Space
+  // from scrolling.
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
@@ -193,6 +272,10 @@ export default function Player({
         case "F":
           toggleFullscreen();
           break;
+        case "i":
+        case "I":
+          togglePip();
+          break;
         case "ArrowUp":
           event.preventDefault();
           nudgeVolume(0.1);
@@ -207,7 +290,7 @@ export default function Player({
     };
     wrap.addEventListener("keydown", onKeyDown);
     return () => wrap.removeEventListener("keydown", onKeyDown);
-  }, [togglePlay, toggleMute, toggleFullscreen, nudgeVolume]);
+  }, [togglePlay, toggleMute, toggleFullscreen, togglePip, nudgeVolume]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -265,8 +348,9 @@ export default function Player({
         return;
       }
       // Low-latency mode applies to the live edge only; a replay is the same
-      // archived fragments played back at normal latency (no re-encoding).
-      hls = new HlsClass({ enableWorker: true, lowLatencyMode: isLive });
+      // archived fragments played back at normal latency (no re-encoding). The
+      // mode is a constructor option, so toggling it re-runs this effect.
+      hls = new HlsClass({ enableWorker: true, lowLatencyMode: lowLatency });
 
       hls.on(HlsClass.Events.ERROR, (_event, data) => {
         if (!data.fatal) return; // hls.js recovers non-fatal errors by itself.
@@ -299,7 +383,7 @@ export default function Player({
       video.removeEventListener("playing", onPlaying);
       hls?.destroy();
     };
-  }, [url, isLive, attempt]);
+  }, [url, isLive, lowLatency, attempt]);
 
   if (!stream.playbackUrl) {
     return (
@@ -311,6 +395,9 @@ export default function Player({
       </div>
     );
   }
+
+  const health = bufferHealth(state, media.bufferedAheadSec);
+  const bufferedAheadLabel = `${media.bufferedAheadSec.toFixed(1)}s`;
 
   return (
     <div className="player-wrap" ref={wrapRef}>
@@ -388,9 +475,45 @@ export default function Player({
           </span>
         )}
 
+        <span
+          className={`player-controls__buffer player-controls__buffer--${health}`}
+          title={`${bufferedAheadLabel} buffered ahead`}
+          data-buffer-health={health}
+        >
+          {health === "buffering"
+            ? "Buffering"
+            : `Buffer ${media.bufferedAheadSec.toFixed(1)}s`}
+        </span>
+
         <span className="player-controls__quality" title="Stream quality">
           {quality}
         </span>
+
+        {isLive && (
+          <button
+            type="button"
+            className="player-controls__btn player-controls__toggle"
+            onClick={() => setLowLatency((value) => !value)}
+            aria-pressed={lowLatency}
+            aria-label="Low latency mode"
+            title="Low latency mode"
+          >
+            LL
+          </button>
+        )}
+
+        <button
+          type="button"
+          className="player-controls__btn"
+          onClick={togglePip}
+          aria-label={
+            media.pip ? "Exit picture in picture" : "Picture in picture"
+          }
+          title="Picture in picture"
+          disabled={!media.canPip}
+        >
+          ⧉
+        </button>
 
         <button
           type="button"

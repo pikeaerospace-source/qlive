@@ -49,14 +49,14 @@ The QLive web UI provides:
 - [x] Play/pause controls — custom control bar (native `controls` removed)
 - [x] Volume and fullscreen controls — mute toggle + volume slider + fullscreen button (auto-disabled where unsupported)
 - [~] Adaptive bitrate indicator — quality label shown; selection needs a multi-rendition ladder (open design question #3)
-- [ ] Buffer health indicator
+- [x] Buffer health indicator — control-bar chip (`buffering`/`low`/`healthy`) derived from the buffered-ahead window + a `bufferHealth()` helper
 - [~] Stream quality selector — quality label (`Source`/`Auto`) displayed; switching needs renditions
 - [ ] Chat panel (optional)
 
 ### Player Features
-- [ ] Low-latency mode toggle
-- [ ] Picture-in-picture support
-- [x] Keyboard shortcuts — Space/K play-pause, M mute, F fullscreen, ↑/↓ volume (scoped to the player, ignored while typing in inputs)
+- [x] Low-latency mode toggle — on by default for live, hidden for replays; toggling rebuilds the hls.js pipeline (constructor option)
+- [x] Picture-in-picture support — control-bar button + `I` shortcut (feature-detected; disabled where unsupported)
+- [x] Keyboard shortcuts — Space/K play-pause, M mute, F fullscreen, I picture-in-picture, ↑/↓ volume (scoped to the player, ignored while typing in inputs)
 - [ ] Mobile responsive layout
 - [x] Error recovery (reconnect on stream drop) → `Player` playback states: auto-recovery (2× backoff on network errors, 1× media-error recovery) then a "Playback interrupted" overlay with Retry
 - [x] Playback status overlay (connecting / reconnecting / interrupted / unsupported)
