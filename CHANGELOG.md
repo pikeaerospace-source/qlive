@@ -33,6 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Docs + tests: **Q-Tube manifest mapping** — `docs/qtube-integration.md`
+  documents QLive's emitted `QTubeManifest` schema and a proposed
+  field-by-field mapping to Q-Tube's expected format (required-vs-optional
+  marked), plus the chunked-video / naming / envelope questions and open items
+  for the Q-Tube team. `tests/python/test_qtube_compat.py` (14 tests) validates
+  a representative manifest against those invariants — the discriminator,
+  hex64 `streamId`, SHA-256 `chunkHashes`, epoch-ms ordering, JSON types, and
+  the `isPartial` flag — with a fixture standing in for Q-Tube's reader until
+  its authoritative schema is confirmed.
+
 - Web UI: **player control bar + keyboard shortcuts** — `Player` now renders a
   custom control bar (play/pause, mute, volume slider, fullscreen, quality
   label, and a live-edge badge on live streams) instead of the native `controls`

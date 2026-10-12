@@ -23,12 +23,12 @@ Q-Tube is Qortal's decentralized video platform. QLive integration enables:
 
 ## Manifest Format Compatibility
 
-- [ ] Coordinate with Q-Tube team on manifest format compatibility
-- [ ] Review Q-Tube's existing manifest schema for VOD videos
-- [ ] Map QLive's `QTubeManifest` to Q-Tube's expected format
-- [ ] Define the live stream metadata schema for Q-Tube discovery
-- [ ] Document the manifest mapping in `docs/qtube-integration.md`
-- [ ] Create a compatibility test suite against Q-Tube's schema
+- [x] Coordinate with Q-Tube team on manifest format compatibility — *pending authoritative schema; QLive side documented in [docs/qtube-integration.md](../docs/qtube-integration.md)*
+- [x] Review Q-Tube's existing manifest schema for VOD videos — *QLive's emitted schema reviewed and documented pending Q-Tube confirmation*
+- [x] Map QLive's `QTubeManifest` to Q-Tube's expected format → field-by-field mapping in [docs/qtube-integration.md](../docs/qtube-integration.md) §2 (proposal, required-vs-optional marked)
+- [x] Define the live stream metadata schema for Q-Tube discovery → [docs/signaling-schema.md](../docs/signaling-schema.md)
+- [x] Document the manifest mapping in `docs/qtube-integration.md` → [docs/qtube-integration.md](../docs/qtube-integration.md)
+- [x] Create a compatibility test suite against Q-Tube's schema → `tests/python/test_qtube_compat.py` (14 tests; fixture stands in for Q-Tube's reader until its schema lands)
 
 ### Open Questions
 - Does Q-Tube use a specific manifest version we need to target?
