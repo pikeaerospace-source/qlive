@@ -59,7 +59,7 @@ class TestBroadcasterConfig:
         assert config.height == 1080
         assert config.ffmpeg_path == "ffmpeg"
         assert config.archive_to_vod is True
-        assert config.min_archive_chunk_bytes == 10 * 1024 * 1024
+        assert config.max_archive_chunk_bytes == 50 * 1024 * 1024
 
 
 class TestBroadcasterInit:

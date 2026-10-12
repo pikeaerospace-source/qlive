@@ -153,7 +153,8 @@ class TestPipelineManifest:
             stream_id=stream_id,
             publisher="alice",
             title="Compat Stream",
-            min_chunk_bytes=2048,
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
         )
         for seq in range(1, 7):
             pipeline.add_chunk(make_chunk(stream_id, seq))

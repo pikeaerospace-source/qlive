@@ -22,6 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docs consistency: `protocol.md` §3.2/§3.3 now describe the header-only
   signature; `SECURITY-MODEL.md` §3 now reflects that receipts carry a
   `start_sequence`/`end_sequence` range (double-counting already prevented).
+- `qlive/archival.py` — `ArchivalPipeline` now flushes QDN data chunks **toward
+  the ceiling** (`max_chunk_bytes`, 50 MB) instead of the floor (10 MB): the
+  buffer is drained just before a fragment that would push it past the ceiling,
+  so chunks stay within `[min_chunk_bytes, max_chunk_bytes]` (~5× fewer QDN
+  resources, publishes, and manifest entries at equal data volume).
+  `min_chunk_bytes` is retained as the protocol floor / config guard, and
+  `__init__` now validates `0 < min <= max`. `qlive/broadcaster.py` config field
+  `min_archive_chunk_bytes` → `max_archive_chunk_bytes` (default 50 MB) to
+  control the new ceiling. Tests updated/added in `test_archival.py`
+  (`test_flush_toward_ceiling`, `test_chunks_never_exceed_ceiling`, bounds
+  validation). Resolves follow-up #1 in `docs/QDN-STORAGE-ECONOMICS.md`.
 
 ### Design
 

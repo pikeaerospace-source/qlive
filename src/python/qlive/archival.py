@@ -141,6 +141,10 @@ class ArchivalPipeline:
         min_chunk_bytes: int = QDN_CHUNK_MIN_BYTES,
         max_chunk_bytes: int = QDN_CHUNK_MAX_BYTES,
     ) -> None:
+        if min_chunk_bytes <= 0 or max_chunk_bytes <= 0:
+            raise ArchivalError("chunk size bounds must be positive")
+        if min_chunk_bytes > max_chunk_bytes:
+            raise ArchivalError("min_chunk_bytes must not exceed max_chunk_bytes")
         self.stream_id = stream_id
         self.publisher = publisher
         self.title = title
@@ -176,21 +180,30 @@ class ArchivalPipeline:
     def add_chunk(self, chunk: Chunk) -> None:
         """Add an expired live chunk to the archive buffer.
 
-        Chunks are buffered until they reach the minimum QDN chunk
-        size, then flushed as a QDN data chunk.
+        Fragments are buffered and flushed into QDN data chunks sized toward
+        ``max_chunk_bytes``: the buffer is flushed just *before* adding a
+        fragment that would push it past the ceiling, so every emitted chunk is
+        as large as the protocol allows (fewer QDN resources) and never exceeds
+        the ceiling. ``min_chunk_bytes`` is the protocol's lower bound (config
+        guard); the final chunk emitted by :meth:`finalize` may be smaller.
         """
         if chunk.stream_id != self.stream_id:
             raise ArchivalError("Chunk stream ID does not match archive stream")
+
+        # Flush toward the ceiling rather than at the floor: drain the buffer
+        # before a fragment that would overflow it, keeping chunks within
+        # [min_chunk_bytes, max_chunk_bytes].
+        if (
+            self._buffer
+            and self._buffer_size + len(chunk.payload) > self.max_chunk_bytes
+        ):
+            self._flush()
 
         self._buffer.append(chunk)
         self._buffer_size += len(chunk.payload)
         self._total_duration += chunk.duration
         self._stats.fragments_archived += 1
         self._stats.bytes_archived += len(chunk.payload)
-
-        # Flush when buffer reaches minimum chunk size
-        if self._buffer_size >= self.min_chunk_bytes:
-            self._flush()
 
     def finalize(self, is_partial: bool = False) -> QTubeManifest:
         """Finalize the archive and generate a Q-Tube manifest.

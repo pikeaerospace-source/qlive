@@ -121,13 +121,40 @@ class TestArchivalPipeline:
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=1024 * 1024,  # 1MB for testing
+            min_chunk_bytes=1024,
+            max_chunk_bytes=1024 * 1024,  # 1MB ceiling for testing
         )
         chunk = make_chunk(stream_id, 1)
         pipeline.add_chunk(chunk)
         assert pipeline.stats.fragments_archived == 1
         assert pipeline.stats.bytes_archived == 1024
         assert pipeline.stats.qdn_chunks_created == 0  # Not flushed yet
+
+    def test_chunk_bounds_must_be_positive(self, stream_id):
+        with pytest.raises(ArchivalError):
+            ArchivalPipeline(
+                stream_id=stream_id,
+                publisher="test-name",
+                title="Test Stream",
+                min_chunk_bytes=0,
+            )
+        with pytest.raises(ArchivalError):
+            ArchivalPipeline(
+                stream_id=stream_id,
+                publisher="test-name",
+                title="Test Stream",
+                max_chunk_bytes=0,
+            )
+
+    def test_min_must_not_exceed_max(self, stream_id):
+        with pytest.raises(ArchivalError):
+            ArchivalPipeline(
+                stream_id=stream_id,
+                publisher="test-name",
+                title="Test Stream",
+                min_chunk_bytes=4096,
+                max_chunk_bytes=2048,
+            )
 
     def test_add_chunk_wrong_stream(self, stream_id):
         pipeline = ArchivalPipeline(
@@ -140,41 +167,65 @@ class TestArchivalPipeline:
         with pytest.raises(ArchivalError):
             pipeline.add_chunk(chunk)
 
-    def test_flush_on_min_size(self, stream_id):
+    def test_flush_toward_ceiling(self, stream_id):
+        # Chunks are sized toward max_chunk_bytes (the ceiling), not the floor.
         pipeline = ArchivalPipeline(
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,  # 2KB for testing
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,  # 2KB ceiling for testing
         )
-        # Add 3 chunks of 1KB each - should flush after 2
+        # 3 KB → one full 2 KB chunk flushed mid-stream, 1 KB still buffered.
         for seq in range(1, 4):
             pipeline.add_chunk(make_chunk(stream_id, seq))
 
         assert pipeline.stats.qdn_chunks_created == 1
-        assert len(pipeline.qdn_chunks) == 1
         assert pipeline.qdn_chunks[0].size == 2048
+        assert pipeline.stats.current_buffer_size == 1024
 
     def test_multiple_flushes(self, stream_id):
         pipeline = ArchivalPipeline(
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,  # 2KB for testing
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,  # 2KB ceiling for testing
         )
-        # Add 6 chunks of 1KB each - should create 3 QDN chunks
-        for seq in range(1, 7):
+        # 8 KB → three full 2 KB chunks flushed mid-stream, 2 KB buffered.
+        for seq in range(1, 9):
             pipeline.add_chunk(make_chunk(stream_id, seq))
 
         assert pipeline.stats.qdn_chunks_created == 3
         assert len(pipeline.qdn_chunks) == 3
+        assert all(c.size == 2048 for c in pipeline.qdn_chunks)
+
+    def test_chunks_never_exceed_ceiling(self, stream_id):
+        # The flush-before-overflow rule keeps every chunk (mid-stream and the
+        # final one) within [min, max].
+        pipeline = ArchivalPipeline(
+            stream_id=stream_id,
+            publisher="test-name",
+            title="Test Stream",
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
+        )
+        for seq in range(1, 12):  # 11 KB — deliberately not a multiple of 2 KB
+            pipeline.add_chunk(make_chunk(stream_id, seq))
+
+        assert pipeline.qdn_chunks  # at least one flushed mid-stream
+        assert all(c.size <= 2048 for c in pipeline.qdn_chunks)
+
+        pipeline.finalize()
+        assert all(c.size <= 2048 for c in pipeline.qdn_chunks)
 
     def test_finalize(self, stream_id):
         pipeline = ArchivalPipeline(
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
         )
         for seq in range(1, 4):
             pipeline.add_chunk(make_chunk(stream_id, seq))
@@ -195,7 +246,8 @@ class TestArchivalPipeline:
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
         )
         for seq in range(1, 4):
             pipeline.add_chunk(make_chunk(stream_id, seq))
@@ -217,7 +269,8 @@ class TestArchivalPipeline:
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
         )
         for seq in range(1, 7):
             pipeline.add_chunk(make_chunk(stream_id, seq))
@@ -229,9 +282,12 @@ class TestArchivalPipeline:
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
         )
-        for seq in range(1, 7):
+        # 8 KB → three QDN chunks, so tampering the middle one keeps a successor
+        # whose recorded previous_hash no longer matches.
+        for seq in range(1, 9):
             pipeline.add_chunk(make_chunk(stream_id, seq))
 
         # Tamper with a QDN chunk's data
@@ -245,7 +301,8 @@ class TestArchivalPipeline:
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
         )
         for seq in range(1, 7):
             pipeline.add_chunk(make_chunk(stream_id, seq))
@@ -254,34 +311,36 @@ class TestArchivalPipeline:
         assert pipeline.verify_integrity() is False
 
     def test_flush_on_empty_buffer_is_noop(self, stream_id):
-        # _flush() guards an empty buffer. This guard is never reached via
-        # add_chunk/finalize, which only flush when the buffer is non-empty.
+        # _flush() guards an empty buffer. Nothing reaches this guard through
+        # add_chunk/finalize, so it is exercised directly.
         pipeline = ArchivalPipeline(
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
         )
         assert pipeline.qdn_chunks == []
         pipeline._flush()
         assert pipeline.qdn_chunks == []
         assert pipeline.stats.qdn_chunks_created == 0
 
-    def test_finalize_after_auto_flush(self, stream_id):
-        # finalize() with the buffer already emptied by an add_chunk auto-flush.
+    def test_finalize_after_streaming_flushes(self, stream_id):
+        # finalize() emits the buffered remainder after mid-stream flushes.
         pipeline = ArchivalPipeline(
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
         )
-        for seq in range(1, 7):
+        for seq in range(1, 9):  # 8 KB → 3 full 2 KB chunks + 2 KB buffered
             pipeline.add_chunk(make_chunk(stream_id, seq))
-        assert pipeline.stats.current_buffer_size == 0  # 6 KB → 3 auto-flushes
+        assert pipeline.stats.qdn_chunks_created == 3
 
         manifest = pipeline.finalize()
-        assert manifest.fragment_count == 6
-        assert len(manifest.chunk_hashes) == 3
+        assert manifest.fragment_count == 8
+        assert len(manifest.chunk_hashes) == 4  # 3 mid-stream + 1 final
         assert pipeline.verify_integrity() is True
 
     def test_stats(self, stream_id):
@@ -289,7 +348,8 @@ class TestArchivalPipeline:
             stream_id=stream_id,
             publisher="test-name",
             title="Test Stream",
-            min_chunk_bytes=2048,
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
         )
         for seq in range(1, 4):
             pipeline.add_chunk(make_chunk(stream_id, seq))

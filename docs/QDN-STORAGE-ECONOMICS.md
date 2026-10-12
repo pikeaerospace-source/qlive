@@ -29,7 +29,7 @@ size, QDN retention) are marked **to verify** and require a running node — see
 
 | Question | Finding | Verdict |
 | --- | --- | --- |
-| QDN chunk sizing (10–50 MB) | Archives always flush at the **10 MB floor**; the 50 MB ceiling is unused | **Action needed** — flush toward the ceiling (5× fewer chunks) |
+| QDN chunk sizing (10–50 MB) | Was flushing at the **10 MB floor**; now flushes toward the 50 MB ceiling | **Resolved** — chunks sized toward max (5× fewer) |
 | Transaction costs | ~0.001–0.01 QORT per stream event; archival = 1 standard QDN fee | Negligible (per [MONETIZATION.md](MONETIZATION.md) §11); **fee to verify** |
 | Chain bloat | Metadata doc ≈ 0.8–1.1 KB and **data is off-chain**; peer-list publishes are the bloat driver, not ledger size | **Bounded** by delta-triggered cadence |
 | Storage limits / retention | Live media never touches QDN; only metadata + final archive. Retention specifics **to verify** | **Open** |
@@ -60,24 +60,27 @@ QDN chunk** (≈ 10 KB across a 2.7 GB / 270-chunk archive — negligible).
 
 ### 1.2 The flush-floor finding
 
-`ArchivalPipeline` flushes a QDN chunk when the buffer reaches
+`ArchivalPipeline` flushed a QDN chunk as soon as the buffer reached
 `min_chunk_bytes`, which defaults to `QDN_CHUNK_MIN_BYTES` (10 MB);
-`max_chunk_bytes` (50 MB) is stored but **never consulted**. Consequently a
-large archive is fragmented into ~5× more QDN resources than the protocol's
+`max_chunk_bytes` (50 MB) was stored but **never consulted**. Consequently a
+large archive was fragmented into ~5× more QDN resources than the protocol's
 50 MB ceiling allows, multiplying:
 
 - the number of QDN publish resources / manifest entries,
 - per-resource overhead and retrieval round-trips,
 - the count of `chunkHashes` entries repeated in the Q-Tube manifest.
 
-**Recommendation:** flush toward `max_chunk_bytes` (e.g. flush when the buffer
-reaches the *max*, or the largest fragment boundary below it), keeping
-`min_chunk_bytes` only as the "don't emit tiny trailing chunks" floor. This cuts
-chunk count ~5× with no change to data volume.
+**Implemented:** the pipeline now flushes **toward the ceiling** — it drains the
+buffer just before adding a fragment that would push it past
+`max_chunk_bytes`, so every emitted chunk is sized toward the ceiling and stays
+within `[min_chunk_bytes, max_chunk_bytes]` (the final chunk from `finalize()`
+may be smaller). This cuts chunk count ~5× with no change to data volume.
 
 **Evidence:** `src/python/qlive/archival.py` (`add_chunk` → `_flush`,
 `min_chunk_bytes`/`max_chunk_bytes`); constants in
-[protocol.md](protocol.md) §10.
+[protocol.md](protocol.md) §10; `tests/python/test_archival.py`
+(`test_flush_toward_ceiling`, `test_multiple_flushes`,
+`test_chunks_never_exceed_ceiling`).
 
 ---
 
@@ -174,10 +177,10 @@ assumption** before relying on it.
 
 ## 5. Recommendations
 
-1. **Flush archive chunks toward 50 MB** (not the 10 MB floor) — ~5× fewer QDN
-   resources, publishes, and manifest entries, at equal data volume. Keep 10 MB
-   as the trailing-chunk floor. *(Code change in `ArchivalPipeline`; tracked as
-   the top follow-up.)*
+1. **Flush archive chunks toward 50 MB** ~~(not the 10 MB floor)~~ —
+   **implemented**: ~5× fewer QDN resources, publishes, and manifest entries, at
+   equal data volume. `min_chunk_bytes` remains the protocol floor / config
+   guard, and the final chunk may be smaller.
 2. **Keep delta-triggered peer-list publishes** (already decided) — this is what
    keeps the §2 publish count bounded; never poll metadata.
 3. **Treat the per-publish QORT fee as the one unknown** that converts the cost
@@ -220,7 +223,7 @@ No empirical QDN measurements yet (require a running Qortal Core node).
 
 | Date | Decision | Rationale |
 | --- | --- | --- |
-| 2026-10-12 | Flush archive chunks toward the 50 MB ceiling, keep 10 MB as the trailing floor | The 10 MB floor made archives ~5× chunkier than the protocol allows; fewer chunks cut QDN resources, publishes, and manifest entries |
+| 2026-10-12 | Flush archive chunks toward the 50 MB ceiling, keep 10 MB as the protocol floor | The 10 MB floor made archives ~5× chunkier than the protocol allows; fewer chunks cut QDN resources, publishes, and manifest entries. **Implemented** in `ArchivalPipeline.add_chunk` (flush before a fragment would exceed the ceiling) |
 | 2026-10-12 | Cost model is pay-per-publish-event; per-publish fee to verify | Live media never touches the chain; only < 1.2 KB metadata + the final archive do |
 
 ---

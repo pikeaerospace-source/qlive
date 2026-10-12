@@ -20,7 +20,7 @@ from enum import Enum
 
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
-from qlive.archival import ArchivalPipeline
+from qlive.archival import QDN_CHUNK_MAX_BYTES, ArchivalPipeline
 from qlive.chunk import create_chunk
 from qlive.segmenter import Segment, Segmenter, SegmenterConfig
 from qlive.signaling import StreamMetadata, StreamRegistry, StreamStatus
@@ -59,7 +59,7 @@ class BroadcasterConfig:
     height: int = 1080
     ffmpeg_path: str = "ffmpeg"
     archive_to_vod: bool = True
-    min_archive_chunk_bytes: int = 10 * 1024 * 1024
+    max_archive_chunk_bytes: int = QDN_CHUNK_MAX_BYTES
     renditions: list[int] = field(default_factory=lambda: [1000, 2000, 3000, 4500, 6000])
 
 
@@ -158,7 +158,7 @@ class Broadcaster:
                     title=self.config.title,
                     description=self.config.description,
                     category=self.config.category,
-                    min_chunk_bytes=self.config.min_archive_chunk_bytes,
+                    max_chunk_bytes=self.config.max_archive_chunk_bytes,
                 )
 
             # Start segmenter
