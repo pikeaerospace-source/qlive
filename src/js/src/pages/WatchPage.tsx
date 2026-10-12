@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Player from "../components/Player";
+import Skeleton from "../components/Skeleton";
 import Stat from "../components/Stat";
 import StatusBadge from "../components/StatusBadge";
 import { selectApi } from "../data/api";
@@ -17,16 +18,29 @@ export default function WatchPage() {
   const [stream, setStream] = useState<Stream>();
   const [stats, setStats] = useState<StreamStats>();
   const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState<string>();
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     if (!streamId) return;
+    let cancelled = false;
+    setError(undefined);
+    setNotFound(false);
     selectApi()
       .getStream(streamId)
       .then((s) => {
+        if (cancelled) return;
         if (s) setStream(s);
         else setNotFound(true);
+      })
+      .catch((cause: unknown) => {
+        if (cancelled) return;
+        setError(cause instanceof Error ? cause.message : String(cause));
       });
-  }, [streamId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [streamId, reload]);
 
   // Live stats only exist while broadcasting; a replay is a static archive.
   useEffect(() => {
@@ -34,15 +48,45 @@ export default function WatchPage() {
     return selectApi().subscribeStats(streamId, setStats);
   }, [streamId, stream?.status]);
 
+  if (error) {
+    return (
+      <>
+        <Link to="/" className="btn btn--ghost" style={{ marginBottom: 12 }}>
+          ← Back
+        </Link>
+        <section className="notice notice--error" aria-live="polite">
+          <strong>Couldn’t load this stream</strong>
+          <span className="muted">{error}</span>
+          <div className="notice__actions">
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setReload((n) => n + 1)}
+            >
+              Retry
+            </button>
+          </div>
+        </section>
+      </>
+    );
+  }
+
   if (notFound) return <div className="empty">Stream not found.</div>;
-  if (!stream) return <div className="empty">Loading…</div>;
+  if (!stream) {
+    return (
+      <>
+        <Link to="/" className="btn btn--ghost" style={{ marginBottom: 12 }}>
+          ← Back
+        </Link>
+        <Skeleton variant="detail" />
+      </>
+    );
+  }
 
   const isLive = stream.status === "live";
   const replay = replayState(stream);
   const archive = stream.archive;
-  const kbps = Math.round(
-    (stream.bitrate.video + stream.bitrate.audio) / 1000,
-  );
+  const kbps = Math.round((stream.bitrate.video + stream.bitrate.audio) / 1000);
 
   return (
     <>
@@ -95,7 +139,9 @@ export default function WatchPage() {
                   <span>Size {formatBytes(archive.sizeBytes)}</span>
                 )}
                 {archive?.fragmentCount !== undefined && (
-                  <span>{archive.fragmentCount.toLocaleString()} fragments</span>
+                  <span>
+                    {archive.fragmentCount.toLocaleString()} fragments
+                  </span>
                 )}
               </div>
               {replay === "partial" && (
@@ -140,7 +186,10 @@ export default function WatchPage() {
               />
             )}
             {archive?.sizeBytes !== undefined && (
-              <Stat label="Archive size" value={formatBytes(archive.sizeBytes)} />
+              <Stat
+                label="Archive size"
+                value={formatBytes(archive.sizeBytes)}
+              />
             )}
             {archive?.fragmentCount !== undefined && (
               <Stat
@@ -155,4 +204,3 @@ export default function WatchPage() {
     </>
   );
 }
-

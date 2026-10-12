@@ -46,17 +46,17 @@ The QLive web UI provides:
 ## Viewer Player
 
 - [~] Web player (HLS/CMAF playback, low-latency mode) — hls.js wired, mock placeholder
-- [ ] Play/pause controls
-- [ ] Volume and fullscreen controls
-- [ ] Adaptive bitrate indicator
+- [x] Play/pause controls — custom control bar (native `controls` removed)
+- [x] Volume and fullscreen controls — mute toggle + volume slider + fullscreen button (auto-disabled where unsupported)
+- [~] Adaptive bitrate indicator — quality label shown; selection needs a multi-rendition ladder (open design question #3)
 - [ ] Buffer health indicator
-- [ ] Stream quality selector
+- [~] Stream quality selector — quality label (`Source`/`Auto`) displayed; switching needs renditions
 - [ ] Chat panel (optional)
 
 ### Player Features
 - [ ] Low-latency mode toggle
 - [ ] Picture-in-picture support
-- [ ] Keyboard shortcuts
+- [x] Keyboard shortcuts — Space/K play-pause, M mute, F fullscreen, ↑/↓ volume (scoped to the player, ignored while typing in inputs)
 - [ ] Mobile responsive layout
 - [x] Error recovery (reconnect on stream drop) → `Player` playback states: auto-recovery (2× backoff on network errors, 1× media-error recovery) then a "Playback interrupted" overlay with Retry
 - [x] Playback status overlay (connecting / reconnecting / interrupted / unsupported)
@@ -97,9 +97,9 @@ The QLive web UI provides:
 - [x] Dark mode support
 - [~] Responsive layout (desktop, tablet, mobile)
 - [~] Accessibility (WCAG 2.1)
-- [ ] Loading states and skeletons
-- [ ] Empty states
-- [~] Error states (player playback interruptions covered by the Player overlay + Retry; page-level error states pending)
+- [x] Loading states and skeletons — `Skeleton` component (`grid`/`text`/`detail` variants) on Discovery, Watch, and Profile while fetching
+- [x] Empty states — Discovery "no match", Profile "no streams yet", Dashboard "no broadcast yet" before the first stream
+- [x] Error states — page-level fetch failures surface a `notice--error` with **Retry** on Discovery, Watch, and Profile (player playback interruptions already covered by the Player overlay)
 
 ---
 

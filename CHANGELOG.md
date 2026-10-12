@@ -33,6 +33,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **player control bar + keyboard shortcuts** — `Player` now renders a
+  custom control bar (play/pause, mute, volume slider, fullscreen, quality
+  label, and a live-edge badge on live streams) instead of the native `controls`
+  attribute, with keyboard shortcuts Space/K (play-pause), M (mute), F
+  (fullscreen), and ↑/↓ (volume) scoped to the player so they never hijack
+  typing in page inputs. `fullscreen` support is feature-detected and the
+  button disables itself where unavailable. Tests: `Player.test.tsx` (15, was
+  9)
+- Web UI: **loading, empty, and error states** across pages — a new
+  `Skeleton` component (`grid`/`text`/`detail` variants, `aria-hidden`) renders
+  while Discovery/Watch/Profile fetch; failed fetches surface a
+  `notice--error` with a **Retry** button that re-runs the request; empty states
+  cover Discovery's no-match, Profile's no-streams, and the dashboard's
+  pre-broadcast stats row. Tests: `ProfilePage.test.tsx` (new, 5),
+  `DiscoveryPage.test.tsx` (+2), `WatchPage.test.tsx` (+2),
+  `DashboardPage.test.tsx` (+1) — suite **85 passing** (was 69)
 - Web UI: **archive status indicator** on the broadcaster dashboard — after
   **Stop broadcast** publishes the `ended` doc, the dashboard shows an
   `Archiving…` notice (`.notice--archiving`) and the **Status** stat reads

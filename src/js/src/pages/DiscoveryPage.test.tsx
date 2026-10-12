@@ -107,4 +107,29 @@ describe("DiscoveryPage", () => {
     expect(screen.queryByText("Live stream")).not.toBeInTheDocument();
     expect(screen.queryByText("Just ended")).not.toBeInTheDocument();
   });
+
+  it("shows a loading skeleton while fetching", () => {
+    mocks.listStreams.mockReturnValue(new Promise(() => {})); // never resolves
+    renderPage();
+
+    expect(screen.getByTestId("skeleton")).toBeInTheDocument();
+    expect(
+      screen.queryByText("No streams match your search."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows an error notice with retry when the fetch fails", async () => {
+    mocks.listStreams.mockRejectedValue(new Error("QDN unreachable"));
+    renderPage();
+
+    expect(
+      await screen.findByText("Couldn’t load streams"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("QDN unreachable")).toBeInTheDocument();
+
+    mocks.listStreams.mockResolvedValue([stream()]);
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(await screen.findByText("Live stream")).toBeInTheDocument();
+  });
 });

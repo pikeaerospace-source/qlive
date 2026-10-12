@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Skeleton from "../components/Skeleton";
 import Stat from "../components/Stat";
 import StreamCard from "../components/StreamCard";
 import { selectApi } from "../data/api";
@@ -9,15 +10,66 @@ export default function ProfilePage() {
   const { name } = useParams<{ name: string }>();
   const [streamer, setStreamer] = useState<Streamer>();
   const [streams, setStreams] = useState<Stream[]>([]);
+  const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState<string>();
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     if (!name) return;
+    let cancelled = false;
+    setError(undefined);
+    setNotFound(false);
     const api = selectApi();
-    api.getStreamer(name).then(setStreamer);
-    api.getStreamerStreams(name).then(setStreams);
-  }, [name]);
+    api
+      .getStreamer(name)
+      .then((s) => {
+        if (cancelled) return;
+        if (s) setStreamer(s);
+        else setNotFound(true);
+      })
+      .catch((cause: unknown) => {
+        if (cancelled) return;
+        setError(cause instanceof Error ? cause.message : String(cause));
+      });
+    api.getStreamerStreams(name).then((list) => {
+      if (!cancelled) setStreams(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [name, reload]);
 
-  if (!streamer) return <div className="empty">Loading…</div>;
+  if (error) {
+    return (
+      <>
+        <h1 className="page-title">{name}</h1>
+        <section className="notice notice--error" aria-live="polite">
+          <strong>Couldn’t load this profile</strong>
+          <span className="muted">{error}</span>
+          <div className="notice__actions">
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setReload((n) => n + 1)}
+            >
+              Retry
+            </button>
+          </div>
+        </section>
+      </>
+    );
+  }
+
+  if (notFound) return <div className="empty">Streamer not found.</div>;
+  if (!streamer) {
+    return (
+      <>
+        <div className="skeleton skeleton--title" data-testid="skeleton" />
+        <Skeleton variant="text" count={3} />
+        <Skeleton variant="grid" count={4} />
+      </>
+    );
+  }
 
   return (
     <>

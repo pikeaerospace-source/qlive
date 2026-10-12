@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Skeleton from "../components/Skeleton";
 import Stat from "../components/Stat";
 import StreamCard from "../components/StreamCard";
 import { selectApi } from "../data/api";
@@ -27,13 +28,35 @@ function compareStreams(a: Stream, b: Stream, sort: SortMode): number {
 
 export default function DiscoveryPage() {
   const [streams, setStreams] = useState<Stream[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
+  const [reload, setReload] = useState(0);
   const [category, setCategory] = useState("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortMode>("live");
 
   useEffect(() => {
-    selectApi().listStreams().then(setStreams);
-  }, []);
+    let cancelled = false;
+    setLoading(true);
+    setError(undefined);
+    selectApi()
+      .listStreams()
+      .then((list) => {
+        if (cancelled) return;
+        setStreams(list);
+        setLoading(false);
+      })
+      .catch((cause: unknown) => {
+        if (cancelled) return;
+        setError(cause instanceof Error ? cause.message : String(cause));
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reload]);
+
+  const retry = () => setReload((n) => n + 1);
 
   const live = streams.filter((s) => s.status === "live");
   const upcoming = streams.filter((s) => s.status === "announced");
@@ -60,6 +83,38 @@ export default function DiscoveryPage() {
   const visibleReplays = replays
     .filter(matches)
     .sort((a, b) => replaySortKey(b) - replaySortKey(a));
+
+  if (error) {
+    return (
+      <>
+        <h1 className="page-title">Discover</h1>
+        <p className="page-subtitle">
+          Live and upcoming streams on the Qortal network.
+        </p>
+        <section className="notice notice--error" aria-live="polite">
+          <strong>Couldn’t load streams</strong>
+          <span className="muted">{error}</span>
+          <div className="notice__actions">
+            <button type="button" className="btn" onClick={retry}>
+              Retry
+            </button>
+          </div>
+        </section>
+      </>
+    );
+  }
+
+  if (loading) {
+    return (
+      <>
+        <h1 className="page-title">Discover</h1>
+        <p className="page-subtitle">
+          Live and upcoming streams on the Qortal network.
+        </p>
+        <Skeleton variant="grid" />
+      </>
+    );
+  }
 
   return (
     <>
@@ -152,4 +207,3 @@ export default function DiscoveryPage() {
     </>
   );
 }
-

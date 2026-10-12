@@ -117,4 +117,15 @@ describe("DashboardPage signaling", () => {
     expect(await screen.findByText("Publish failed")).toBeInTheDocument();
     expect(screen.getByText("no Qortal Name")).toBeInTheDocument();
   });
+
+  it("shows an empty state before the first broadcast", () => {
+    render(<DashboardPage />);
+
+    expect(
+      screen.getByText(
+        "No broadcast yet — start one to see stream health here.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Viewers")).not.toBeInTheDocument();
+  });
 });

@@ -6,7 +6,7 @@
  */
 
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Stream } from "../types";
 import Player, { RETRY_BACKOFF_MS } from "./Player";
@@ -224,5 +224,88 @@ describe("Player", () => {
     expect(FakeHls.instances).toHaveLength(2);
     expect(FakeHls.instances[0].destroyed).toBe(true);
     expect(overlay()).toHaveAttribute("data-playback-state", "connecting");
+  });
+});
+
+describe("Player controls", () => {
+  beforeEach(() => {
+    FakeHls.reset();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("renders a control bar instead of native controls", async () => {
+    await renderPlayer();
+
+    expect(video().hasAttribute("controls")).toBe(false);
+    // jsdom reports the element as paused/muted (the autoPlay/muted attributes
+    // aren't simulated), so the control bar reflects that initial state.
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Unmute" })).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: "Volume" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fullscreen" })).toBeDisabled();
+    expect(screen.getByTitle("Stream quality")).toHaveTextContent("Source");
+  });
+
+  it("shows a live-edge badge only for a live stream", async () => {
+    await renderPlayer();
+    expect(screen.getByText("At live edge")).toBeInTheDocument();
+
+    await renderPlayer({ status: "archived" });
+    expect(screen.queryByText(/behind live/)).not.toBeInTheDocument();
+  });
+
+  it("toggles play/pause from the control bar", async () => {
+    await renderPlayer();
+
+    // jsdom's <video> has no real playback (play()/pause() are no-ops and
+    // never flip `paused`), so assert the control dispatches without error
+    // rather than observing a state change jsdom can't model.
+    expect(() =>
+      fireEvent.click(screen.getByRole("button", { name: "Play" })),
+    ).not.toThrow();
+  });
+
+  it("binds the volume slider to the media element", async () => {
+    await renderPlayer();
+
+    fireEvent.change(screen.getByRole("slider", { name: "Volume" }), {
+      target: { value: "0.5" },
+    });
+    expect(video().volume).toBeCloseTo(0.5);
+    // Zeroing the slider mutes; anything above it unmutes.
+    fireEvent.change(screen.getByRole("slider", { name: "Volume" }), {
+      target: { value: "0" },
+    });
+    expect(video().volume).toBe(0);
+    expect(video().muted).toBe(true);
+  });
+
+  it("dispatches mute and volume nudges from keyboard shortcuts", async () => {
+    await renderPlayer();
+    const wrap = document.querySelector(".player-wrap") as HTMLElement;
+
+    // Space / M / ↑ / ↓ all reach the player's handlers (no throw) and the
+    // volume nudges land on the media element.
+    expect(() => {
+      fireEvent.keyDown(wrap, { key: " " });
+      fireEvent.keyDown(wrap, { key: "m" });
+      fireEvent.keyDown(wrap, { key: "ArrowUp" });
+      fireEvent.keyDown(wrap, { key: "ArrowDown" });
+    }).not.toThrow();
+    expect(video().volume).toBeCloseTo(0.9);
+  });
+
+  it("does not hijack keys typed into inputs", async () => {
+    await renderPlayer();
+    const wrap = document.querySelector(".player-wrap") as HTMLElement;
+    const input = document.createElement("input");
+    wrap.appendChild(input);
+
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(video().volume).toBeCloseTo(1); // untouched
   });
 });

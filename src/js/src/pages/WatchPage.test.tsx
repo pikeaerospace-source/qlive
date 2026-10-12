@@ -5,7 +5,7 @@
  * offline and assert only the page's rendering/behaviour.
  */
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -76,9 +76,7 @@ describe("WatchPage", () => {
     renderAt("arch1");
 
     expect(await screen.findByText("Replay available")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Watch replay" }),
-    ).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Watch replay" })).toHaveAttribute(
       "href",
       "/arbitrary/VIDEO/alice/qlive-archive-arch1",
     );
@@ -121,9 +119,7 @@ describe("WatchPage", () => {
     renderAt("end1");
 
     expect(await screen.findByText("Archiving…")).toBeInTheDocument();
-    expect(
-      screen.getByText(/published to QDN/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/published to QDN/)).toBeInTheDocument();
     expect(screen.queryByText("Replay available")).not.toBeInTheDocument();
   });
 
@@ -144,5 +140,28 @@ describe("WatchPage", () => {
     renderAt("nope");
 
     expect(await screen.findByText("Stream not found.")).toBeInTheDocument();
+  });
+
+  it("shows a detail skeleton while loading", () => {
+    mocks.getStream.mockReturnValue(new Promise(() => {})); // never resolves
+    renderAt("live1");
+
+    expect(screen.getByTestId("skeleton")).toBeInTheDocument();
+    expect(screen.queryByText("Stream not found.")).not.toBeInTheDocument();
+  });
+
+  it("shows an error notice with retry when the fetch fails", async () => {
+    mocks.getStream.mockRejectedValue(new Error("node offline"));
+    renderAt("live1");
+
+    expect(
+      await screen.findByText("Couldn’t load this stream"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("node offline")).toBeInTheDocument();
+
+    mocks.getStream.mockResolvedValue(stream({ streamId: "live1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(await screen.findByText("Viewers")).toBeInTheDocument();
   });
 });

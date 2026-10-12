@@ -201,16 +201,24 @@ export default function DashboardPage() {
       )}
 
       <div className="stats-row">
-        <Stat
-          label="Status"
-          value={live ? "Live" : archiving ? "Archiving" : "Idle"}
-        />
-        <Stat label="Stream" value={streamId ?? "—"} />
-        <Stat label="Viewers" value={live ? 128 : 0} />
-        <Stat label="Bandwidth" value={live ? "4.5 Mbps" : "—"} />
-        <Stat label="Buffer" value="healthy" />
-        <Stat label="Chunks" value={live ? 4321 : 0} />
-        <Stat label="Retransmissions" value={3} />
+        {live || archiving ? (
+          <>
+            <Stat
+              label="Status"
+              value={live ? "Live" : archiving ? "Archiving" : "Idle"}
+            />
+            <Stat label="Stream" value={streamId ?? "—"} />
+            <Stat label="Viewers" value={live ? 128 : 0} />
+            <Stat label="Bandwidth" value={live ? "4.5 Mbps" : "—"} />
+            <Stat label="Buffer" value="healthy" />
+            <Stat label="Chunks" value={live ? 4321 : 0} />
+            <Stat label="Retransmissions" value={3} />
+          </>
+        ) : (
+          <div className="empty" style={{ width: "100%" }}>
+            No broadcast yet — start one to see stream health here.
+          </div>
+        )}
       </div>
     </>
   );
