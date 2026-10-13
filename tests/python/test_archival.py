@@ -7,6 +7,8 @@ import pytest
 from qlive.archival import (
     QDN_CHUNK_MAX_BYTES,
     QDN_CHUNK_MIN_BYTES,
+    QORTAL_ARBITRARY_CHUNK_BYTES,
+    QORTAL_ARBITRARY_FILE_MAX_BYTES,
     ArchiveState,
     ArchivalError,
     ArchivalPipeline,
@@ -156,6 +158,32 @@ class TestArchivalPipeline:
                 min_chunk_bytes=4096,
                 max_chunk_bytes=2048,
             )
+
+    def test_default_ceiling_within_qdn_file_limit(self):
+        # QDN FILE resources cap at 2 GiB (ArbitraryDataFile.MAX_FILE_SIZE); the
+        # QLive default ceiling must sit within it.
+        assert QORTAL_ARBITRARY_FILE_MAX_BYTES == 2 * 1024**3
+        assert QORTAL_ARBITRARY_CHUNK_BYTES == 512 * 1024
+        assert QDN_CHUNK_MIN_BYTES < QDN_CHUNK_MAX_BYTES <= QORTAL_ARBITRARY_FILE_MAX_BYTES
+
+    def test_ceiling_above_qdn_file_limit_rejected(self, stream_id):
+        with pytest.raises(ArchivalError):
+            ArchivalPipeline(
+                stream_id=stream_id,
+                publisher="test-name",
+                title="Test Stream",
+                max_chunk_bytes=QORTAL_ARBITRARY_FILE_MAX_BYTES + 1,
+            )
+
+    def test_ceiling_at_qdn_file_limit_allowed(self, stream_id):
+        pipeline = ArchivalPipeline(
+            stream_id=stream_id,
+            publisher="test-name",
+            title="Test Stream",
+            min_chunk_bytes=1024,
+            max_chunk_bytes=QORTAL_ARBITRARY_FILE_MAX_BYTES,
+        )
+        assert pipeline.max_chunk_bytes == QORTAL_ARBITRARY_FILE_MAX_BYTES
 
     def test_add_chunk_wrong_stream(self, stream_id):
         pipeline = ArchivalPipeline(

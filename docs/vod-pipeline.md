@@ -15,7 +15,9 @@ on stream end, publishes a Q-Tube manifest.
    integrity verification.
 3. **Manifest** — on finalize, a `QTubeManifest` is generated with chunk
    hashes, total size, fragment count, and duration.
-4. **Publish** — the manifest is published under the broadcaster's Qortal Name.
+4. **Publish** — the archive chunks are published as `service: FILE` (see
+   [QDN-STORAGE-ECONOMICS.md](QDN-STORAGE-ECONOMICS.md) §4); the manifest is
+   published under the broadcaster's Qortal Name.
 
 ## Interrupted Streams
 

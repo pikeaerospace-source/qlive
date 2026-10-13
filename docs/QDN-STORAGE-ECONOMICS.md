@@ -29,10 +29,10 @@ size, QDN retention) are marked **to verify** and require a running node — see
 
 | Question | Finding | Verdict |
 | --- | --- | --- |
-| QDN chunk sizing (10–50 MB) | Was flushing at the **10 MB floor**; now flushes toward the 50 MB ceiling | **Resolved** — chunks sized toward max (5× fewer) |
+| QDN chunk sizing (10–50 MB) | Was flushing at the **10 MB floor**; now flushes toward the 50 MB ceiling, published as `service: FILE` (cap `MAX_FILE_SIZE` = 2 GiB) | **Resolved** |
 | Transaction costs | ~0.001 QORT base per publish, **proportional to data size** (API example: 0.001 QORT for a small resource); archival = 1 standard QDN fee | Negligible; **scale factor to verify** |
 | Chain bloat | Metadata doc ≈ 0.8–1.1 KB and **data is off-chain**; peer-list publishes are the bloat driver, not ledger size | **Bounded** by delta-triggered cadence |
-| Storage limits / retention | Limits are **per-service maximums** (APP 50 MB, IMAGE 10 MB, JSON 25 KB, MAIL 1 MB, THUMBNAIL 500 KB); **no minimum**. FILE/VIDEO limits + retention **to verify** | **Partly resolved** |
+| Storage limits / retention | Per-service **maximums** (FILE: none → 2 GiB `MAX_FILE_SIZE`; APP/ATTACHMENT 50 MB; IMAGE 10 MB; JSON 25 KB; MAIL 1 MB; THUMBNAIL 500 KB); **no minimum**. Retention **to verify** | **Resolved (limits)** |
 
 ---
 
@@ -161,39 +161,45 @@ turns the model into a number ([QORTAL-CORE-API.md](QORTAL-CORE-API.md),
 
 ### 4.1 QDN resource limits (sourced)
 
-Per Qortal's QDN documentation, limits are **per-service maximums** — there is
-**no stated minimum**:
+Per Qortal's QDN docs and Core source, limits are **per-service maximums** — there
+is **no stated minimum**:
 
 | Service | Max size |
 | --- | --- |
-| APP | 50 MB |
+| FILE / FILES | **no per-service cap** → bounded by `ArbitraryDataFile.MAX_FILE_SIZE` = **2 GiB** |
+| APP, ATTACHMENT | 50 MB |
 | IMAGE | 10 MB |
-| JSON | 25 KB |
-| MAIL | 1 MB |
+| QCHAT_ATTACHMENT, MAIL | 1 MB |
 | THUMBNAIL | 500 KB |
-| FILE / FILES, VIDEO, AUDIO, DOCUMENT | not stated in the doc — **to verify** |
+| JSON | 25 KB |
+| CHAIN_DATA | 239 B (fully on-chain) |
+| VIDEO, AUDIO, DOCUMENT | not confirmed — **to verify** |
 
+- **Qortal chunks arbitrary data internally** at `ArbitraryDataFile.CHUNK_SIZE` =
+  **512 KiB** (max `MAX_CHUNK_SIZE` = 1 MiB). This is transparent to publishers —
+  a resource is addressed as one unit.
+- **`MAX_FILE_SIZE` = 2 GiB** is the ceiling for a single resource.
 - Resources **< 240 bytes** can live **fully on-chain**; larger payloads are
   stored off-chain and verified by an on-chain SHA-256 hash.
 - Large files should be **chunked**, or published as the **FILE** service.
 
 **Consequences for QLive:**
 
+- **Archive chunks are published under `service: FILE`** — a single file with no
+  per-service cap. The binding ceiling is `MAX_FILE_SIZE` = **2 GiB**; QLive keeps
+  a **50 MB** operational ceiling (enforced `≤ 2 GiB` in `ArchivalPipeline`) for
+  in-RAM chunks and finer manifest / partial-retrieval granularity. See §5.
 - The **signaling doc** is published as `service: JSON` → its **25 KB** cap is
   the binding limit. At ~0.8–1.1 KB (§2.1) there is ample headroom, but the
   peer list is the growing term (~30 B per peer id ⇒ 25 KB ≈ 800 peers).
   Delta-triggered updates keep it small; a very large swarm would need
   paged/indirect peer lists.
-- **Archive chunks** must be published under a service whose limit they respect
-  — likely **FILE** (large binary), not DOCUMENT (chunking advised). QLive's
-  `QDN_CHUNK_MAX_BYTES` (50 MB) must be ≤ the chosen service's max; the FILE
-  limit is **to verify**.
 - There is **no minimum**, so `QDN_CHUNK_MIN_BYTES` is a QLive batching floor and
   a short final chunk is valid (see §1.2).
 
-*Sources:* Qortal QDN docs — `qdn-basics.md` (service size limits; 240-byte
-on-chain threshold) and `qortal.dev/docs/q-apps` (on-chain vs. off-chain,
-SHA-256 verification).
+*Sources:* Qortal Core — `Service.java` (per-service `maxSize`),
+`ArbitraryDataFile.java` (`MAX_FILE_SIZE`, `CHUNK_SIZE`); Qortal QDN docs —
+`qdn-basics.md`, `qortal.dev/docs/q-apps`.
 
 ### 4.2 What QLive places on QDN
 
@@ -222,10 +228,12 @@ acceptable because Q-Tube already stores VOD at this size — **confirm**.
 
 ## 5. Recommendations
 
-1. **Flush archive chunks toward 50 MB** ~~(not the 10 MB floor)~~ —
-   **implemented**: ~5× fewer QDN resources, publishes, and manifest entries, at
-   equal data volume. `min_chunk_bytes` remains the protocol floor / config
-   guard, and the final chunk may be smaller.
+1. **Publish archive chunks under `service: FILE`** and flush them toward 50 MB
+   ~~(not the 10 MB floor)~~ — **implemented**: FILE has no per-service cap
+   (bounded by `MAX_FILE_SIZE` = 2 GiB, enforced in `ArchivalPipeline`), and
+   ceiling-flushing gives ~5× fewer QDN resources, publishes, and manifest
+   entries at equal data volume. `min_chunk_bytes` remains the protocol floor /
+   config guard, and the final chunk may be smaller.
 2. **Keep delta-triggered peer-list publishes** (already decided) — this is what
    keeps the §2 publish count bounded; never poll metadata.
 3. **Treat the per-publish QORT fee as the one unknown** that converts the cost
@@ -258,7 +266,8 @@ No empirical QDN measurements yet (require a running Qortal Core node).
 
 - [ ] Actual QORT fee per QDN publish transaction? (The fee is size-proportional; measure the constant.)
 - [ ] Does QDN update a resource in place or append a version per re-publish? (Docs say re-publishing the same name+service+identifier **overwrites**.)
-- [ ] Size limit for the **FILE/VIDEO** services (the doc states APP/IMAGE/JSON/MAIL/THUMBNAIL only) — set `QDN_CHUNK_MAX_BYTES` to it?
+- [x] Size limit for the archive-chunk service? **FILE has no per-service cap**, bounded by `MAX_FILE_SIZE` = 2 GiB. QLive publishes archive chunks as `service: FILE`.
+- [ ] Size limits for **VIDEO/AUDIO/DOCUMENT** services (not confirmed in the sources checked).
 - [ ] Any pruning/expiry policy for large (GB-scale) resources?
 - [ ] Real on-chain tx size for a metadata publish?
 - [ ] Measured QDN publish→retrievable latency (affects peer-list freshness).
@@ -274,6 +283,7 @@ No empirical QDN measurements yet (require a running Qortal Core node).
 | 2026-10-12 | Cost model is pay-per-publish-event; per-publish fee to verify | Live media never touches the chain; only < 1.2 KB metadata + the final archive do |
 | 2026-10-12 | `QDN_CHUNK_MIN_BYTES` reclassified as a QLive **batching floor**, not a QDN limit | Qortal QDN enforces per-service **maximums** (APP 50 MB, IMAGE 10 MB, JSON 25 KB, MAIL 1 MB, THUMBNAIL 500 KB) and **no minimum**; short final chunks are therefore valid |
 | 2026-10-12 | Added `FinalChunkPolicy` (`ALLOW_SHORT` default, `MERGE` opt-in) | Default matches QDN reality; `MERGE` serves deployments that impose their own floor (folds a sub-floor remainder into the previous chunk) |
+| 2026-10-12 | Pin archive chunks to the **FILE** service; ceiling 50 MB, hard-bounded by `MAX_FILE_SIZE` (2 GiB) | FILE has no per-service cap and is a single file; 2 GiB is the binding limit. 50 MB keeps chunks in RAM with fine manifest/partial-retrieval granularity. Enforced in `ArchivalPipeline` |
 
 ---
 

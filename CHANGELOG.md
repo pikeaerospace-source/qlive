@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   control the new ceiling. Tests updated/added in `test_archival.py`
   (`test_flush_toward_ceiling`, `test_chunks_never_exceed_ceiling`, bounds
   validation). Resolves follow-up #1 in `docs/QDN-STORAGE-ECONOMICS.md`.
+- `qlive/archival.py` — archive chunks are **pinned to QDN's `FILE` service**
+  (single file, no per-service cap). Added sourced constants
+  `QORTAL_ARBITRARY_FILE_MAX_BYTES` (2 GiB — `ArbitraryDataFile.MAX_FILE_SIZE`)
+  and `QORTAL_ARBITRARY_CHUNK_BYTES` (512 KiB — `CHUNK_SIZE`); the 50 MB ceiling
+  is retained and `ArchivalPipeline.__init__` now rejects a ceiling above the
+  FILE cap. Tests: `test_archival.py` +3 (29).
 
 ### Design
 
@@ -43,11 +49,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pay-per-publish cost model, and the on-chain vs. off-chain split. Key finding:
   `ArchivalPipeline` flushes at the **10 MB floor** (`max_chunk_bytes` is never
   consulted), making archives ~5× chunkier than the 50 MB ceiling allows —
-  recommending a flush-toward-ceiling change (**implemented**). QDN's
-  per-service size limits (APP 50 MB, IMAGE 10 MB, JSON 25 KB, MAIL 1 MB,
-  THUMBNAIL 500 KB; **no minimum**) are now sourced from Qortal's QDN docs (§4);
-  the remaining network facts (publish-fee scale, FILE/VIDEO limits, retention)
-  are flagged **to verify**.
+  recommending a flush-toward-ceiling change (**implemented**). Per-service size
+  limits are now sourced from Qortal's docs/Core (§4) — notably **FILE has no
+  per-service cap**, bounded by `MAX_FILE_SIZE` = 2 GiB, and QLive pins archive
+  chunks to the **FILE** service. Remaining network facts (publish-fee scale,
+  VIDEO/AUDIO limits, retention) are flagged **to verify**.
 - `docs/DESIGN-DECISIONS.md` — **decision register** consolidating the ten open
   design questions (previously spread across per-topic research docs and the
   TODO logs) with status (Decided / Proposed / Open), rationale, and evidence

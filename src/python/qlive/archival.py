@@ -19,14 +19,21 @@ from typing import Any
 
 from qlive.chunk import Chunk
 
-# Archival batching constants.
-#
-# NOTE: QDN does not impose a *minimum* resource size — its limits are per-service
-# maximums (e.g. APP 50 MB, IMAGE 10 MB, JSON 25 KB, MAIL 1 MB, THUMBNAIL 500 KB;
-# see docs/QDN-STORAGE-ECONOMICS.md §1). So QDN_CHUNK_MIN_BYTES is a QLive
-# *batching floor* (fewer, larger resources), not a hard network limit. Align
-# QDN_CHUNK_MAX_BYTES with the size limit of the service the archive is published
-# under (docs/protocol.md section 10).
+# Qortal QDN limits (sourced from Qortal Core):
+#   - ArbitraryDataFile.MAX_FILE_SIZE = 2 GiB  (max size of one QDN resource)
+#   - ArbitraryDataFile.CHUNK_SIZE    = 512 KiB (Qortal's *internal* chunking)
+#   - Service.FILE has no per-service cap (maxSize == null) and is a single file,
+#     so it is the archive-chunk service of choice.
+QORTAL_ARBITRARY_FILE_MAX_BYTES = 2 * 1024**3  # 2 GiB — ArbitraryDataFile.MAX_FILE_SIZE
+QORTAL_ARBITRARY_CHUNK_BYTES = 512 * 1024  # 512 KiB — ArbitraryDataFile.CHUNK_SIZE
+
+# QLive archive batching window (chunks are published under the FILE service).
+# NOTE: QDN imposes no *minimum* resource size (its limits are per-service
+# maximums), so QDN_CHUNK_MIN_BYTES is a QLive *batching floor* for fewer, larger
+# resources, not a network limit. The ceiling must not exceed the FILE service's
+# 2 GiB cap (enforced in ArchivalPipeline); 50 MB is deliberately smaller, for
+# in-RAM chunks and finer manifest / partial-retrieval granularity.
+# See docs/QDN-STORAGE-ECONOMICS.md §4.
 QDN_CHUNK_MIN_BYTES = 10 * 1024 * 1024  # 10 MB (QLive batching floor)
 QDN_CHUNK_MAX_BYTES = 50 * 1024 * 1024  # 50 MB (ceiling; flush target)
 
@@ -167,6 +174,11 @@ class ArchivalPipeline:
             raise ArchivalError("chunk size bounds must be positive")
         if min_chunk_bytes > max_chunk_bytes:
             raise ArchivalError("min_chunk_bytes must not exceed max_chunk_bytes")
+        if max_chunk_bytes > QORTAL_ARBITRARY_FILE_MAX_BYTES:
+            raise ArchivalError(
+                "max_chunk_bytes exceeds the QDN FILE service limit "
+                f"({QORTAL_ARBITRARY_FILE_MAX_BYTES} bytes)"
+            )
         self.stream_id = stream_id
         self.publisher = publisher
         self.title = title
