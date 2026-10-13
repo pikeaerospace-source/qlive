@@ -373,6 +373,12 @@ When the stream ends:
 | `SIGNATURE_BYTES` | `64` (Ed25519) |
 | `HASH_BYTES` | `32` (SHA-256) |
 
+> **QDN size limits:** QDN enforces per-service *maximums* (APP 50 MB, IMAGE
+> 10 MB, JSON 25 KB, MAIL 1 MB, THUMBNAIL 500 KB) with **no minimum**; resources
+> under 240 bytes live fully on-chain. So `QDN_CHUNK_MIN_BYTES`/`QDN_CHUNK_MAX_BYTES`
+> are a QLive batching window — align the ceiling with the service the archive
+> is published under. See [QDN-STORAGE-ECONOMICS.md](QDN-STORAGE-ECONOMICS.md) §4.
+
 ---
 
 ## 11. Open Questions

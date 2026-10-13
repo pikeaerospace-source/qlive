@@ -10,6 +10,7 @@ from qlive.archival import (
     ArchiveState,
     ArchivalError,
     ArchivalPipeline,
+    FinalChunkPolicy,
     QDNDataChunk,
     QTubeManifest,
 )
@@ -254,6 +255,77 @@ class TestArchivalPipeline:
 
         manifest = pipeline.finalize(is_partial=True)
         assert manifest.is_partial is True
+
+    def test_final_chunk_allows_short_by_default(self, stream_id):
+        # 5 × 512 B = 2.5 KB; ceiling 2 KB, floor 1 KB → a full chunk + 512 B tail.
+        pipeline = ArchivalPipeline(
+            stream_id=stream_id,
+            publisher="test-name",
+            title="Test Stream",
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
+        )
+        for seq in range(1, 6):
+            pipeline.add_chunk(make_chunk(stream_id, seq, payload_size=512))
+
+        manifest = pipeline.finalize()
+        # The default policy emits the short final chunk as-is (QDN has no
+        # minimum resource size).
+        assert [c.size for c in pipeline.qdn_chunks] == [2048, 512]
+        assert len(manifest.chunk_hashes) == 2
+        assert pipeline.verify_integrity() is True
+
+    def test_final_chunk_merge_folds_small_remainder(self, stream_id):
+        pipeline = ArchivalPipeline(
+            stream_id=stream_id,
+            publisher="test-name",
+            title="Test Stream",
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
+            final_chunk_policy=FinalChunkPolicy.MERGE,
+        )
+        for seq in range(1, 6):
+            pipeline.add_chunk(make_chunk(stream_id, seq, payload_size=512))
+
+        manifest = pipeline.finalize()
+        # No sub-floor chunk: the 512 B tail is folded into the 2 KB chunk.
+        assert [c.size for c in pipeline.qdn_chunks] == [2560]
+        assert len(manifest.chunk_hashes) == 1
+        assert manifest.total_size == 2560
+        assert pipeline.verify_integrity() is True
+
+    def test_final_chunk_merge_waits_for_the_floor(self, stream_id):
+        # A remainder already at/above the floor is emitted normally (no merge).
+        pipeline = ArchivalPipeline(
+            stream_id=stream_id,
+            publisher="test-name",
+            title="Test Stream",
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
+            final_chunk_policy=FinalChunkPolicy.MERGE,
+        )
+        for seq in range(1, 7):  # 6 × 512 B = 3 KB → 2 KB chunk + 1 KB tail
+            pipeline.add_chunk(make_chunk(stream_id, seq, payload_size=512))
+
+        manifest = pipeline.finalize()
+        assert [c.size for c in pipeline.qdn_chunks] == [2048, 1024]
+        assert len(manifest.chunk_hashes) == 2
+
+    def test_final_chunk_merge_without_previous_chunk(self, stream_id):
+        # Archive smaller than the floor with no prior chunk: emit it anyway.
+        pipeline = ArchivalPipeline(
+            stream_id=stream_id,
+            publisher="test-name",
+            title="Test Stream",
+            min_chunk_bytes=1024,
+            max_chunk_bytes=2048,
+            final_chunk_policy=FinalChunkPolicy.MERGE,
+        )
+        pipeline.add_chunk(make_chunk(stream_id, 1, payload_size=512))
+
+        manifest = pipeline.finalize()
+        assert [c.size for c in pipeline.qdn_chunks] == [512]
+        assert len(manifest.chunk_hashes) == 1
 
     def test_finalize_empty(self, stream_id):
         pipeline = ArchivalPipeline(

@@ -43,8 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pay-per-publish cost model, and the on-chain vs. off-chain split. Key finding:
   `ArchivalPipeline` flushes at the **10 MB floor** (`max_chunk_bytes` is never
   consulted), making archives ~5× chunkier than the 50 MB ceiling allows —
-  recommending a flush-toward-ceiling change (tracked as a follow-up). Qortal
-  network facts (publish fee, tx size, retention) are flagged **to verify**.
+  recommending a flush-toward-ceiling change (**implemented**). QDN's
+  per-service size limits (APP 50 MB, IMAGE 10 MB, JSON 25 KB, MAIL 1 MB,
+  THUMBNAIL 500 KB; **no minimum**) are now sourced from Qortal's QDN docs (§4);
+  the remaining network facts (publish-fee scale, FILE/VIDEO limits, retention)
+  are flagged **to verify**.
 - `docs/DESIGN-DECISIONS.md` — **decision register** consolidating the ten open
   design questions (previously spread across per-topic research docs and the
   TODO logs) with status (Decided / Proposed / Open), rationale, and evidence
@@ -62,6 +65,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `qlive/archival.py` — **`FinalChunkPolicy`** (`ALLOW_SHORT` default, `MERGE`
+  opt-in) controls the final archive chunk. QDN imposes **no minimum** resource
+  size — its limits are per-service *maximums* (APP 50 MB, IMAGE 10 MB, JSON
+  25 KB, MAIL 1 MB, THUMBNAIL 500 KB) — so the default emits a short final
+  chunk; `MERGE` folds a sub-floor remainder into the previous chunk for
+  deployments that impose their own floor. `QDN_CHUNK_MIN_BYTES` is
+  re-documented as a QLive batching floor, not a network limit. Tests:
+  `test_archival.py` +4 (26 tests). See
+  [docs/QDN-STORAGE-ECONOMICS.md](docs/QDN-STORAGE-ECONOMICS.md) §1.2/§4.
 - Web UI: **followed streamers + discovery rows** — a new offline
   `localStorage`-backed follow store (`src/js/src/data/follows.ts`, with
   `isFollowing`/`toggleFollow`/`listFollowing`/`subscribe`) drives a

@@ -19,9 +19,16 @@ from typing import Any
 
 from qlive.chunk import Chunk
 
-# Archival constants (from docs/protocol.md section 10)
-QDN_CHUNK_MIN_BYTES = 10 * 1024 * 1024  # 10 MB
-QDN_CHUNK_MAX_BYTES = 50 * 1024 * 1024  # 50 MB
+# Archival batching constants.
+#
+# NOTE: QDN does not impose a *minimum* resource size — its limits are per-service
+# maximums (e.g. APP 50 MB, IMAGE 10 MB, JSON 25 KB, MAIL 1 MB, THUMBNAIL 500 KB;
+# see docs/QDN-STORAGE-ECONOMICS.md §1). So QDN_CHUNK_MIN_BYTES is a QLive
+# *batching floor* (fewer, larger resources), not a hard network limit. Align
+# QDN_CHUNK_MAX_BYTES with the size limit of the service the archive is published
+# under (docs/protocol.md section 10).
+QDN_CHUNK_MIN_BYTES = 10 * 1024 * 1024  # 10 MB (QLive batching floor)
+QDN_CHUNK_MAX_BYTES = 50 * 1024 * 1024  # 50 MB (ceiling; flush target)
 
 
 class ArchiveState(Enum):
@@ -32,6 +39,20 @@ class ArchiveState(Enum):
     FINALIZING = "finalizing"
     COMPLETE = "complete"
     INTERRUPTED = "interrupted"
+
+
+class FinalChunkPolicy(Enum):
+    """How :meth:`ArchivalPipeline.finalize` handles a sub-``min`` remainder.
+
+    QDN enforces no minimum resource size, so the default simply emits the short
+    final chunk. ``MERGE`` exists for deployments that impose their own floor.
+    """
+
+    ALLOW_SHORT = "allow_short"
+    """Emit the buffered remainder as its own (possibly small) final chunk."""
+
+    MERGE = "merge"
+    """Append a sub-``min`` remainder to the previous chunk instead."""
 
 
 class ArchivalError(Exception):
@@ -140,6 +161,7 @@ class ArchivalPipeline:
         category: str = "other",
         min_chunk_bytes: int = QDN_CHUNK_MIN_BYTES,
         max_chunk_bytes: int = QDN_CHUNK_MAX_BYTES,
+        final_chunk_policy: FinalChunkPolicy = FinalChunkPolicy.ALLOW_SHORT,
     ) -> None:
         if min_chunk_bytes <= 0 or max_chunk_bytes <= 0:
             raise ArchivalError("chunk size bounds must be positive")
@@ -152,6 +174,7 @@ class ArchivalPipeline:
         self.category = category
         self.min_chunk_bytes = min_chunk_bytes
         self.max_chunk_bytes = max_chunk_bytes
+        self.final_chunk_policy = final_chunk_policy
         self.started_at = int(time.time() * 1000)
         self._buffer: list[Chunk] = []
         self._buffer_size = 0
@@ -218,7 +241,16 @@ class ArchivalPipeline:
         """
         # Flush any remaining buffered chunks
         if self._buffer:
-            self._flush()
+            if (
+                self.final_chunk_policy is FinalChunkPolicy.MERGE
+                and self._qdn_chunks
+                and self._buffer_size < self.min_chunk_bytes
+            ):
+                # Remainder below the floor: fold it into the previous chunk so
+                # no sub-min QDN resource is emitted.
+                self._merge_trailing()
+            else:
+                self._flush()
 
         if not self._qdn_chunks:
             raise ArchivalError("Cannot finalize empty archive")
@@ -258,6 +290,24 @@ class ArchivalPipeline:
                 return False
             previous = chunk.hash
         return True
+
+    def _merge_trailing(self) -> None:
+        """Append the buffered remainder to the last QDN chunk.
+
+        Used by :attr:`FinalChunkPolicy.MERGE` to avoid emitting a QDN chunk
+        smaller than ``min_chunk_bytes``. The last chunk may then exceed
+        ``max_chunk_bytes`` by up to ``min_chunk_bytes - 1``.
+
+        The hash chain stays valid: only the final chunk changes (nothing links
+        to it), and its ``previous_hash`` — which points at the second-to-last
+        chunk — is unchanged.
+        """
+        data = b"".join(c.payload for c in self._buffer)
+        self._qdn_chunks[-1].data += data
+        self._previous_hash = self._qdn_chunks[-1].hash
+        self._buffer = []
+        self._buffer_size = 0
+        self._update_stats()
 
     def _flush(self) -> None:
         """Flush the buffer as a QDN data chunk."""
