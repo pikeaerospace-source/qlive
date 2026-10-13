@@ -234,9 +234,15 @@ Web UI low-latency toggle (`src/js/src/components/Player.tsx`).
   it) and defer a dedicated mobile experience.
 - **What would settle it:** a decision on whether mobile is a v1 launch
   requirement (which would pull WebRTC/mobile work into scope).
+- Responsive baseline (shipped): the Web UI is fluid at 900 px / 640 px
+  breakpoints (single-column cards on phones, a wrapping player control bar),
+  grows hit areas under `pointer: coarse`, and honours `prefers-reduced-motion`.
+  That keeps the responsive web client usable on a phone; it does not settle the
+  native/desktop-scope question.
 
 **Evidence:** [TODO-RESEARCH.md](../TODO-RESEARCH.md) → UX Research / Mobile;
-[TODO-WEB-UI.md](../TODO-WEB-UI.md) → Testing (mobile testing pending).
+[TODO-WEB-UI.md](../TODO-WEB-UI.md) → Testing (mobile testing pending);
+responsive + a11y baseline in [CHANGELOG.md](../CHANGELOG.md) (Unreleased).
 
 ---
 

@@ -135,6 +135,10 @@ External dependency areas have their own dedicated TODO documents:
 - [x] Stream discovery UI (browse active streams)
 - [x] Chat integration (optional, via QDN or separate channel) — Web UI `ChatPanel` + offline chat seam (`src/js/src/data/chat.ts`); a mesh/WebSocket client replaces the simulator when the live transport lands → [TODO-WEB-UI.md](TODO-WEB-UI.md)
 
+### Web UI
+- [x] Responsive layout — fluid grid + player control bar at `900px`/`640px` breakpoints, coarse-pointer touch targets → [TODO-WEB-UI.md](TODO-WEB-UI.md)
+- [x] Accessibility baseline (WCAG 2.1) — landmarks + skip link, focus moved to `main` on route change, `aria-current` nav, `prefers-reduced-motion`, labelled controls and live regions; `Layout.test.tsx` guards the shell → [TODO-WEB-UI.md](TODO-WEB-UI.md)
+
 ### Q-Tube Integration
 - [ ] Embed QLive player in Q-Tube
 - [ ] "Live Now" section on Q-Tube
@@ -164,7 +168,7 @@ lists what each open/proposed item needs.
 - [ ] **Simulcast / SVC:** Scalable Video Coding for bandwidth-adaptive delivery without multiple encodes.
 - [ ] **Stream recording on demand:** Let viewers request a "record this stream" that archives to their own QDN space.
 - [ ] **Multi-camera / multi-angle:** Publisher publishes multiple video tracks; viewers switch angles.
-- [ ] **Live chat:** Decentralized chat channel tied to the stream (QDN-based or ephemeral mesh).
+- [x] **Live chat:** Ephemeral, stream-scoped chat — `ChatPanel` + offline `data/chat.ts` seam on the watch page; the decentralized transport (QDN-based or ephemeral mesh) lands with the live swarm client.
 - [ ] **Donations / tipping:** QORT tipping integrated into the player (Qortal Name → QORT transfer).
 - [ ] **Stream scheduling:** Announce upcoming streams via QDN (calendar/event metadata).
 - [ ] **Analytics:** Privacy-preserving viewer/bandwidth analytics for streamers.

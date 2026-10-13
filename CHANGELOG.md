@@ -71,6 +71,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **responsive + accessibility pass** — the shell now moves focus to
+  `main` after every route change (client-side navigation previously left
+  assistive technology announcing the *previous* page); `main` carries
+  `tabindex="-1"`. The stylesheet adds `900px`/`640px` breakpoints (single-column
+  cards on phones, a player control bar that wraps instead of overflowing,
+  tightened gutters/padding), larger hit areas under `pointer: coarse`, and a
+  `prefers-reduced-motion` block that stops the skeleton shimmer and transitions.
+  New `Layout.test.tsx` (6 tests) guards the landmarks, skip link,
+  `aria-current`, focus-on-navigate, and the no-steal-on-first-load rule. Suite
+  **140 passing** (was 134)
 - Web UI: **live chat** — new offline chat seam (`src/js/src/data/chat.ts`:
   `ChatClient` / `MockChatClient` / `createChatClient`) and a `ChatPanel`
   component (message log with `aria-live`, compose box, Send disabled on an empty

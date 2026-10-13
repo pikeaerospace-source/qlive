@@ -57,7 +57,7 @@ The QLive web UI provides:
 - [x] Low-latency mode toggle — on by default for live, hidden for replays; toggling rebuilds the hls.js pipeline (constructor option)
 - [x] Picture-in-picture support — control-bar button + `I` shortcut (feature-detected; disabled where unsupported)
 - [x] Keyboard shortcuts — Space/K play-pause, M mute, F fullscreen, I picture-in-picture, ↑/↓ volume (scoped to the player, ignored while typing in inputs)
-- [ ] Mobile responsive layout
+- [x] Mobile responsive layout — control bar wraps below 900px and drops the right-align spacer, the volume slider narrows, the 16:9 stage holds at any width, and hit areas grow under `pointer: coarse`
 - [x] Error recovery (reconnect on stream drop) → `Player` playback states: auto-recovery (2× backoff on network errors, 1× media-error recovery) then a "Playback interrupted" overlay with Retry
 - [x] Playback status overlay (connecting / reconnecting / interrupted / unsupported)
 
@@ -95,8 +95,9 @@ The QLive web UI provides:
 
 - [x] Design system (colors, typography, spacing)
 - [x] Dark mode support
-- [~] Responsive layout (desktop, tablet, mobile)
-- [~] Accessibility (WCAG 2.1)
+- [x] Responsive layout (desktop, tablet, mobile) — `viewport` meta + fluid grid breakpoints at 900px (tablet gutters, wrapping player controls) and 640px (single-column cards, stacked toolbar); panel/notice padding and the chat log height also scale down
+- [x] Accessibility (WCAG 2.1) — `header`/`nav`/`main` landmarks + skip link, focus moved to `main` on route change (`tabindex="-1"`), `aria-current="page"` on the active nav link, labelled controls, `aria-live` for status/overlay announcements, ≥4.5:1 body-text contrast, `prefers-reduced-motion` honoured, and coarse-pointer touch targets; `Layout.test.tsx` guards the shell (a real screen-reader/axe audit is still pending)
+- [ ] Throttle live-region announcements for the dashboard stats — the 7-stat row is `aria-live="polite"` but its values tick every 2 s (`MockStatsClient`), which queues an announcement per tick; narrow it to the metrics that matter (as `WatchPage` does for viewers) or debounce
 - [x] Loading states and skeletons — `Skeleton` component (`grid`/`text`/`detail` variants) on Discovery, Watch, and Profile while fetching
 - [x] Empty states — Discovery "no match", Profile "no streams yet", Dashboard "no broadcast yet" before the first stream
 - [x] Error states — page-level fetch failures surface a `notice--error` with **Retry** on Discovery, Watch, and Profile (player playback interruptions already covered by the Player overlay)
@@ -145,7 +146,7 @@ The QLive web UI provides:
 - [x] **W2 — Discovery:** Users can browse and find streams
 - [x] **W3 — Dashboard:** Streamers can manage broadcasts
 - [x] **W4 — Profiles:** Streamer profiles with live and VOD content
-- [~] **W5 — Polish:** Design system, mobile, accessibility (design done; mobile/a11y partial)
+- [~] **W5 — Polish:** Design system, mobile, accessibility (design system + responsive/a11y baselines shipped; real-device and cross-browser testing pending)
 
 ---
 
