@@ -399,6 +399,39 @@ button {
   gap: 24px;
 }
 
+/* ---------- Stat value tones ---------- */
+.stat__value--healthy {
+  color: var(--success);
+}
+
+.stat__value--warning {
+  color: var(--warning);
+}
+
+.stat__value--danger {
+  color: var(--danger);
+}
+
+.stat__value--muted {
+  color: var(--text-muted);
+}
+
+/* ---------- Sparkline ---------- */
+.sparkline {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  overflow: visible;
+}
+
+.sparkline__line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
 /* ---------- Forms ---------- */
 .field {
   display: flex;

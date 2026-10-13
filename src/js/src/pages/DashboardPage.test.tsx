@@ -15,12 +15,16 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Stream, StreamStatus } from "../types";
-import DashboardPage, { ARCHIVE_POLL_MS } from "./DashboardPage";
+import DashboardPage, {
+  ARCHIVE_POLL_MS,
+  BANDWIDTH_SAMPLES,
+} from "./DashboardPage";
 
 const mocks = vi.hoisted(() => ({
   publishStream: vi.fn(),
   unpublishStream: vi.fn(),
   getStream: vi.fn(),
+  subscribeStats: vi.fn(),
 }));
 
 vi.mock("../data/publisher", () => ({
@@ -31,7 +35,10 @@ vi.mock("../data/publisher", () => ({
 }));
 
 vi.mock("../data/api", () => ({
-  selectApi: () => ({ getStream: mocks.getStream }),
+  selectApi: () => ({
+    getStream: mocks.getStream,
+    subscribeStats: mocks.subscribeStats,
+  }),
 }));
 
 /** Minimal stream shape for the archive read-back poll. */
@@ -77,6 +84,8 @@ describe("DashboardPage signaling", () => {
     );
     mocks.getStream.mockReset();
     mocks.getStream.mockResolvedValue(undefined);
+    mocks.subscribeStats.mockReset();
+    mocks.subscribeStats.mockReturnValue(() => {});
   });
 
   it("publishes a live stream doc when the broadcast starts", async () => {
@@ -185,5 +194,120 @@ describe("DashboardPage signaling", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText("Viewers")).not.toBeInTheDocument();
+  });
+});
+
+describe("DashboardPage live stats", () => {
+  beforeEach(() => {
+    mocks.publishStream.mockReset();
+    mocks.publishStream.mockImplementation(
+      (pub: { streamId: string; status: StreamStatus }) =>
+        Promise.resolve(publishedResult(pub.streamId, pub.status)),
+    );
+    mocks.getStream.mockReset();
+    mocks.getStream.mockResolvedValue(undefined);
+    mocks.subscribeStats.mockReset();
+    mocks.subscribeStats.mockReturnValue(() => {});
+  });
+
+  /** Read a stat widget's value by its label. */
+  const statValue = (label: string) =>
+    screen.getByText(label).parentElement?.querySelector(".stat__value")
+      ?.textContent;
+
+  const emit = (stats: {
+    viewers?: number;
+    bandwidthKbps?: number;
+    bufferState?: string;
+    chunksProduced?: number;
+    retransmissions?: number;
+  }) => {
+    mocks.subscribeStats.mockImplementation(
+      (_id: string, cb: (s: unknown) => void) => {
+        cb({
+          viewers: 0,
+          bandwidthKbps: 0,
+          bufferState: "healthy",
+          chunksProduced: 0,
+          retransmissions: 0,
+          ...stats,
+        });
+        return () => {};
+      },
+    );
+  };
+
+  it("does not subscribe to stats before broadcasting", () => {
+    render(<DashboardPage />);
+    expect(mocks.subscribeStats).not.toHaveBeenCalled();
+  });
+
+  it("renders the live health widgets from the stats feed", async () => {
+    emit({
+      viewers: 42,
+      bandwidthKbps: 4500,
+      bufferState: "healthy",
+      chunksProduced: 120,
+      retransmissions: 3,
+    });
+    render(<DashboardPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Start broadcast" }));
+    await screen.findByText("Metadata published");
+
+    expect(await screen.findByText("4.5 Mbps")).toBeInTheDocument();
+    expect(statValue("Viewers")).toBe("42");
+    expect(statValue("Buffer")).toBe("healthy");
+    expect(statValue("Chunks")).toBe("120");
+    expect(statValue("Retransmissions")).toBe("3");
+    expect(
+      screen.getByRole("img", { name: "Bandwidth over time (kbps)" }),
+    ).toBeInTheDocument();
+  });
+
+  it("tones the buffer stat by buffer health", async () => {
+    emit({ bufferState: "stalling" });
+    render(<DashboardPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Start broadcast" }));
+    await screen.findByText("Metadata published");
+
+    expect(await screen.findByText("stalling")).toHaveClass(
+      "stat__value--danger",
+    );
+  });
+
+  it("caps the bandwidth history window", async () => {
+    mocks.subscribeStats.mockImplementation(
+      (_id: string, cb: (s: unknown) => void) => {
+        for (let i = 0; i < 60; i += 1) {
+          cb({
+            viewers: 1,
+            bandwidthKbps: 1000 + i,
+            bufferState: "healthy",
+            chunksProduced: i,
+            retransmissions: 0,
+          });
+        }
+        return () => {};
+      },
+    );
+    render(<DashboardPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Start broadcast" }));
+    await screen.findByText("Metadata published");
+
+    expect(
+      await screen.findByText(`${BANDWIDTH_SAMPLES} samples`),
+    ).toBeInTheDocument();
+  });
+
+  it("unsubscribes from stats when the broadcast stops", async () => {
+    const unsubscribe = vi.fn();
+    mocks.subscribeStats.mockReturnValue(unsubscribe);
+    render(<DashboardPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Start broadcast" }));
+    await screen.findByText("Metadata published");
+
+    fireEvent.click(screen.getByRole("button", { name: "Stop broadcast" }));
+
+    await waitFor(() => expect(unsubscribe).toHaveBeenCalled());
   });
 });

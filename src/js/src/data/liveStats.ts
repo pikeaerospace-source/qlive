@@ -9,7 +9,10 @@ import type { Stream, StreamStats } from "../types";
  */
 export interface StatsClient {
   /** Subscribe to live stats for a stream. Returns an unsubscribe function. */
-  subscribe(streamId: string, onUpdate: (stats: StreamStats) => void): () => void;
+  subscribe(
+    streamId: string,
+    onUpdate: (stats: StreamStats) => void,
+  ): () => void;
   /** Close the client, disconnecting and clearing any timers. */
   close(): void;
 }
@@ -18,12 +21,15 @@ export interface StatsClient {
 export class MockStatsClient implements StatsClient {
   private timers = new Map<string, ReturnType<typeof setInterval>>();
   private stats = new Map<string, StreamStats>();
+  private nominalKbps = new Map<string, number>();
 
   constructor(streams: Stream[]) {
     for (const stream of streams) {
+      const nominal = Math.round(stream.bitrate.video / 1000);
+      this.nominalKbps.set(stream.streamId, nominal);
       this.stats.set(stream.streamId, {
         viewers: stream.viewers,
-        bandwidthKbps: Math.round(stream.bitrate.video / 1000),
+        bandwidthKbps: nominal,
         bufferState: "healthy",
         chunksProduced: 0,
         retransmissions: 0,
@@ -46,6 +52,14 @@ export class MockStatsClient implements StatsClient {
         stats.viewers + Math.floor(Math.random() * 9) - 4,
       );
       stats.chunksProduced += 1;
+      // Jitter bandwidth around the nominal so the dashboard graph moves, and
+      // occasionally record a retransmission.
+      const nominal = this.nominalKbps.get(streamId) ?? stats.bandwidthKbps;
+      stats.bandwidthKbps = Math.max(
+        1,
+        Math.round(nominal * (1 + (Math.random() - 0.5) * 0.1)),
+      );
+      if (Math.random() < 0.15) stats.retransmissions += 1;
       onUpdate({ ...stats });
     }, 2000);
 
@@ -83,11 +97,16 @@ export class WebSocketStatsClient implements StatsClient {
 
       ws.onmessage = (event) => {
         try {
-          const message = JSON.parse(String(event.data)) as Partial<StreamStats> & {
+          const message = JSON.parse(
+            String(event.data),
+          ) as Partial<StreamStats> & {
             type?: string;
             streamId?: string;
           };
-          if (message.type === "stats" && typeof message.streamId === "string") {
+          if (
+            message.type === "stats" &&
+            typeof message.streamId === "string"
+          ) {
             this.dispatch(message.streamId, message as StreamStats);
           }
         } catch {

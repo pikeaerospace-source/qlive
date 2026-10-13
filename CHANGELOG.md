@@ -71,6 +71,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **broadcaster dashboard live stats widgets** — the dashboard now
+  subscribes to the swarm stats feed (`selectApi().subscribeStats`) while live
+  and renders real metrics instead of placeholders: **viewer count**, a
+  **bandwidth panel** with a rolling `Sparkline` (`BANDWIDTH_SAMPLES` = 40) and
+  an Mbps readout, a **buffer-health** stat colour-toned per state
+  (`filling`/`healthy`/`stalling`/`overflow`), **chunk production rate**
+  (session-average chunks/min), and **retransmissions**. New `Sparkline`
+  component (inline SVG, `role="img"`) and an optional `Stat` `tone`. The
+  `MockStatsClient` now jitters bandwidth and occasionally logs retransmissions
+  so the graph is meaningful offline. Tests: `Sparkline.test.tsx` (new, 5),
+  `DashboardPage.test.tsx` (+5) — suite **115 passing** (was 105)
 - `qlive/archival.py` — **`FinalChunkPolicy`** (`ALLOW_SHORT` default, `MERGE`
   opt-in) controls the final archive chunk. QDN imposes **no minimum** resource
   size — its limits are per-service *maximums* (APP 50 MB, IMAGE 10 MB, JSON

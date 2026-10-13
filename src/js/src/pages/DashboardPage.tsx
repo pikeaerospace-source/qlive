@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import Stat from "../components/Stat";
+import Sparkline from "../components/Sparkline";
+import Stat, { type StatTone } from "../components/Stat";
 import { selectApi } from "../data/api";
 import { selectPublisher } from "../data/publisher";
 import type { StreamPublishResult } from "../data/qapp";
-import type { StreamStatus } from "../types";
+import type { BufferState, StreamStats, StreamStatus } from "../types";
 
 /**
  * Provisional stream id for a broadcast session.
@@ -24,6 +25,19 @@ const BITRATE = { video: 4_500_000, audio: 128_000 };
 const FRAGMENT_DURATION_MS = 1000;
 /** How often to re-read the stream doc while archiving (exported for tests). */
 export const ARCHIVE_POLL_MS = 5000;
+/** Rolling window of bandwidth samples shown in the dashboard sparkline. */
+export const BANDWIDTH_SAMPLES = 40;
+
+/** Colour tone for each swarm buffer-health state. */
+const BUFFER_TONE: Record<BufferState, StatTone> = {
+  filling: "warning",
+  healthy: "healthy",
+  stalling: "danger",
+  overflow: "danger",
+};
+
+/** Format a bandwidth reading in kbps as Mbps. */
+const kbpsToMbps = (kbps: number) => `${(kbps / 1000).toFixed(1)} Mbps`;
 
 /** Result of the last signaling write (QDN, or the offline registry). */
 type Signaling =
@@ -41,6 +55,23 @@ export default function DashboardPage() {
   const [signaling, setSignaling] = useState<Signaling>({ state: "idle" });
   /** True once the stream doc read-back reports the archive is complete. */
   const [archiveDone, setArchiveDone] = useState(false);
+  /** Latest live swarm stats (undefined until the first sample arrives). */
+  const [stats, setStats] = useState<StreamStats>();
+  /** Rolling bandwidth series for the sparkline. */
+  const [bandwidthHistory, setBandwidthHistory] = useState<number[]>([]);
+
+  // Subscribe to live swarm stats while broadcasting; reset when it stops.
+  useEffect(() => {
+    if (!live || !streamId) return;
+    setStats(undefined);
+    setBandwidthHistory([]);
+    return selectApi().subscribeStats(streamId, (next) => {
+      setStats(next);
+      setBandwidthHistory((history) =>
+        [...history, next.bandwidthKbps].slice(-BANDWIDTH_SAMPLES),
+      );
+    });
+  }, [live, streamId]);
 
   /** Publish (or re-publish) the stream's signaling document. */
   async function publish(id: string, status: StreamStatus, started: number) {
@@ -110,6 +141,16 @@ export default function DashboardPage() {
       clearInterval(timer);
     };
   }, [archiving, archiveDone, streamId]);
+
+  // Session-average chunk production rate (chunks per minute since start).
+  const elapsedMinutes = startedAt
+    ? Math.max((Date.now() - startedAt) / 60_000, 1 / 60)
+    : undefined;
+  const chunkRate =
+    stats && elapsedMinutes
+      ? Math.round(stats.chunksProduced / elapsedMinutes)
+      : undefined;
+  const bufferState = stats?.bufferState;
 
   return (
     <>
@@ -237,34 +278,63 @@ export default function DashboardPage() {
         </section>
       )}
 
-      <div className="stats-row">
-        {live || archiving ? (
-          <>
-            <Stat
-              label="Status"
-              value={
-                live
-                  ? "Live"
-                  : archiving
-                    ? archiveDone
-                      ? "Archived"
-                      : "Archiving"
-                    : "Idle"
-              }
-            />
+      {live ? (
+        <>
+          <div className="stats-row" aria-live="polite">
+            <Stat label="Status" value="Live" />
             <Stat label="Stream" value={streamId ?? "—"} />
-            <Stat label="Viewers" value={live ? 128 : 0} />
-            <Stat label="Bandwidth" value={live ? "4.5 Mbps" : "—"} />
-            <Stat label="Buffer" value="healthy" />
-            <Stat label="Chunks" value={live ? 4321 : 0} />
-            <Stat label="Retransmissions" value={3} />
-          </>
-        ) : (
+            <Stat label="Viewers" value={stats?.viewers ?? 0} />
+            <Stat
+              label="Buffer"
+              value={bufferState ?? "—"}
+              tone={bufferState ? BUFFER_TONE[bufferState] : "muted"}
+            />
+            <Stat label="Chunks" value={stats?.chunksProduced ?? 0} />
+            <Stat
+              label="Chunk rate"
+              value={chunkRate !== undefined ? `${chunkRate}/min` : "—"}
+            />
+            <Stat label="Retransmissions" value={stats?.retransmissions ?? 0} />
+          </div>
+
+          <section
+            className="card"
+            aria-label="Bandwidth"
+            style={{ marginBottom: 20 }}
+          >
+            <div className="stream-card__meta">
+              <strong>Bandwidth</strong>
+              <span className="mono">
+                {stats ? kbpsToMbps(stats.bandwidthKbps) : "—"}
+              </span>
+              {bandwidthHistory.length > 0 && (
+                <span className="muted">{bandwidthHistory.length} samples</span>
+              )}
+            </div>
+            {bandwidthHistory.length > 0 ? (
+              <Sparkline
+                values={bandwidthHistory}
+                label="Bandwidth over time (kbps)"
+              />
+            ) : (
+              <p className="muted" style={{ margin: 0 }}>
+                Waiting for the first stats sample…
+              </p>
+            )}
+          </section>
+        </>
+      ) : archiving ? (
+        <div className="stats-row">
+          <Stat label="Status" value={archiveDone ? "Archived" : "Archiving"} />
+          <Stat label="Stream" value={streamId ?? "—"} />
+        </div>
+      ) : (
+        <div className="stats-row">
           <div className="empty" style={{ width: "100%" }}>
             No broadcast yet — start one to see stream health here.
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }

@@ -34,11 +34,11 @@ The QLive web UI provides:
 - [~] Error and warning notifications (publish/signaling failures surfaced; stream/encoder warnings pending)
 
 ### Dashboard Features
-- [ ] Real-time viewer count
-- [ ] Bandwidth usage graph
-- [ ] Buffer health indicator
-- [ ] Chunk production rate
-- [ ] Retransmission statistics
+- [x] Real-time viewer count — from the live stats feed (`subscribeStats`)
+- [x] Bandwidth usage graph — `Sparkline` of a rolling bandwidth window
+- [x] Buffer health indicator — colour-toned stat (`filling`/`healthy`/`stalling`/`overflow`)
+- [x] Chunk production rate — session-average chunks/min
+- [x] Retransmission statistics — cumulative count from the stats feed
 - [ ] QORT earnings display (if monetized)
 
 ---
