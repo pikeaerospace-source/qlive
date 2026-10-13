@@ -325,6 +325,12 @@ button {
   border-color: var(--success);
 }
 
+select.player-controls__quality {
+  color-scheme: dark;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 /* Active low-latency toggle mirrors the accent used for the live badge. */
 .player-controls__toggle[aria-pressed="true"] {
   background: var(--accent);

@@ -5,11 +5,16 @@
  * offline and deterministically.
  */
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Stream } from "../types";
-import Player, { RETRY_BACKOFF_MS, bufferHealth } from "./Player";
+import Player, {
+  AUTO_LEVEL,
+  RETRY_BACKOFF_MS,
+  bufferHealth,
+  levelLabel,
+} from "./Player";
 
 type Handler = (event: string, data: unknown) => void;
 type FatalData = { fatal: boolean; type: string };
@@ -18,7 +23,11 @@ const { FakeHls } = vi.hoisted(() => {
   class FakeHls {
     static instances: FakeHls[] = [];
     static supported = true;
-    static Events = { ERROR: "hlsError" };
+    static Events = {
+      ERROR: "hlsError",
+      MANIFEST_PARSED: "hlsManifestParsed",
+      LEVEL_SWITCHED: "hlsLevelSwitched",
+    };
     static ErrorTypes = {
       NETWORK_ERROR: "networkError",
       MEDIA_ERROR: "mediaError",
@@ -31,6 +40,11 @@ const { FakeHls } = vi.hoisted(() => {
     startLoadCalls = 0;
     recoverMediaErrorCalls = 0;
     destroyed = false;
+    /** Renditions advertised by the (fake) manifest. */
+    levels: { height?: number; bitrate: number }[] = [];
+    /** hls.js currentLevel (-1 = automatic). */
+    currentLevel = -1;
+    autoLevelEnabled = true;
 
     constructor(config?: { lowLatencyMode?: boolean }) {
       this.config = config ?? {};
@@ -51,7 +65,7 @@ const { FakeHls } = vi.hoisted(() => {
     }
 
     /** Fire a recorded hls.js event (as hls.js would). */
-    emit(event: string, data: unknown) {
+    emit(event: string, data?: unknown) {
       this.handlers[event]?.(event, data);
     }
 
@@ -411,5 +425,86 @@ describe("Player picture-in-picture", () => {
 
     fireEvent.click(button);
     expect(request).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Player quality selector", () => {
+  beforeEach(() => {
+    FakeHls.reset();
+  });
+
+  const qualitySelect = () =>
+    screen.getByRole("combobox", {
+      name: "Stream quality",
+    }) as HTMLSelectElement;
+
+  const withLevels = async () => {
+    const hls = await renderPlayer();
+    hls.levels = [
+      { height: 720, bitrate: 2_500_000 },
+      { height: 1080, bitrate: 4_500_000 },
+    ];
+    act(() => hls.emit("hlsManifestParsed"));
+    return hls;
+  };
+
+  it("shows a static source label until the manifest is parsed", async () => {
+    await renderPlayer();
+
+    expect(
+      screen.queryByRole("combobox", { name: "Stream quality" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTitle("Stream quality")).toHaveTextContent("Source");
+  });
+
+  it("offers Auto plus a label per advertised rendition", async () => {
+    await withLevels();
+
+    const select = qualitySelect();
+    expect(
+      within(select).getByRole("option", { name: "Auto" }),
+    ).toBeInTheDocument();
+    expect(
+      within(select).getByRole("option", { name: "720p" }),
+    ).toBeInTheDocument();
+    expect(
+      within(select).getByRole("option", { name: "1080p" }),
+    ).toBeInTheDocument();
+    expect(select.value).toBe(String(AUTO_LEVEL));
+  });
+
+  it("sets the hls level when a rendition is chosen, and back to Auto", async () => {
+    const hls = await withLevels();
+
+    fireEvent.change(qualitySelect(), { target: { value: "1" } });
+    expect(hls.currentLevel).toBe(1);
+
+    fireEvent.change(qualitySelect(), {
+      target: { value: String(AUTO_LEVEL) },
+    });
+    expect(hls.currentLevel).toBe(AUTO_LEVEL);
+  });
+
+  it("reflects an ABR level switch in the selector", async () => {
+    const hls = await withLevels();
+
+    hls.autoLevelEnabled = false;
+    hls.currentLevel = 1;
+    act(() => hls.emit("hlsLevelSwitched"));
+    expect(qualitySelect().value).toBe("1");
+
+    hls.autoLevelEnabled = true;
+    act(() => hls.emit("hlsLevelSwitched"));
+    expect(qualitySelect().value).toBe(String(AUTO_LEVEL));
+  });
+});
+
+describe("levelLabel", () => {
+  it("uses the height when present", () => {
+    expect(levelLabel({ height: 1080, bitrate: 4_500_000 })).toBe("1080p");
+  });
+
+  it("falls back to kbps without a height", () => {
+    expect(levelLabel({ bitrate: 4_500_000 })).toBe("4500 kbps");
   });
 });

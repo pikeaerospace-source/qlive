@@ -48,9 +48,9 @@ The QLive web UI provides:
 - [~] Web player (HLS/CMAF playback, low-latency mode) — hls.js wired, mock placeholder
 - [x] Play/pause controls — custom control bar (native `controls` removed)
 - [x] Volume and fullscreen controls — mute toggle + volume slider + fullscreen button (auto-disabled where unsupported)
-- [~] Adaptive bitrate indicator — quality label shown; selection needs a multi-rendition ladder (open design question #3)
+- [x] Adaptive bitrate indicator — quality selector reflects hls.js ABR level switches (`LEVEL_SWITCHED`)
 - [x] Buffer health indicator — control-bar chip (`buffering`/`low`/`healthy`) derived from the buffered-ahead window + a `bufferHealth()` helper
-- [~] Stream quality selector — quality label (`Source`/`Auto`) displayed; switching needs renditions
+- [x] Stream quality selector — `select` listing Auto + each manifest rendition, wired to `hls.currentLevel` (falls back to a static "Source" label with no advertised renditions)
 - [ ] Chat panel (optional)
 
 ### Player Features

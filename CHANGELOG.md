@@ -71,6 +71,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **player quality selector (ABR)** — the `Player` control bar now
+  offers a **quality selector** built from the HLS manifest's renditions
+  (`MANIFEST_PARSED`): **Auto** plus one entry per level (`1080p`, …), wired to
+  `hls.currentLevel`; `LEVEL_SWITCHED` keeps the selection in sync as ABR
+  switches. With no advertised renditions it falls back to the static "Source"
+  label. Replaces the `quality` prop / `QualityLabel` type with the live
+  selector; exports `AUTO_LEVEL`, `QualityLevel`, `levelLabel`. Tests:
+  `Player.test.tsx` (+6) — suite **121 passing** (was 115)
 - Web UI: **broadcaster dashboard live stats widgets** — the dashboard now
   subscribes to the swarm stats feed (`selectApi().subscribeStats`) while live
   and renders real metrics instead of placeholders: **viewer count**, a

@@ -29,8 +29,21 @@ export function bufferHealth(
   return "healthy";
 }
 
-/** Playlist / quality label rendered in the control bar. */
-export type QualityLabel = string | "Auto" | "Source";
+/** ABR sentinel: hls.js `currentLevel = -1` selects the automatic level. */
+export const AUTO_LEVEL = -1;
+
+/** A selectable rendition advertised by the HLS manifest. */
+export interface QualityLevel {
+  height?: number;
+  bitrate: number;
+}
+
+/** Human label for a rendition (e.g. `1080p`, or `4500 kbps` without a height). */
+export function levelLabel(level: QualityLevel): string {
+  return level.height
+    ? `${level.height}p`
+    : `${Math.round(level.bitrate / 1000)} kbps`;
+}
 
 /** Public playback controls exposed by the player (for keyboard shortcuts). */
 export interface PlayerControls {
@@ -81,19 +94,23 @@ type PipVideo = HTMLVideoElement & {
 export default function Player({
   stream,
   controlsRef,
-  quality = "Source",
 }: {
   stream: Stream;
   /** Optional sink for the playback controls (used by keyboard shortcuts). */
   controlsRef?: { current: PlayerControls | null };
-  quality?: QualityLabel;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  /** Live hls.js instance (for the quality selector). */
+  const hlsRef = useRef<Hls | null>(null);
   const [state, setState] = useState<PlaybackState>("connecting");
   /** Bumped by Retry to rebuild the playback pipeline from scratch. */
   const [attempt, setAttempt] = useState(0);
   const [media, setMedia] = useState<MediaStatus>(INITIAL_MEDIA);
+  /** Renditions advertised by the HLS manifest (empty until parsed). */
+  const [levels, setLevels] = useState<QualityLevel[]>([]);
+  /** Selected rendition index, or `AUTO_LEVEL` for ABR. */
+  const [quality, setQuality] = useState<number>(AUTO_LEVEL);
 
   const isLive = stream.status === "live";
   const url = stream.playbackUrl;
@@ -297,6 +314,9 @@ export default function Player({
     if (!video || !url) return;
 
     setState("connecting");
+    // The pipeline is rebuilt on every window/retry change: drop stale renditions.
+    setLevels([]);
+    setQuality(AUTO_LEVEL);
     let cancelled = false;
     let hls: Hls | undefined;
     let recoveries = 0;
@@ -351,6 +371,25 @@ export default function Player({
       // archived fragments played back at normal latency (no re-encoding). The
       // mode is a constructor option, so toggling it re-runs this effect.
       hls = new HlsClass({ enableWorker: true, lowLatencyMode: lowLatency });
+      hlsRef.current = hls;
+
+      // Expose the manifest's renditions so the control bar can offer a quality
+      // selector, and keep it in sync as ABR switches levels.
+      hls.on(HlsClass.Events.MANIFEST_PARSED, () => {
+        setLevels(
+          (hls?.levels ?? []).map((level) => ({
+            height: level.height,
+            bitrate: level.bitrate,
+          })),
+        );
+      });
+      hls.on(HlsClass.Events.LEVEL_SWITCHED, () => {
+        setQuality(
+          hls?.autoLevelEnabled
+            ? AUTO_LEVEL
+            : (hls?.currentLevel ?? AUTO_LEVEL),
+        );
+      });
 
       hls.on(HlsClass.Events.ERROR, (_event, data) => {
         if (!data.fatal) return; // hls.js recovers non-fatal errors by itself.
@@ -381,9 +420,16 @@ export default function Player({
       cancelled = true;
       if (timer) clearTimeout(timer);
       video.removeEventListener("playing", onPlaying);
+      hlsRef.current = null;
       hls?.destroy();
     };
   }, [url, isLive, lowLatency, attempt]);
+
+  /** Select a rendition, or `AUTO_LEVEL` to re-enable ABR. */
+  function selectQuality(value: number) {
+    setQuality(value);
+    if (hlsRef.current) hlsRef.current.currentLevel = value;
+  }
 
   if (!stream.playbackUrl) {
     return (
@@ -485,9 +531,26 @@ export default function Player({
             : `Buffer ${media.bufferedAheadSec.toFixed(1)}s`}
         </span>
 
-        <span className="player-controls__quality" title="Stream quality">
-          {quality}
-        </span>
+        {levels.length > 0 ? (
+          <select
+            className="player-controls__quality"
+            aria-label="Stream quality"
+            title="Stream quality"
+            value={quality}
+            onChange={(e) => selectQuality(Number(e.target.value))}
+          >
+            <option value={AUTO_LEVEL}>Auto</option>
+            {levels.map((level, index) => (
+              <option key={index} value={index}>
+                {levelLabel(level)}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className="player-controls__quality" title="Stream quality">
+            Source
+          </span>
+        )}
 
         {isLive && (
           <button
