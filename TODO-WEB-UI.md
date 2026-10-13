@@ -51,7 +51,7 @@ The QLive web UI provides:
 - [x] Adaptive bitrate indicator — quality selector reflects hls.js ABR level switches (`LEVEL_SWITCHED`)
 - [x] Buffer health indicator — control-bar chip (`buffering`/`low`/`healthy`) derived from the buffered-ahead window + a `bufferHealth()` helper
 - [x] Stream quality selector — `select` listing Auto + each manifest rendition, wired to `hls.currentLevel` (falls back to a static "Source" label with no advertised renditions)
-- [ ] Chat panel (optional)
+- [x] Chat panel (optional) — ephemeral stream chat (`data/chat.ts` seam + `ChatPanel`), shown on the watch page for live streams
 
 ### Player Features
 - [x] Low-latency mode toggle — on by default for live, hidden for replays; toggling rebuilds the hls.js pipeline (constructor option)
@@ -123,7 +123,7 @@ The QLive web UI provides:
 - [x] Player component
 - [x] Stream card component
 - [x] Streamer profile component
-- [ ] Chat component
+- [x] Chat component — `ChatPanel` (`src/js/src/components/ChatPanel.tsx`)
 - [x] Dashboard widgets
 
 ---

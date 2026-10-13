@@ -133,7 +133,7 @@ External dependency areas have their own dedicated TODO documents:
 - [x] CLI tool for watching a stream (`qlive watch`)
 - [~] Web player (HLS/CMAF playback, low-latency mode) — adopt `qapp-core` VideoPlayer → [TODO-QAPP-CORE.md](TODO-QAPP-CORE.md)
 - [x] Stream discovery UI (browse active streams)
-- [ ] Chat integration (optional, via QDN or separate channel)
+- [x] Chat integration (optional, via QDN or separate channel) — Web UI `ChatPanel` + offline chat seam (`src/js/src/data/chat.ts`); a mesh/WebSocket client replaces the simulator when the live transport lands → [TODO-WEB-UI.md](TODO-WEB-UI.md)
 
 ### Q-Tube Integration
 - [ ] Embed QLive player in Q-Tube

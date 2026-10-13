@@ -24,6 +24,11 @@ vi.mock("../data/api", () => ({
   }),
 }));
 
+// Isolate the chat seam so these tests focus on the page's own data wiring.
+vi.mock("../data/chat", () => ({
+  createChatClient: () => ({ subscribe: () => () => {}, send: () => {} }),
+}));
+
 const stream = (overrides: Partial<Stream> = {}): Stream => ({
   streamId: "s1",
   publisher: "alice",

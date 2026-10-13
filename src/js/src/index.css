@@ -438,6 +438,45 @@ select.player-controls__quality {
   vector-effect: non-scaling-stroke;
 }
 
+/* ---------- Live chat ---------- */
+.chat__log {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chat__message {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.chat__author {
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.chat__text {
+  color: var(--text);
+  word-break: break-word;
+}
+
+.chat__form {
+  display: flex;
+  gap: 8px;
+}
+
+.chat__form .search {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ---------- Forms ---------- */
 .field {
   display: flex;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import ChatPanel from "../components/ChatPanel";
 import Player from "../components/Player";
 import Skeleton from "../components/Skeleton";
 import Stat from "../components/Stat";
@@ -201,6 +202,12 @@ export default function WatchPage() {
           </>
         )}
       </div>
+
+      {isLive && (
+        <div style={{ maxWidth: 560, marginTop: 24 }}>
+          <ChatPanel streamId={stream.streamId} />
+        </div>
+      )}
     </>
   );
 }

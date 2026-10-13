@@ -71,6 +71,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Web UI: **live chat** — new offline chat seam (`src/js/src/data/chat.ts`:
+  `ChatClient` / `MockChatClient` / `createChatClient`) and a `ChatPanel`
+  component (message log with `aria-live`, compose box, Send disabled on an empty
+  draft), rendered on the watch page for live streams. Chat is **ephemeral and
+  stream-scoped** (rides the live transport, not QDN); a sent message is echoed
+  back through the subscription so the author and other viewers render
+  identically. A mesh/WebSocket client replaces the simulator when the live
+  transport lands. Tests: `chat.test.ts` (new, 7) + `ChatPanel.test.tsx` (new, 6)
+  — suite **134 passing** (was 121)
 - Web UI: **player quality selector (ABR)** — the `Player` control bar now
   offers a **quality selector** built from the HLS manifest's renditions
   (`MANIFEST_PARSED`): **Auto** plus one entry per level (`1080p`, …), wired to
